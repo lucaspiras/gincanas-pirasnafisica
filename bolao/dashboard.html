@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seus Bolões · Bolão da Copa 2026</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TY56KM22X8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-TY56KM22X8');
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+    <!-- Bolões -->
+    <section>
+      <div class="section-header">
+        <h2>Seus bolões</h2>
+        <div class="pitch-rule"></div>
+      </div>
+      <div id="pools-list" class="stack gap-8 mt-16">
+        <div class="empty"><strong>Carregando…</strong></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import {
+      supabase, requireAuthWithProfile,
+      renderHeader, bindSignOut, escHtml
+    } from './supabase.js'
+
+    const { user, profile } = await requireAuthWithProfile() ?? {}
+    if (!user) throw new Error('not reached')
+
+    document.getElementById('header-slot').innerHTML = renderHeader(profile, true)
+    bindSignOut()
+
+    // Carregar bolões
+    async function loadPools() {
+      const { data, error } = await supabase
+        .from('pool_members')
+        .select('pool:pools(id, name)')
+        .eq('user_id', user.id)
+        .order('joined_at', { ascending: true })
+
+      const list = document.getElementById('pools-list')
+      if (error || !data?.length) {
+        list.innerHTML = `
+          <div class="empty">
+            <strong>Nenhum bolão ainda</strong>
+            Você ainda não foi adicionado a nenhum bolão. Fale com o organizador.
+          </div>`
+        return
+      }
+
+      list.innerHTML = data
+        .filter(m => m.pool)
+        .map(m => `
+          <a href="pool.html?id=${m.pool.id}" class="pool-card">
+            <div>
+              <span class="display" style="font-weight:700;font-size:1rem">
+                ${escHtml(m.pool.name)}
+              </span>
+            </div>
+            <span class="pool-card-arrow">→</span>
+          </a>`)
+        .join('')
+    }
+
+    await loadPools()
+  </script>
+</body>
+</html>

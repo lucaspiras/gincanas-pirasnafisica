@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gincana Quiz</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/icons/favicon-32.png">
+  <link rel="stylesheet" href="../bolao/style.css">
+  <style>
+    .gq-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .gq-name { font-weight:700; display:flex; align-items:center; gap:6px; }
+    .gq-timerbar { height:8px; border-radius:6px; background:var(--line); overflow:hidden; margin-top:6px; }
+    .gq-timerfill { height:100%; background:var(--pitch); transition:width .2s linear; }
+    .gq-qbox { text-align:center; padding:8px 0 4px; }
+    .gq-qmeta { font-family:var(--font-mono,monospace); font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    .gq-qtext { font-size:1.35rem; font-weight:600; line-height:1.3; margin:12px 0; }
+    .gq-opts { display:grid; grid-template-columns:1fr; gap:12px; margin-top:8px; }
+    @media (min-width:520px){ .gq-opts{ grid-template-columns:1fr 1fr; } }
+    .gq-opt {
+      display:flex; align-items:center; gap:12px; text-align:left; width:100%;
+      padding:16px 18px; border:2px solid var(--line); border-radius:16px; background:#fff;
+      font-size:1.05rem; cursor:pointer; transition:all .12s;
+    }
+    .gq-opt:disabled { cursor:default; }
+    .gq-opt .k { font-family:var(--font-mono,monospace); font-weight:700; width:28px; height:28px; border-radius:50%;
+      background:var(--paper); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .gq-opt.sel { border-color:var(--pitch); background:var(--pitch-light); }
+    .gq-opt.sel .k { background:var(--pitch); color:#fff; }
+    .gq-opt.correct { border-color:var(--pitch); background:var(--pitch-light); }
+    .gq-opt.correct .k { background:var(--pitch); color:#fff; }
+    .gq-opt.wrong { border-color:var(--flare); background:rgba(224,80,60,.08); }
+    .gq-banner { text-align:center; padding:14px; border-radius:14px; font-weight:700; margin-top:8px; }
+    .gq-ok { background:var(--pitch-light); color:var(--pitch-deep); }
+    .gq-no { background:rgba(224,80,60,.1); color:var(--flare); }
+    .gq-wait { text-align:center; padding:40px 16px; }
+    .gq-wait .big { font-size:2.2rem; }
+    .gq-mini-score { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:8px; font-size:.9rem; }
+    .gq-mini-score.me { background:var(--pitch-light); font-weight:700; }
+    .gq-mini-score .p { margin-left:auto; font-family:var(--font-mono,monospace); font-weight:700; color:var(--pitch-deep); }
+  </style>
+</head>
+<body>
+  <main class="container pt-24 pb-32" style="max-width:620px">
+    <div id="app"><div class="empty"><strong>Carregando…</strong></div></div>
+  </main>
+
+  <script type="module">
+    import { supabase, requireAuthWithProfile, escHtml, signOut } from '../bolao/supabase.js'
+
+    const auth = await requireAuthWithProfile('login.html')
+    if (!auth) throw new Error('stop')
+    const me = auth.user.id
+
+    const app = document.getElementById('app')
+    let S = { game:null, state:null, isTeam:false, eliminated:false, scoreboard:[], myChoice:null }
+    let channel = null, timer = null, curQ = null
+    let localAnchor=null, localOpenQid=null, calibrating=false   // cronômetro local, imune ao relógio do sistema
+
+    const rpc = (fn,args)=>supabase.rpc(fn,args)
+
+    // Com várias gincanas podendo existir ao mesmo tempo, a equipe não pode simplesmente
+    // pegar "a mais recente" — busca as gincanas em que ELA está inscrita, preferindo
+    // a mais recente ainda em andamento (senão, a mais recente já encerrada, p/ ver o pódio).
+    async function loadGame() {
+      const { data } = await supabase.from('quiz_teams').select('game_id, quiz_games(*)').eq('team_id', me)
+      const games = (data ?? []).map(r => r.quiz_games).filter(Boolean)
+      const byNewest = (a,b) => new Date(b.created_at) - new Date(a.created_at)
+      const active   = games.filter(g => g.status !== 'finished').sort(byNewest)[0]
+      const finished = games.filter(g => g.status === 'finished').sort(byNewest)[0]
+      S.game = active ?? finished ?? null
+    }
+    async function loadLive() {
+      if (!S.game) return
+      const [st, mem, sb] = await Promise.all([
+        supabase.from('quiz_state').select('*').eq('game_id', S.game.id).maybeSingle(),
+        supabase.from('quiz_teams').select('team_id, eliminated').eq('game_id', S.game.id).eq('team_id', me).maybeSingle(),
+        rpc('quiz_scoreboard', { p_game:S.game.id }),
+      ])
+      S.state = st.data ?? null
+      S.isTeam = !!mem.data
+      S.eliminated = !!mem.data?.eliminated
+      S.scoreboard = sb.data ?? []
+      // minha resposta na pergunta atual
+      if (S.state?.current_question_id) {
+        const { data: mc } = await rpc('quiz_my_answer', { p_question_id:S.state.current_question_id })
+        S.myChoice = mc ?? null
+      } else S.myChoice = null
+    }
+
+    function subscribe() {
+      if (channel) supabase.removeChannel(channel)
+      if (!S.game) return
+      channel = supabase.channel('gq-team-'+S.game.id)
+        .on('postgres_changes', { event:'*', schema:'public', table:'quiz_state', filter:'game_id=eq.'+S.game.id },
+            async () => { await loadLive(); render() })
+        .on('postgres_changes', { event:'*', schema:'public', table:'quiz_games', filter:'id=eq.'+S.game.id },
+            async () => { await loadGame(); await loadLive(); render() })
+        .subscribe()
+    }
+    // Rede/Wi-Fi instável (comum num evento com várias equipes no mesmo Wi-Fi) pode
+    // derrubar o socket do Realtime sem avisar — a equipe fica "presa" na pergunta
+    // anterior, achando que "não carregou" ou que "o tempo não começou". Este poll
+    // reconfere o estado periodicamente, independente do Realtime, como rede de segurança.
+    let statePoll = null
+    function startStatePoll() {
+      clearInterval(statePoll)
+      let lastSig = null
+      statePoll = setInterval(async () => {
+        if (!S.game) return
+        await loadLive()
+        const sig = JSON.stringify([S.game?.status, S.state?.question_status, S.state?.current_question_id, S.state?.question_started_at])
+        if (sig !== lastSig) { lastSig = sig; render() }
+      }, 3000)   // um pouco mais espaçado que o do telão — aqui multiplica por N equipes
+    }
+
+    // ── Cronômetro ───────────────────────────────────────────────────────
+    // Igual ao board.html: cronômetro local calibrado uma vez pelo servidor
+    // (RPC quiz_elapsed_ms), depois contado com performance.now() — imune a
+    // relógio de sistema desconfigurado no aparelho do aluno.
+    async function ensureCalibrated(st){
+      if (localOpenQid === st.current_question_id || calibrating) return
+      calibrating = true
+      const nowLocal = performance.now()
+      const { data: elapsedMs } = await rpc('quiz_elapsed_ms', { p_game: S.game.id })
+      localOpenQid = st.current_question_id
+      localAnchor = nowLocal - (elapsedMs ?? 0)
+      calibrating = false
+    }
+    function remaining() {
+      const st = S.state
+      if (!st || st.question_status!=='open' || localOpenQid!==st.current_question_id || localAnchor==null) return null
+      const elapsed = performance.now() - localAnchor
+      return Math.max(0, st.question_seconds*1000 - elapsed)
+    }
+    function tick() {
+      const rem = remaining()
+      const bar = document.getElementById('timerfill'); const num = document.getElementById('timernum')
+      if (rem==null || !bar) return
+      const pct = Math.max(0, Math.min(100, rem/(S.state.question_seconds*1000)*100))
+      bar.style.width = pct+'%'
+      if (num) num.textContent = Math.ceil(rem/1000)+'s'
+      if (rem<=0) {
+        document.querySelectorAll('.gq-opt').forEach(b=>b.disabled=true)
+        if (num) num.textContent = 'tempo esgotado'
+      }
+    }
+    function startTimer(){ clearInterval(timer); timer=setInterval(tick,200); tick() }
+
+    // ── Render ───────────────────────────────────────────────────────────
+    function render() {
+      clearInterval(timer)
+      if (!S.game || S.game.status==='setup')
+        return wait('⏳', 'A gincana ainda não começou', 'Aguarde o apresentador iniciar.')
+      if (S.game.status==='finished') return renderFinished()
+
+      const st = S.state
+      if (!st || !st.current_question_id || st.question_status==='idle')
+        return wait('🎬', 'Aguardando a próxima pergunta',
+          S.eliminated ? 'Sua equipe foi eliminada — acompanhe o placar.'
+                       : (S.isTeam ? 'Fique pronto!' : 'Você está assistindo.'))
+
+      // Equipe eliminada (rodada final) vira espectadora.
+      const canAnswer = S.isTeam && !S.eliminated
+      renderQuestion(st, canAnswer)
+    }
+
+    function shell(inner) {
+      const meScore = S.scoreboard.find(s=>s.team_id===me)
+      app.innerHTML = `
+        <div class="gq-head">
+          <div class="gq-name">${escHtml(auth.profile.avatar||'👥')} ${escHtml(auth.profile.display_name)}${S.eliminated?' <span class="mono" style="color:var(--flare);font-size:.7rem">✖ eliminada</span>':''}</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            ${meScore?`<span class="gq-pill" style="font-family:var(--font-mono,monospace);font-size:.8rem;background:var(--pitch-light);color:var(--pitch-deep);padding:3px 10px;border-radius:999px">${meScore.total_points} pts</span>`:''}
+            <button id="btn-signout" class="btn btn-ghost btn-sm">Sair</button>
+          </div>
+        </div>
+        <div class="card mt-12">${inner}</div>
+        ${miniScore()}`
+      document.getElementById('btn-signout')?.addEventListener('click', signOut)
+    }
+    function wait(icon, title, sub) {
+      shell(`<div class="gq-wait"><div class="big">${icon}</div>
+        <h2 style="margin:10px 0 4px">${title}</h2><p class="muted">${sub||''}</p></div>`)
+    }
+
+    function renderQuestion(st, canAnswer) {
+      const status = st.question_status
+      const answered = !!S.myChoice
+      const revealed = status==='revealed'
+      const correctKey = revealed ? st.reveal_correct_key : null
+      const meta = `Pergunta ${st.q_ord} · ${st.q_points} pts${st.q_ord>=21?' · rodada final':''}`
+
+      // Enquanto a pergunta está aberta, a equipe pode trocar de resposta livremente —
+      // só trava de vez quando o apresentador encerra o tempo ou revela a correta.
+      const canChange = status==='open' && canAnswer
+      const opts = (st.q_options||[]).map(o => {
+        let cls = 'gq-opt'
+        if (revealed && o.key===correctKey) cls+=' correct'
+        else if (revealed && o.key===S.myChoice && o.key!==correctKey) cls+=' wrong'
+        else if (o.key===S.myChoice) cls+=' sel'
+        const dis = canChange ? '' : 'disabled'
+        return `<button class="${cls}" data-k="${o.key}" ${dis}>
+          <span class="k">${o.key}</span><span>${escHtml(o.label)}</span></button>`
+      }).join('')
+
+      let banner = ''
+      if (revealed && canAnswer) {
+        const ok = S.myChoice && S.myChoice===correctKey
+        banner = answered
+          ? `<div class="gq-banner ${ok?'gq-ok':'gq-no'}">${ok?`✓ Acertou! +${st.q_points||0} pts`:'✗ Não foi dessa vez'}</div>`
+          : `<div class="gq-banner gq-no">Sem resposta registrada</div>`
+      } else if (status==='shown') {
+        banner = `<div class="muted" style="text-align:center;margin-top:6px">Prepare-se… o tempo vai começar</div>`
+      } else if (status==='closed' && canAnswer) {
+        banner = `<div class="gq-banner gq-ok">Tempo encerrado — aguarde a revelação</div>`
+      } else if (status==='open' && !canAnswer) {
+        banner = `<div class="muted" style="text-align:center;margin-top:6px">${S.eliminated?'✖ Sua equipe foi eliminada — acompanhe o placar':'👀 Você está assistindo'}</div>`
+      } else if (status==='open' && answered) {
+        banner = `<div class="gq-banner gq-ok">Resposta enviada ✓ — pode trocar até o tempo acabar</div>`
+      }
+
+      const timerHtml = status==='open'
+        ? `<div class="gq-timerbar"><div class="gq-timerfill" id="timerfill" style="width:100%"></div></div>
+           <div class="muted mono" id="timernum" style="text-align:center;font-size:.8rem;margin-top:4px"></div>` : ''
+
+      shell(`<div class="gq-qbox">
+          <div class="gq-qmeta">${meta}</div>
+          <div class="gq-qtext">${escHtml(st.q_text||'')}</div>
+        </div>
+        ${timerHtml}
+        <div class="gq-opts">${opts}</div>
+        ${banner}`)
+
+      if (canChange) {
+        document.querySelectorAll('.gq-opt').forEach(b => b.addEventListener('click', () => submit(b.dataset.k)))
+      }
+      if (status==='open') { ensureCalibrated(st); startTimer() }
+      else { localOpenQid = null; localAnchor = null }
+    }
+
+    async function submit(choice) {
+      const prev = S.myChoice
+      S.myChoice = choice
+      document.querySelectorAll('.gq-opt').forEach(b=> b.classList.toggle('sel', b.dataset.k===choice))
+      const { error } = await rpc('quiz_submit_answer', { p_question_id:S.state.current_question_id, p_choice:choice })
+      if (error) {
+        S.myChoice = prev
+        alert(error.message || 'Não deu para enviar. Tente de novo.')
+        render()
+      } else {
+        render()
+      }
+    }
+
+    function miniScore() {
+      const rows = S.scoreboard.slice(0,10).map((s,i)=>`
+        <div class="gq-mini-score ${s.team_id===me?'me':''}">
+          <span class="mono" style="width:22px;color:var(--muted)">${i+1}</span>
+          <span>${escHtml(s.avatar||'👥')}</span><span>${escHtml(s.display_name)}</span>
+          <span class="p">${s.total_points}</span></div>`).join('')
+      return `<div class="card mt-12"><h3 style="font-size:.95rem">Placar</h3>
+        <div style="margin-top:6px;display:flex;flex-direction:column;gap:3px">${rows||'<p class="muted">—</p>'}</div></div>`
+    }
+
+    function renderFinished() {
+      const champ = S.scoreboard[0]
+      app.innerHTML = `<div class="card" style="text-align:center;margin-top:8px">
+          <div style="font-size:2.6rem">🏆</div>
+          <h2 style="margin:6px 0">${escHtml(champ?.display_name||'')}</h2>
+          <p class="muted">Fim da gincana!</p>
+        </div>${miniScore()}
+        <div style="text-align:center;margin-top:16px"><button id="btn-signout" class="btn btn-ghost btn-sm">Sair</button></div>`
+      document.getElementById('btn-signout')?.addEventListener('click', signOut)
+    }
+
+    // ── Boot ─────────────────────────────────────────────────────────────
+    await loadGame(); await loadLive(); subscribe(); startStatePoll(); render()
+  </script>
+</body>
+</html>

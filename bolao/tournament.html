@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pódio · Bolão Copa 2026</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TY56KM22X8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-TY56KM22X8');
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+    <div id="pool-nav-slot"></div>
+    <div id="loading" class="empty"><strong>Carregando…</strong></div>
+    <div id="content" class="hidden">
+
+      <div class="section-header">
+        <p class="eyebrow">Aposta especial</p>
+        <h2>Pódio da Copa</h2>
+        <div class="pitch-rule"></div>
+      </div>
+      <p class="muted mt-12" style="font-size:.88rem">
+        Escolha as três seleções que vão terminar a Copa em 1º, 2º e 3º lugar.
+        Não pode repetir seleção. Esta aposta vale independente dos palpites de grupo.
+      </p>
+
+      <!-- Pontuação -->
+      <div class="card mt-16" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 16px">
+        <div style="text-align:center">
+          <div style="font-family:var(--font-display);font-size:1.4rem;font-weight:800;color:var(--gold)">🥇</div>
+          <div id="pts-1st" style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;color:var(--pitch-deep)">100 pts</div>
+          <div style="font-size:.7rem;color:var(--muted)">1º lugar</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:var(--font-display);font-size:1.4rem;font-weight:800;color:var(--silver)">🥈</div>
+          <div id="pts-2nd" style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;color:var(--pitch-deep)">50 pts</div>
+          <div style="font-size:.7rem;color:var(--muted)">2º lugar</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:var(--font-display);font-size:1.4rem;font-weight:800;color:var(--bronze)">🥉</div>
+          <div id="pts-3rd" style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;color:var(--pitch-deep)">25 pts</div>
+          <div style="font-size:.7rem;color:var(--muted)">3º lugar</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:1.4rem">🎯</div>
+          <div id="pts-bonus" style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;color:var(--pitch-deep)">225 pts</div>
+          <div style="font-size:.7rem;color:var(--muted)">Pódio exato</div>
+        </div>
+      </div>
+
+      <!-- Resultado real (se disponível) -->
+      <div id="result-banner" class="hidden card mt-16"
+        style="background:var(--pitch-light);border-color:rgba(14,159,80,.25)">
+        <p style="font-size:.8rem;font-weight:700;color:var(--pitch-deep);margin-bottom:8px">
+          RESULTADO OFICIAL
+        </p>
+        <div id="result-content"></div>
+      </div>
+
+      <!-- Formulário -->
+      <div class="card mt-16">
+        <h3>Seu palpite</h3>
+        <div class="stack gap-12 mt-16" id="pred-form">
+          <div>
+            <label style="font-size:.8rem;font-weight:700;color:var(--muted);display:block;margin-bottom:6px">🥇 1º Lugar — Campeão</label>
+            <select class="filter-select" id="sel-1st" style="width:100%;max-width:none"></select>
+          </div>
+          <div>
+            <label style="font-size:.8rem;font-weight:700;color:var(--muted);display:block;margin-bottom:6px">🥈 2º Lugar — Vice-campeão</label>
+            <select class="filter-select" id="sel-2nd" style="width:100%;max-width:none"></select>
+          </div>
+          <div>
+            <label style="font-size:.8rem;font-weight:700;color:var(--muted);display:block;margin-bottom:6px">🥉 3º Lugar</label>
+            <select class="filter-select" id="sel-3rd" style="width:100%;max-width:none"></select>
+          </div>
+          <button id="btn-save" class="btn btn-primary btn-full">Salvar palpite</button>
+          <p id="save-msg" class="hidden" style="font-size:.85rem;text-align:center"></p>
+        </div>
+      </div>
+
+      <!-- Palpites dos participantes (read-only) -->
+      <div class="card mt-16" style="padding:0;overflow:hidden">
+        <div style="padding:14px 16px 10px;font-size:.8rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--line)">
+          PALPITES DO GRUPO
+        </div>
+        <div id="others-list"></div>
+      </div>
+
+      <div class="mt-24">
+        <a id="back-link" href="dashboard.html" class="btn btn-ghost">← Voltar ao bolão</a>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import {
+      supabase, requireAuthWithProfile,
+      renderHeader, renderPoolNav, bindSignOut,
+      escHtml, translateTeam, teamFlag, getRules
+    } from './supabase.js'
+
+    const poolId = new URLSearchParams(location.search).get('pool')
+    if (!poolId) { location.replace('dashboard.html'); }
+
+    const { user, profile } = await requireAuthWithProfile() ?? {}
+    if (!user) throw new Error('not reached')
+
+    document.getElementById('header-slot').innerHTML = renderHeader(profile, true)
+    bindSignOut()
+    document.getElementById('pool-nav-slot').innerHTML = renderPoolNav(poolId, 'podio')
+    document.getElementById('back-link').href = `pool.html?id=${poolId}`
+
+    // Load everything in parallel
+    const [
+      { data: teamsData },
+      { data: myPred },
+      { data: results },
+      { data: allPreds },
+      { data: members }
+    ] = await Promise.all([
+      supabase.from('matches').select('home_team, away_team, match_date').eq('phase', 'group'),
+      supabase.from('tournament_predictions')
+        .select('pred_1st, pred_2nd, pred_3rd')
+        .eq('pool_id', poolId).eq('user_id', user.id).maybeSingle(),
+      supabase.from('tournament_results').select('position, team_name').order('position'),
+      supabase.from('tournament_predictions')
+        .select('user_id, pred_1st, pred_2nd, pred_3rd')
+        .eq('pool_id', poolId),
+      supabase.from('pool_members')
+        .select('user_id, profiles(display_name)')
+        .eq('pool_id', poolId)
+    ])
+
+    const rules = await getRules(poolId)
+    document.getElementById('pts-1st').textContent   = `${rules.tourn_1st ?? 100} pts`
+    document.getElementById('pts-2nd').textContent   = `${rules.tourn_2nd ?? 50} pts`
+    document.getElementById('pts-3rd').textContent   = `${rules.tourn_3rd ?? 25} pts`
+    document.getElementById('pts-bonus').textContent = `${rules.tourn_bonus ?? 225} pts`
+
+    // Build sorted team list
+    const teamSet = new Set()
+    for (const m of teamsData ?? []) {
+      if (m.home_team && m.home_team !== 'TBD') teamSet.add(m.home_team)
+      if (m.away_team && m.away_team !== 'TBD') teamSet.add(m.away_team)
+    }
+    const teams = [...teamSet].sort((a, b) => translateTeam(a).localeCompare(translateTeam(b), 'pt-BR'))
+
+    // Populate selects
+    function populateSelect(id, selected) {
+      const sel = document.getElementById(id)
+      sel.innerHTML = `<option value="">— Escolha —</option>` +
+        teams.map(t => `<option value="${escHtml(t)}" ${t === selected ? 'selected' : ''}>${escHtml(translateTeam(t))}</option>`).join('')
+    }
+    populateSelect('sel-1st', myPred?.pred_1st)
+    populateSelect('sel-2nd', myPred?.pred_2nd)
+    populateSelect('sel-3rd', myPred?.pred_3rd)
+
+    // Apostas de pódio fecham no início da Copa (1ª partida da fase de grupos).
+    const kickoffs = (teamsData ?? []).map(m => m.match_date).filter(Boolean).map(d => new Date(d).getTime())
+    const firstKickoff = kickoffs.length ? Math.min(...kickoffs) : null
+    const podiumLocked = firstKickoff !== null && Date.now() >= firstKickoff
+    if (podiumLocked) {
+      for (const id of ['sel-1st', 'sel-2nd', 'sel-3rd']) document.getElementById(id).disabled = true
+      const btn = document.getElementById('btn-save')
+      btn.disabled = true; btn.textContent = 'Apostas encerradas'
+      showMsg('As apostas de pódio fecharam no início da Copa.', 'var(--muted)')
+    }
+
+    // Show actual results if available
+    if (results?.length === 3) {
+      const resultMap = {}
+      for (const r of results) resultMap[r.position] = r.team_name
+      const medals = ['🥇', '🥈', '🥉']
+      document.getElementById('result-content').innerHTML = results.map(r =>
+        `<div style="font-size:.9rem;font-weight:600;margin-bottom:4px">
+          ${medals[r.position-1]} ${teamFlag(r.team_name)}${escHtml(translateTeam(r.team_name))}
+        </div>`).join('')
+      document.getElementById('result-banner').classList.remove('hidden')
+    }
+
+    // Save prediction
+    document.getElementById('btn-save').addEventListener('click', async () => {
+      const v1 = document.getElementById('sel-1st').value
+      const v2 = document.getElementById('sel-2nd').value
+      const v3 = document.getElementById('sel-3rd').value
+      const msg = document.getElementById('save-msg')
+
+      if (podiumLocked) { showMsg('Apostas de pódio encerradas — a Copa já começou.', 'var(--flare)'); return }
+      if (!v1 || !v2 || !v3) {
+        showMsg('Escolha as 3 seleções.', 'var(--flare)'); return
+      }
+      if (new Set([v1, v2, v3]).size < 3) {
+        showMsg('As 3 seleções precisam ser diferentes.', 'var(--flare)'); return
+      }
+
+      const btn = document.getElementById('btn-save')
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'
+      msg.classList.add('hidden')
+
+      const { error } = await supabase.from('tournament_predictions').upsert({
+        pool_id: poolId, user_id: user.id,
+        pred_1st: v1, pred_2nd: v2, pred_3rd: v3,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'pool_id,user_id' })
+
+      btn.disabled = false; btn.textContent = 'Salvar palpite'
+      if (error) showMsg(error.message, 'var(--flare)')
+      else { showMsg('✓ Palpite salvo!', 'var(--pitch-deep)'); loadOthers() }
+    })
+
+    function showMsg(text, color) {
+      const msg = document.getElementById('save-msg')
+      msg.textContent = text; msg.style.color = color; msg.classList.remove('hidden')
+    }
+
+    // Show all participants' predictions
+    function loadOthers() {
+      const nameMap = {}
+      for (const m of members ?? []) nameMap[m.user_id] = m.profiles?.display_name ?? '?'
+
+      const predsMap = {}
+      for (const p of allPreds ?? []) predsMap[p.user_id] = p
+
+      const resultMap = {}
+      for (const r of results ?? []) resultMap[r.position] = r.team_name
+      const hasResult = Object.keys(resultMap).length === 3
+
+      const list = document.getElementById('others-list')
+      if (!Object.keys(predsMap).length) {
+        list.innerHTML = '<p class="muted" style="padding:14px">Nenhum palpite registrado ainda.</p>'
+        return
+      }
+
+      list.innerHTML = Object.entries(predsMap).map(([uid, p]) => {
+        let pts = 0
+        if (hasResult) {
+          if (p.pred_1st === resultMap[1]) pts += rules.tourn_1st ?? 100
+          if (p.pred_2nd === resultMap[2]) pts += rules.tourn_2nd ?? 50
+          if (p.pred_3rd === resultMap[3]) pts += rules.tourn_3rd ?? 25
+          if (p.pred_1st === resultMap[1] && p.pred_2nd === resultMap[2] && p.pred_3rd === resultMap[3])
+            pts += rules.tourn_bonus ?? 225
+        }
+        const isMe = uid === user.id
+        return `
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);${isMe ? 'background:var(--pitch-light)' : ''}">
+            <span style="font-weight:${isMe ? '700' : '500'};font-size:.9rem;flex:1">
+              ${escHtml(nameMap[uid])}${isMe ? ' <span style="font-size:.72rem;color:var(--muted)">(você)</span>' : ''}
+            </span>
+            <span style="font-size:.82rem;color:var(--muted)">
+              🥇 ${escHtml(translateTeam(p.pred_1st ?? '?'))} &nbsp;
+              🥈 ${escHtml(translateTeam(p.pred_2nd ?? '?'))} &nbsp;
+              🥉 ${escHtml(translateTeam(p.pred_3rd ?? '?'))}
+            </span>
+            ${hasResult ? `<span style="font-family:var(--font-display);font-weight:800;font-size:.9rem;color:var(--pitch-deep);min-width:50px;text-align:right">${pts > 0 ? '+' + pts : '0'} pts</span>` : ''}
+          </div>`
+      }).join('')
+    }
+
+    document.getElementById('loading').classList.add('hidden')
+    document.getElementById('content').classList.remove('hidden')
+    loadOthers()
+  </script>
+</body>
+</html>

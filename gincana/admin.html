@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apresentador · Gincana Quiz</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/icons/favicon-32.png">
+  <link rel="stylesheet" href="../bolao/style.css">
+  <style>
+    .gq-topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .gq-pill { font-family:var(--font-mono,monospace); font-size:.72rem; text-transform:uppercase; letter-spacing:.08em;
+      padding:4px 10px; border-radius:999px; background:var(--pitch-light); color:var(--pitch-deep); }
+    .gq-grid2 { display:grid; grid-template-columns:1.3fr .9fr; gap:16px; align-items:start; }
+    @media (max-width:820px){ .gq-grid2{ grid-template-columns:1fr; } }
+    .gq-team-row, .gq-q-row { display:flex; align-items:center; gap:10px; padding:8px 4px; border-top:1px solid var(--line); }
+    .gq-team-row:first-child, .gq-q-row:first-child { border-top:none; }
+    .gq-opt { display:flex; gap:8px; align-items:center; margin-top:6px; }
+    .gq-opt input[type=text]{ flex:1; }
+    .gq-scorerow { display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:10px; }
+    .gq-scorerow .pos { font-family:var(--font-mono,monospace); width:26px; color:var(--muted); }
+    .gq-scorerow .nm { flex:1; font-weight:600; }
+    .gq-scorerow .pt { font-family:var(--font-mono,monospace); font-weight:700; color:var(--pitch-deep); }
+    .gq-scorerow.elim { opacity:.5; }
+    .gq-live-q { background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:16px; }
+    .gq-live-opts { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+    .gq-live-opt { padding:8px 12px; border:1px solid var(--line); border-radius:10px; font-size:.9rem; background:#fff; }
+    .gq-live-opt.correct { background:var(--pitch-light); border-color:var(--pitch); color:var(--pitch-deep); font-weight:700; }
+    .gq-ctrl { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .gq-bracket-col { display:flex; flex-direction:column; gap:10px; }
+    .gq-match { border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:#fff; }
+    .gq-match.active { border-color:var(--pitch); box-shadow:0 0 0 2px var(--pitch-light); }
+    .gq-match .side { display:flex; justify-content:space-between; font-size:.86rem; padding:2px 0; }
+    .gq-match .side.win { font-weight:700; color:var(--pitch-deep); }
+    .gq-msg { font-size:.85rem; margin-top:8px; }
+    .mono { font-family:var(--font-mono,monospace); }
+  </style>
+</head>
+<body>
+  <main class="container pt-24 pb-32">
+    <div id="app"><div class="empty"><strong>Carregando…</strong></div></div>
+  </main>
+
+  <script type="module">
+    import { supabase, requireAuthWithProfile, escHtml, signOut } from '../bolao/supabase.js'
+
+    // Checagem local (não usa requireAdmin do bolão, que redireciona para dashboard.html
+    // do bolão em caso de não-admin — aqui, quem não é admin volta para a tela da equipe).
+    const auth = await requireAuthWithProfile('login.html')
+    if (!auth) throw new Error('stop')
+    if (!auth.profile.is_admin) { location.href = 'index.html'; throw new Error('stop') }
+
+    const app = document.getElementById('app')
+    let S = { game:null, games:[], teams:[], profiles:[], questions:[], scoreboard:[], matches:[], state:null,
+              answersCount:0, answersByTeam:{}, koPick:{} }
+    let pollTimer = null, channel = null
+    let elim = { open:false, ranking:[], selected:new Set() }   // painel de seleção de eliminação
+
+    const rpc  = (fn, args) => supabase.rpc(fn, args)
+    const toast = (m, ok=true) => { const e=document.getElementById('gq-toast'); if(!e)return;
+      e.textContent=m; e.style.color = ok?'var(--pitch-deep)':'var(--flare)'; e.classList.remove('hidden') }
+
+    const ACTIVE_GAME_KEY = 'gq_admin_game_id'
+
+    // ── Carregamento de dados ────────────────────────────────────────────
+    // Lista TODAS as gincanas (não só a mais recente) — o admin escolhe qual abrir.
+    async function loadGames() {
+      const { data, error } = await supabase.from('quiz_games')
+        .select('*, quiz_teams(count)').order('created_at', { ascending:false })
+      if (error) { toast(error.message, false); S.games = []; return }
+      S.games = data ?? []
+    }
+    function teamCount(g) { return g.quiz_teams?.[0]?.count ?? 0 }
+
+    // Abre uma gincana específica (persiste a escolha) e carrega os detalhes dela.
+    async function openGame(id) {
+      S.game = S.games.find(g => g.id === id) ?? null
+      if (!S.game) return
+      elim = { open:false, ranking:[], selected:new Set() }
+      localStorage.setItem(ACTIVE_GAME_KEY, id)
+      await loadAll(); subscribe(); startAnswerPoll(); render()
+    }
+    // Recarrega a lista e reaponta S.game para a mesma gincana (pega status atualizado).
+    async function refreshGame() {
+      const id = S.game?.id
+      await loadGames()
+      S.game = id ? (S.games.find(g => g.id === id) ?? null) : null
+    }
+    // Volta ao painel de gincanas (não apaga nada, só limpa a seleção).
+    function backToPicker() {
+      S.game = null
+      localStorage.removeItem(ACTIVE_GAME_KEY)
+      if (channel) { supabase.removeChannel(channel); channel = null }
+      clearInterval(pollTimer)
+      render()
+    }
+    async function loadAll() {
+      if (!S.game) return
+      const g = S.game.id
+      const [teams, qs, st, ms] = await Promise.all([
+        supabase.from('quiz_teams').select('team_id, seed, eliminated, profiles(display_name, avatar)').eq('game_id', g),
+        supabase.from('quiz_questions').select('*').eq('game_id', g).order('phase').order('ord'),
+        supabase.from('quiz_state').select('*').eq('game_id', g).maybeSingle(),
+        supabase.from('quiz_matches').select('*').eq('game_id', g).order('round').order('slot'),
+      ])
+      S.teams = teams.data ?? []
+      S.questions = qs.data ?? []
+      S.state = st.data ?? null
+      S.matches = ms.data ?? []
+      const { data: sb } = await rpc('quiz_scoreboard', { p_game: g })
+      S.scoreboard = sb ?? []
+    }
+    async function loadProfiles() {
+      // RLS de profiles limita o select direto; usamos a RPC (admin) que lista todas.
+      const { data, error } = await rpc('quiz_list_profiles')
+      if (error) console.error('quiz_list_profiles:', error.message)
+      S.profiles = data ?? []
+    }
+
+    // ── Realtime + polling de respostas ──────────────────────────────────
+    function subscribe() {
+      if (channel) supabase.removeChannel(channel)
+      if (!S.game) return
+      channel = supabase.channel('gq-admin-'+S.game.id)
+        .on('postgres_changes', { event:'*', schema:'public', table:'quiz_state', filter:'game_id=eq.'+S.game.id },
+            async () => { await loadAll(); render() })
+        .on('postgres_changes', { event:'*', schema:'public', table:'quiz_matches', filter:'game_id=eq.'+S.game.id },
+            async () => { await loadAll(); render() })
+        .subscribe()
+    }
+    function startAnswerPoll() {
+      clearInterval(pollTimer)
+      pollTimer = setInterval(async () => {
+        if (!S.state || S.state.question_status !== 'open' || !S.state.current_question_id) return
+        const { data } = await supabase.from('quiz_answers')
+          .select('team_id, is_correct, choice_key').eq('question_id', S.state.current_question_id)
+        S.answersCount = data?.length ?? 0
+        S.answersByTeam = {}; (data??[]).forEach(a => S.answersByTeam[a.team_id]=a)
+        const el = document.getElementById('gq-answer-count'); if (el) el.textContent = S.answersCount
+      }, 1200)
+    }
+
+    // ── Render principal (state machine por game.status) ─────────────────
+    function render() {
+      if (!S.game) return renderPicker()
+      const st = S.game.status
+      if (st === 'setup')     return renderSetup()
+      if (st === 'finished')  return renderFinished()
+      return renderLive()   // 'group' (e legado 'knockout') → quiz ao vivo 1-25
+    }
+
+    function header(sub) {
+      const statusLabel = { setup:'Configuração', group:'Quiz ao vivo', knockout:'Rodada final', finished:'Encerrada' }
+      const gameTools = S.game ? `
+        <button id="btn-switch-game" class="btn btn-ghost btn-sm">🔀 Trocar gincana</button>
+        ${S.game.status !== 'setup' ? `<button id="btn-reset-game" class="btn btn-ghost btn-sm">🔄 Reiniciar partida</button>` : ''}
+        <a href="board.html?game=${S.game.id}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">📺 Telão</a>` : ''
+      return `<div class="gq-topbar">
+        <div><h2 style="margin:0">🎯 Apresentador · Gincana</h2>
+          <span class="muted mono" style="font-size:.8rem">${escHtml(S.game?.name||'')}</span></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          ${S.game ? `<span class="gq-pill">${statusLabel[S.game.status]||''}</span>` : ''}
+          ${gameTools}
+          <a href="regulamento.html" class="btn btn-ghost btn-sm" style="text-decoration:none">Regulamento</a>
+          <button id="btn-signout" class="btn btn-ghost btn-sm">Sair</button>
+        </div>
+      </div>
+      <p id="gq-toast" class="gq-msg hidden"></p>${sub||''}`
+    }
+    function afterRender() {
+      document.getElementById('btn-signout')?.addEventListener('click', signOut)
+      document.getElementById('btn-switch-game')?.addEventListener('click', backToPicker)
+      document.getElementById('btn-reset-game')?.addEventListener('click', resetGame)
+    }
+    async function resetGame() {
+      if (!confirm('Reiniciar esta partida? Isso apaga respostas e eliminações e volta para a '
+        + 'configuração — mas MANTÉM as equipes e as perguntas cadastradas.')) return
+      const { error } = await rpc('quiz_admin_reset', { p_game: S.game.id })
+      if (error) return toast(error.message, false)
+      await refreshGame(); await loadAll(); toast('Partida reiniciada.'); render()
+    }
+
+    // ── Painel: escolher uma gincana existente ou criar uma nova ──────────
+    function renderPicker() {
+      app.innerHTML = `<div class="section-header"><h2>🎯 Gincanas</h2><div class="pitch-rule"></div></div>
+        <div class="card mt-16">
+          <h3>+ Nova gincana</h3>
+          <div class="gq-opt"><input id="new-name" class="input" type="text" placeholder="Nome da gincana" value="Gincana Quiz">
+          <button id="btn-create" class="btn btn-primary">Criar</button></div>
+          <p id="gq-toast" class="gq-msg hidden"></p>
+        </div>
+        <div class="card mt-16">
+          <h3>Gincanas existentes (${S.games.length})</h3>
+          <div style="margin-top:8px">
+            ${S.games.map(g => `<div class="gq-team-row">
+              <span class="gq-pill">${{setup:'Configuração',group:'Ao vivo',knockout:'Ao vivo',finished:'Encerrada'}[g.status]||g.status}</span>
+              <span style="flex:1"><strong>${escHtml(g.name)}</strong>
+                <span class="muted mono" style="font-size:.78rem"> · ${teamCount(g)} equipes · criada em ${new Date(g.created_at).toLocaleDateString('pt-BR')}</span></span>
+              <button class="btn btn-primary btn-sm btn-open-game" data-id="${g.id}">▶ Abrir</button>
+              <button class="btn btn-ghost btn-sm btn-del-game" data-id="${g.id}" data-name="${escHtml(g.name)}">🗑 Apagar</button>
+            </div>`).join('') || '<p class="muted">Nenhuma gincana criada ainda.</p>'}
+          </div>
+        </div>`
+      document.getElementById('btn-create').addEventListener('click', async () => {
+        const name = document.getElementById('new-name').value.trim() || 'Gincana Quiz'
+        const { data, error } = await supabase.from('quiz_games').insert({ name, created_by: auth.user.id }).select().maybeSingle()
+        if (error) return toast(error.message, false)
+        await loadGames()
+        await openGame(data.id)
+      })
+      document.querySelectorAll('.btn-open-game').forEach(b => b.addEventListener('click', () => openGame(b.dataset.id)))
+      document.querySelectorAll('.btn-del-game').forEach(b => b.addEventListener('click', async () => {
+        if (!confirm(`Apagar "${b.dataset.name}"? Isso apaga PERMANENTEMENTE as equipes, perguntas e respostas dessa gincana.`)) return
+        const { error } = await rpc('quiz_admin_delete_game', { p_game: b.dataset.id })
+        if (error) return toast(error.message, false)
+        await loadGames(); toast('Gincana apagada.'); render()
+      }))
+    }
+
+    // ── Setup: equipes + perguntas + config ──────────────────────────────
+    function renderSetup() {
+      const selectedIds = new Set(S.teams.map(t => t.team_id))
+      const groupQs = S.questions.filter(q => q.phase==='group')
+      const extraQs = S.questions.filter(q => q.phase==='extra')
+      app.innerHTML = header(`
+        <div class="gq-grid2 mt-16">
+          <div>
+            <div class="card">
+              <h3>Equipes (${selectedIds.size} selecionadas)</h3>
+              <p class="muted" style="font-size:.82rem">Marque as equipes que vão disputar (qualquer quantidade, mínimo 2).</p>
+              <div id="team-list" style="margin-top:8px;max-height:340px;overflow:auto">
+                ${S.profiles.map(p => `<label class="gq-team-row">
+                  <input type="checkbox" class="team-cb" value="${p.id}" ${selectedIds.has(p.id)?'checked':''}>
+                  <span>${escHtml(p.avatar||'👥')}</span><span style="flex:1">${escHtml(p.display_name)}</span>
+                </label>`).join('') || '<p class="muted">Nenhum perfil (equipe) encontrado.</p>'}
+              </div>
+              <button id="btn-save-teams" class="btn btn-primary btn-sm mt-12">Salvar equipes</button>
+            </div>
+
+            <div class="card mt-16">
+              <h3>Perguntas — Ativas 1-25 (${groupQs.length}/25) · Extras (${extraQs.length})</h3>
+              <div id="q-list" style="margin-top:8px;max-height:280px;overflow:auto">
+                ${S.questions.map(renderQRow).join('') || '<p class="muted">Nenhuma pergunta ainda.</p>'}
+              </div>
+              <button id="btn-load-default" class="btn btn-primary btn-sm mt-8">📥 Importar perguntas de um arquivo (.json)</button>
+              <input id="file-default" type="file" accept=".json,application/json" hidden>
+              <details class="mt-12"><summary class="mono" style="cursor:pointer;font-size:.85rem">➕ Nova pergunta</summary>
+                ${qForm()}
+              </details>
+              <details class="mt-8"><summary class="mono" style="cursor:pointer;font-size:.85rem">📥 Importar JSON (avançado)</summary>
+                <p class="muted" style="font-size:.78rem">Array de objetos: <span class="mono">{phase,ord,points,text,options:[{key,label}],correct_key}</span></p>
+                <textarea id="json-in" class="input" rows="5" style="width:100%;font-family:monospace;font-size:.8rem"></textarea>
+                <button id="btn-import" class="btn btn-ghost btn-sm mt-8">Importar</button>
+              </details>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <h3>Configuração</h3>
+              <label class="muted" style="font-size:.82rem">Tempo por pergunta (segundos)</label>
+              <input id="cfg-seconds" class="input" type="number" min="5" max="300" value="${S.game.question_seconds}">
+              <button id="btn-save-cfg" class="btn btn-ghost btn-sm mt-8">Salvar</button>
+              <hr style="border:none;border-top:1px solid var(--line);margin:16px 0">
+              <p class="muted" style="font-size:.82rem">Para iniciar: ao menos 2 equipes e as 25 perguntas ativas (1-25).</p>
+              <button id="btn-start-game" class="btn btn-primary btn-full mt-8">▶ Iniciar quiz</button>
+            </div>
+          </div>
+        </div>`)
+      afterRender()
+
+      document.getElementById('btn-save-teams').addEventListener('click', async () => {
+        const ids = [...document.querySelectorAll('.team-cb:checked')].map(c=>c.value)
+        if (ids.length < 2) return toast('Selecione ao menos 2 equipes.', false)
+        const del = await supabase.from('quiz_teams').delete().eq('game_id', S.game.id)
+        if (del.error) return toast(del.error.message, false)
+        const ins = await supabase.from('quiz_teams').insert(ids.map(team_id => ({ game_id:S.game.id, team_id })))
+        if (ins.error) return toast(ins.error.message, false)
+        await loadAll(); toast('Equipes salvas.'); render()
+      })
+      document.getElementById('btn-save-cfg').addEventListener('click', async () => {
+        const s = parseInt(document.getElementById('cfg-seconds').value)||30
+        const { error } = await supabase.from('quiz_games').update({ question_seconds:s }).eq('id', S.game.id)
+        if (error) return toast(error.message, false)
+        S.game.question_seconds=s; toast('Configuração salva.')
+      })
+      bindQForm()
+      document.querySelectorAll('.btn-del-q').forEach(b => b.addEventListener('click', async () => {
+        if (!confirm('Excluir esta pergunta?')) return
+        const { error } = await supabase.from('quiz_questions').delete().eq('id', b.dataset.id)
+        if (error) return toast(error.message, false)
+        await loadAll(); render()
+      }))
+      document.getElementById('btn-import').addEventListener('click', importJson)
+      document.getElementById('btn-load-default').addEventListener('click', () => document.getElementById('file-default').click())
+      document.getElementById('file-default').addEventListener('change', loadDefaultQuestions)
+      document.getElementById('btn-start-game').addEventListener('click', startGame)
+    }
+
+    const groupPoints = ord => ord<=10 ? 10 : ord<=20 ? 20 : ord<=24 ? 40 : 80
+
+    function qPill(q) {
+      if (q.phase==='group') return '#'+q.ord+' · '+q.points+'pt'
+      if (q.phase==='test')  return '🧪 teste #'+q.ord
+      return 'extra #'+q.ord
+    }
+    function renderQRow(q) {
+      return `<div class="gq-q-row">
+        <span class="gq-pill">${qPill(q)}</span>
+        <span style="flex:1;font-size:.85rem">${escHtml(q.text).slice(0,80)}</span>
+        <span class="mono" style="color:var(--pitch-deep)">${escHtml(q.correct_key)}</span>
+        <button class="btn btn-ghost btn-sm btn-del-q" data-id="${q.id}">✕</button>
+      </div>`
+    }
+    function qForm() {
+      return `<div id="q-form" style="margin-top:10px">
+        <div class="gq-opt"><select id="q-phase" class="filter-select">
+            <option value="group">Ativa (1-25)</option><option value="extra">Extra (reserva)</option></select>
+          <input id="q-ord" class="input" type="number" placeholder="ordem (1-25)" style="max-width:120px">
+        </div>
+        <textarea id="q-text" class="input mt-8" rows="2" placeholder="Enunciado da pergunta" style="width:100%"></textarea>
+        ${['A','B','C','D'].map(k=>`<div class="gq-opt"><span class="mono" style="width:22px">${k}</span>
+          <input type="text" class="input q-opt" data-k="${k}" placeholder="Alternativa ${k}"></div>`).join('')}
+        <div class="gq-opt mt-8"><span class="muted" style="font-size:.82rem">Correta:</span>
+          <select id="q-correct" class="filter-select"><option>A</option><option>B</option><option>C</option><option>D</option></select>
+          <button id="btn-add-q" class="btn btn-primary btn-sm">Adicionar</button></div>
+      </div>`
+    }
+    function bindQForm() {
+      document.getElementById('btn-add-q')?.addEventListener('click', async () => {
+        const phase = document.getElementById('q-phase').value
+        const ord = parseInt(document.getElementById('q-ord').value)||0
+        const text = document.getElementById('q-text').value.trim()
+        const options = [...document.querySelectorAll('.q-opt')].map(i=>({key:i.dataset.k,label:i.value.trim()})).filter(o=>o.label)
+        const correct_key = document.getElementById('q-correct').value
+        if (!text || options.length<2) return toast('Preencha enunciado e ao menos 2 alternativas.', false)
+        const points = phase==='group' ? groupPoints(ord) : 0
+        const { error } = await supabase.from('quiz_questions').insert({ game_id:S.game.id, phase, ord, points, text, options, correct_key })
+        if (error) return toast(error.message, false)
+        await loadAll(); toast('Pergunta adicionada.'); render()
+      })
+    }
+    async function importJson() {
+      let arr; try { arr = JSON.parse(document.getElementById('json-in').value) } catch { return toast('JSON inválido.', false) }
+      if (!Array.isArray(arr)) return toast('Envie um array.', false)
+      const rows = arr.map(q => ({ game_id:S.game.id, phase:q.phase||'group', ord:q.ord||0,
+        points: q.points ?? (q.phase==='group' ? groupPoints(q.ord||0) : 0),
+        text:q.text, options:q.options, correct_key:q.correct_key, media: q.media ?? null }))
+      const { error } = await supabase.from('quiz_questions').insert(rows)
+      if (error) return toast(error.message, false)
+      await loadAll(); toast(rows.length+' perguntas importadas.'); render()
+    }
+    // Importa um conjunto de perguntas (25 ativas + extras) de um arquivo JSON escolhido no
+    // computador. O arquivo NÃO fica no site: as respostas certas não devem ser públicas.
+    // Evita duplicar: pula qualquer phase+ord que já exista nesta gincana.
+    async function loadDefaultQuestions(ev) {
+      const input = ev.target
+      const file = input.files && input.files[0]
+      input.value = ''   // permite escolher o mesmo arquivo de novo
+      if (!file) return
+      if (!confirm('Importar as perguntas do arquivo "' + file.name + '" para esta gincana?')) return
+      let arr
+      try { arr = JSON.parse(await file.text()) }
+      catch { return toast('Não foi possível ler o arquivo (JSON inválido).', false) }
+      if (!Array.isArray(arr)) return toast('O arquivo precisa conter um array de perguntas.', false)
+      const existing = new Set(S.questions.map(q => q.phase+':'+q.ord))
+      const rows = arr
+        .filter(q => !existing.has((q.phase||'group')+':'+(q.ord||0)))
+        .map(q => ({ game_id:S.game.id, phase:q.phase||'group', ord:q.ord||0,
+          points: q.points ?? (q.phase==='group' ? groupPoints(q.ord||0) : 0),
+          text:q.text, options:q.options, correct_key:q.correct_key, media: q.media ?? null }))
+      if (!rows.length) return toast('Todas as perguntas do arquivo já estão cadastradas.', false)
+      const { error } = await supabase.from('quiz_questions').insert(rows)
+      if (error) return toast(error.message, false)
+      await loadAll(); toast(rows.length+' perguntas importadas.'); render()
+    }
+    async function startGame() {
+      const groupQs = S.questions.filter(q=>q.phase==='group')
+      if (S.teams.length < 2) return toast('Selecione ao menos 2 equipes primeiro.', false)
+      if (groupQs.length < 25) return toast('Cadastre as 25 perguntas ativas (1-25).', false)
+      const { error } = await rpc('quiz_admin_start_game', { p_game:S.game.id })
+      if (error) return toast(error.message, false)
+      await refreshGame(); await loadAll(); render(); startAnswerPoll()
+    }
+
+    // ── Quiz ao vivo (perguntas 1-25 + eliminação progressiva) ───────────
+    function renderLive() {
+      const groupQs = S.questions.filter(q=>q.phase==='group').sort((a,b)=>a.ord-b.ord)
+      const testQs  = S.questions.filter(q=>q.phase==='test').sort((a,b)=>a.ord-b.ord)
+      const st = S.state || {}
+      const curId = st.current_question_id
+      const remaining = S.scoreboard.filter(s=>!s.eliminated).length
+      const finalRound = (st.q_ord||0) >= 21
+      const canEliminate = remaining > 2
+      app.innerHTML = header(`
+        <div class="gq-grid2 mt-16">
+          <div>
+            <div class="card">
+              <h3>Controle da pergunta</h3>
+              ${curId ? liveQuestionPanel(st, groupQs) : '<p class="muted">Escolha uma pergunta abaixo para exibir.</p>'}
+            </div>
+
+            ${testQs.length ? `<div class="card mt-16">
+              <h3>🧪 Perguntas de teste (aquecimento, sem pontuação)</h3>
+              <p class="muted" style="font-size:.82rem">Exiba antes da #1 para as equipes confirmarem que estão
+                conseguindo responder. Não conta ponto nem entra no desempate.</p>
+              <div style="margin-top:8px">
+                ${testQs.map(q => `<div class="gq-q-row">
+                  <span class="gq-pill">🧪 #${q.ord}</span>
+                  <span style="flex:1;font-size:.85rem">${escHtml(q.text).slice(0,68)}</span>
+                  <button class="btn ${curId===q.id?'btn-primary':'btn-ghost'} btn-sm btn-show" data-id="${q.id}">Exibir</button>
+                </div>`).join('')}
+              </div>
+            </div>` : ''}
+
+            <div class="card mt-16" style="${finalRound?'border-color:var(--flare)':''}">
+              <h3>🔻 Rodada final — eliminação</h3>
+              <p class="muted" style="font-size:.82rem">Equipes em jogo: <strong>${remaining}</strong>.
+                Após revelar cada pergunta <strong>21–24</strong>, elimine as 2 piores até restarem 2.
+                A <strong>pergunta 25</strong> é a grande final; depois dela, encerre a gincana.</p>
+              ${elim.open ? elimPanel() : `<div class="gq-ctrl">
+                <button id="btn-elim" class="btn btn-primary btn-sm" ${canEliminate?'':'disabled'}>🔻 Eliminar equipes</button>
+                <button id="btn-unelim" class="btn btn-ghost btn-sm">↩ Desfazer eliminações</button>
+                <button id="btn-finish" class="btn btn-ghost btn-sm">🏁 Encerrar gincana</button>
+              </div>`}
+            </div>
+
+            <div class="card mt-16">
+              <h3>Perguntas (${groupQs.length})</h3>
+              <div style="max-height:300px;overflow:auto">
+                ${groupQs.map(q => `<div class="gq-q-row">
+                  <span class="gq-pill" style="${q.ord>=21?'background:rgba(244,160,36,.16);color:#a86a12':''}">#${q.ord} · ${q.points}pt</span>
+                  <span style="flex:1;font-size:.85rem">${escHtml(q.text).slice(0,68)}</span>
+                  <button class="btn ${curId===q.id?'btn-primary':'btn-ghost'} btn-sm btn-show" data-id="${q.id}">Exibir</button>
+                </div>`).join('')}
+              </div>
+            </div>
+          </div>
+          <div>${scoreboardCard(true)}${auditCard()}</div>
+        </div>`)
+      afterRender(); bindLiveButtons(); bindScoreboardControls(); bindAuditControls()
+      document.querySelectorAll('.btn-show').forEach(b => b.addEventListener('click', () => showQuestion(b.dataset.id)))
+      if (elim.open) {
+        bindElimPanel()
+      } else {
+        document.getElementById('btn-elim').addEventListener('click', openElimPanel)
+        document.getElementById('btn-unelim').addEventListener('click', resetElim)
+        document.getElementById('btn-finish').addEventListener('click', finishGame)
+      }
+    }
+
+    // ── Painel de eliminação: sugere as 2 piores, admin pode trocar antes de confirmar ──
+    async function openElimPanel() {
+      const remaining = S.scoreboard.filter(s=>!s.eliminated).length
+      if (remaining <= 2) return toast('Já restam 2 equipes — hora da grande final.', false)
+      const { data, error } = await rpc('quiz_group_ranking', { p_game: S.game.id })
+      if (error) return toast(error.message, false)
+      const activeIds = new Set(S.scoreboard.filter(s=>!s.eliminated).map(s=>s.team_id))
+      elim.ranking = (data||[]).filter(r => activeIds.has(r.team_id)).sort((a,b)=>a.rank-b.rank)
+      elim.selected = new Set(elim.ranking.slice(-2).map(r=>r.team_id))  // sugestão: as 2 piores
+      elim.open = true
+      render()
+    }
+    function elimPanel() {
+      const rows = elim.ranking.map(r => `<label class="gq-team-row" style="cursor:pointer">
+        <input type="checkbox" class="elim-cb" value="${r.team_id}" ${elim.selected.has(r.team_id)?'checked':''}>
+        <span class="mono muted" style="width:32px">${r.rank}º</span>
+        <span style="flex:1">${escHtml(r.display_name)}</span>
+        <span class="mono">${r.group_points} pts</span>
+      </label>`).join('')
+      return `<div class="mt-8">
+        <p class="muted" style="font-size:.78rem">Já vêm marcadas as 2 piores colocadas (mesmo critério de
+          desempate do regulamento) — desmarque/marque para trocar quem sai.</p>
+        <div style="margin-top:6px;max-height:260px;overflow:auto">${rows}</div>
+        <div class="gq-ctrl mt-8">
+          <button id="btn-elim-confirm" class="btn btn-primary btn-sm">✔ Confirmar eliminação (<span id="elim-count">${elim.selected.size}</span>)</button>
+          <button id="btn-elim-cancel" class="btn btn-ghost btn-sm">Cancelar</button>
+        </div>
+      </div>`
+    }
+    function bindElimPanel() {
+      document.querySelectorAll('.elim-cb').forEach(cb => cb.addEventListener('change', () => {
+        if (cb.checked) elim.selected.add(cb.value); else elim.selected.delete(cb.value)
+        const el = document.getElementById('elim-count'); if (el) el.textContent = elim.selected.size
+      }))
+      document.getElementById('btn-elim-confirm').addEventListener('click', confirmElim)
+      document.getElementById('btn-elim-cancel').addEventListener('click', () => { elim.open=false; render() })
+    }
+    async function confirmElim() {
+      if (!elim.selected.size) return toast('Selecione ao menos uma equipe.', false)
+      const names = elim.ranking.filter(r => elim.selected.has(r.team_id)).map(r => r.display_name)
+      if (!confirm(`Eliminar: ${names.join(', ')}?`)) return
+      const { error } = await rpc('quiz_admin_eliminate_teams', { p_game:S.game.id, p_team_ids:[...elim.selected] })
+      if (error) return toast(error.message, false)
+      elim.open = false
+      await loadAll(); render()
+      toast('Eliminadas: ' + (names.join(', ') || '—'))
+    }
+    async function resetElim() {
+      if (!confirm('Reabilitar TODAS as equipes (desfazer eliminações)?')) return
+      const { error } = await rpc('quiz_reset_eliminations', { p_game:S.game.id })
+      if (error) return toast(error.message, false)
+      await loadAll(); toast('Eliminações desfeitas.'); render()
+    }
+    async function finishGame() {
+      if (!confirm('Encerrar a gincana? A equipe no topo do placar será a campeã.')) return
+      const { error } = await rpc('quiz_admin_finish', { p_game:S.game.id })
+      if (error) return toast(error.message, false)
+      await refreshGame(); await loadAll(); render()
+    }
+
+    function nextQuestionOf(groupQs, st) {
+      if (!st.q_ord) return null
+      return groupQs.find(q => q.ord === st.q_ord + 1) ?? null
+    }
+    function liveQuestionPanel(st, groupQs) {
+      const opts = (st.q_options||[]).map(o => {
+        const isCorrect = st.question_status==='revealed' && st.reveal_correct_key && o.key===st.reveal_correct_key
+        return `<div class="gq-live-opt ${isCorrect?'correct':''}"><span class="mono">${o.key}</span> ${escHtml(o.label)}</div>`
+      }).join('')
+      const stt = st.question_status
+      const statusLabelLive = {shown:'exibida',open:'aberta',closed:'tempo encerrado',revealed:'revelada',idle:'—'}
+      const nextQ = nextQuestionOf(groupQs||[], st)
+      return `<div class="gq-live-q">
+        <div class="muted mono" style="font-size:.78rem">${st.q_phase==='group'?('Pergunta #'+st.q_ord+' · '+st.q_points+' pts'):st.q_phase==='test'?('🧪 Teste #'+st.q_ord+' — sem pontuação'):'Extra'}
+          · <span class="gq-pill">${statusLabelLive[stt]||stt}</span>
+          ${st.media_shown?' · <span class="gq-pill" style="background:rgba(244,160,36,.16);color:#a86a12">🎬 vídeo no telão</span>':''}</div>
+        <div style="font-size:1.05rem;font-weight:600;margin-top:8px">${escHtml(st.q_text||'')}</div>
+        <div class="gq-live-opts">${opts}</div>
+        <div class="muted" style="font-size:.82rem;margin-top:10px">Respostas recebidas: <strong id="gq-answer-count">${S.answersCount}</strong></div>
+      </div>
+      <p class="muted" style="font-size:.72rem;margin:10px 0 2px;text-transform:uppercase;letter-spacing:.04em">Passo a passo</p>
+      <div class="gq-ctrl">
+        <button id="btn-start" class="btn btn-primary btn-sm" ${stt==='shown'?'':'disabled'}>1️⃣ ▶ Iniciar tempo (${st.question_seconds}s)</button>
+        <button id="btn-close" class="btn btn-ghost btn-sm" ${stt==='open'?'':'disabled'}>2️⃣ 🔒 Encerrar tempo</button>
+        <button id="btn-extend" class="btn btn-ghost btn-sm" ${stt==='open'?'':'disabled'}>3️⃣ ⏱ Dar mais 30s</button>
+        <button id="btn-reveal" class="btn btn-ghost btn-sm" ${(stt==='open'||stt==='closed')?'':'disabled'}>4️⃣ 👁 Revelar resposta</button>
+        <button id="btn-next-q" class="btn btn-primary btn-sm" ${nextQ?'':'disabled'}>5️⃣ ➡ Próxima pergunta${nextQ?(' (#'+nextQ.ord+')'):''}</button>
+      </div>
+      ${st.q_media?`<div class="gq-ctrl mt-8">
+          <button id="btn-show-media" class="btn btn-ghost btn-sm" ${st.media_shown?'disabled':''}>🎬 Mostrar vídeo no telão</button>
+          <a href="${escHtml(st.q_media)}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="text-decoration:none">👁 Pré-visualizar (só você)</a>
+        </div>`:''}`
+    }
+    function bindLiveButtons() {
+      document.getElementById('btn-start')?.addEventListener('click', async () => {
+        const { error } = await rpc('quiz_admin_start', { p_game:S.game.id }); if(error) toast(error.message,false)
+      })
+      document.getElementById('btn-close')?.addEventListener('click', async () => {
+        const { error } = await rpc('quiz_admin_close', { p_game:S.game.id }); if(error) toast(error.message,false)
+      })
+      document.getElementById('btn-extend')?.addEventListener('click', async () => {
+        const { error } = await rpc('quiz_admin_extend', { p_game:S.game.id, p_seconds:30 })
+        if (error) return toast(error.message,false)
+        toast('+30s adicionados.')
+      })
+      document.getElementById('btn-reveal')?.addEventListener('click', async () => {
+        const { error } = await rpc('quiz_admin_reveal', { p_game:S.game.id }); if(error) toast(error.message,false)
+      })
+      document.getElementById('btn-next-q')?.addEventListener('click', async () => {
+        const groupQs = S.questions.filter(q=>q.phase==='group').sort((a,b)=>a.ord-b.ord)
+        const nextQ = nextQuestionOf(groupQs, S.state||{})
+        if (nextQ) showQuestion(nextQ.id)
+      })
+      document.getElementById('btn-show-media')?.addEventListener('click', async () => {
+        const { error } = await rpc('quiz_admin_show_media', { p_game:S.game.id }); if(error) toast(error.message,false)
+      })
+    }
+    async function showQuestion(qid) {
+      const { error } = await rpc('quiz_admin_show', { p_question_id:qid }); if(error) toast(error.message,false)
+    }
+    // ── Encerrada ────────────────────────────────────────────────────────
+    function renderFinished() {
+      const top = S.scoreboard.slice(0,3)   // pódio: topo do placar acumulado
+      const medal = i => i===0?'🥇':i===1?'🥈':'🥉'
+      app.innerHTML = header(`
+        <div class="card mt-16" style="text-align:center">
+          <div style="font-size:2.4rem">🏆</div>
+          <h2 style="margin:6px 0">${escHtml(top[0]?.display_name || 'Campeã')}</h2>
+          <p class="muted">Campeã da gincana!</p>
+          <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:16px">
+            ${top.map((s,i) => `<div style="min-width:150px;padding:16px;border-radius:14px;background:var(--paper);
+              border:1px solid var(--line);${i===0?'border-color:var(--pitch);box-shadow:0 0 0 2px var(--pitch-light)':''}">
+              <div style="font-size:2rem">${medal(i)}</div>
+              <div style="font-weight:700;margin-top:4px">${escHtml(s.display_name)}</div>
+              <div class="mono" style="color:var(--pitch-deep);font-weight:700;margin-top:2px">${s.total_points} pts</div>
+            </div>`).join('')}
+          </div>
+        </div>
+        <div class="mt-16">${scoreboardCard()}</div>
+        <div class="mt-16">${auditCard()}</div>`)
+      afterRender(); bindAuditControls()
+    }
+
+    // ── Placar (card reutilizável) ───────────────────────────────────────
+    // showControls=true (só na tela ao vivo) inclui o botão de excluir equipe —
+    // útil se uma equipe estiver colando/trapaceando durante a atividade.
+    function scoreboardCard(showControls=false) {
+      const remaining = S.scoreboard.filter(s=>!s.eliminated).length
+      const elim = S.scoreboard.length - remaining
+      const rows = S.scoreboard.map((s,i)=>`<div class="gq-scorerow ${s.eliminated?'elim':''}"
+        style="${i%2?'':'background:var(--paper)'}">
+        <span class="pos">${i+1}º</span><span>${escHtml(s.avatar||'👥')}</span>
+        <span class="nm">${escHtml(s.display_name)}${s.eliminated?' <span class="mono" style="color:var(--flare);font-size:.72rem">✖ eliminada</span>':''}</span>
+        <span class="pt">${s.total_points}</span>
+        ${showControls && !s.eliminated ? `<button class="btn btn-ghost btn-sm btn-exclude-team" data-id="${s.team_id}" data-name="${escHtml(s.display_name)}" title="Excluir equipe da gincana">🚫</button>` : ''}
+        </div>`).join('')
+      return `<div class="card"><h3>Placar ao vivo</h3>
+        <p class="muted" style="font-size:.78rem;margin-top:2px">${remaining} em jogo${elim?` · ${elim} eliminada${elim>1?'s':''}`:''}</p>
+        <div style="margin-top:8px">${rows || '<p class="muted">Sem pontos ainda.</p>'}</div></div>`
+    }
+    // ── Conferência (auditoria de respostas por pergunta/equipe) ──────────
+    // Carrega sob demanda (não fica pollando) — pensado para conferir no final,
+    // mas disponível já ao vivo caso precise checar algo no meio do jogo.
+    let S_audit = null
+    function auditCard() {
+      const rows = S_audit || []
+      const table = rows.length ? `<div style="max-height:320px;overflow:auto;margin-top:8px">
+        <table style="width:100%;border-collapse:collapse;font-size:.78rem">
+          <thead><tr style="text-align:left;border-bottom:1px solid var(--line)">
+            <th style="padding:4px 6px">Rodada</th><th style="padding:4px 6px">Equipe</th>
+            <th style="padding:4px 6px">Resp.</th><th style="padding:4px 6px">Certa</th>
+            <th style="padding:4px 6px">Pts</th><th style="padding:4px 6px">Tempo</th></tr></thead>
+          <tbody>${rows.map(r => `<tr style="border-bottom:1px solid var(--line)">
+            <td style="padding:4px 6px">${qPill({phase:r.q_phase, ord:r.q_ord, points:r.q_points})}</td>
+            <td style="padding:4px 6px">${escHtml(r.display_name)}</td>
+            <td style="padding:4px 6px" class="mono">${escHtml(r.choice_key)}</td>
+            <td style="padding:4px 6px">${r.is_correct?'✅':'❌'}</td>
+            <td style="padding:4px 6px" class="mono">${r.is_correct ? (r.q_phase==='group'?r.q_points:0) : 0}</td>
+            <td style="padding:4px 6px" class="mono">${(r.response_ms/1000).toFixed(1)}s</td>
+          </tr>`).join('')}</tbody>
+        </table></div>` : '<p class="muted" style="font-size:.82rem;margin-top:8px">Nada carregado ainda.</p>'
+      return `<div class="card mt-16">
+        <h3>📋 Conferência de respostas</h3>
+        <p class="muted" style="font-size:.82rem">Todas as respostas registradas, pergunta a pergunta — para
+          conferir acertos e pontuação no final.</p>
+        <div class="gq-ctrl">
+          <button id="btn-load-audit" class="btn btn-ghost btn-sm">🔄 Carregar / atualizar</button>
+          <button id="btn-export-audit" class="btn btn-ghost btn-sm" ${rows.length?'':'disabled'}>⬇ Baixar CSV</button>
+        </div>
+        ${table}
+      </div>`
+    }
+    function bindAuditControls() {
+      document.getElementById('btn-load-audit')?.addEventListener('click', async () => {
+        const { data, error } = await rpc('quiz_admin_audit', { p_game: S.game.id })
+        if (error) return toast(error.message, false)
+        S_audit = data ?? []
+        toast(S_audit.length + ' respostas carregadas.')
+        render()
+      })
+      document.getElementById('btn-export-audit')?.addEventListener('click', () => {
+        if (!S_audit?.length) return
+        const header = ['fase','ordem','pontos_pergunta','pergunta','equipe','resposta','gabarito','acertou','pontos_ganhos','tempo_ms','respondido_em']
+        const csvEsc = v => `"${String(v??'').replace(/"/g,'""')}"`
+        const lines = [header.join(';')].concat(S_audit.map(r => [
+          r.q_phase, r.q_ord, r.q_points, r.q_text, r.display_name, r.choice_key, r.correct_key,
+          r.is_correct ? 'sim':'não', r.is_correct ? (r.q_phase==='group'?r.q_points:0) : 0,
+          r.response_ms, r.answered_at
+        ].map(csvEsc).join(';')))
+        const blob = new Blob(['﻿'+lines.join('\r\n')], { type:'text/csv;charset=utf-8' })
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = `gincana-${(S.game.name||'conferencia').replace(/[^\w-]+/g,'_')}.csv`
+        a.click()
+        URL.revokeObjectURL(a.href)
+      })
+    }
+    function bindScoreboardControls() {
+      document.querySelectorAll('.btn-exclude-team').forEach(b => b.addEventListener('click', async () => {
+        if (!confirm(`Excluir "${b.dataset.name}" da gincana? A equipe não poderá mais responder (útil em caso de trapaça).`)) return
+        const { error } = await rpc('quiz_admin_exclude_team', { p_game:S.game.id, p_team:b.dataset.id })
+        if (error) return toast(error.message, false)
+        await loadAll(); toast('Equipe excluída da gincana.'); render()
+      }))
+    }
+
+    // ── Boot ─────────────────────────────────────────────────────────────
+    await loadGames(); await loadProfiles()
+    const savedId = localStorage.getItem(ACTIVE_GAME_KEY)
+    const saved = savedId ? S.games.find(g => g.id === savedId) : null
+    if (saved) {
+      S.game = saved
+      await loadAll(); subscribe(); startAnswerPoll()
+    } else {
+      localStorage.removeItem(ACTIVE_GAME_KEY)
+    }
+    render()
+  </script>
+</body>
+</html>

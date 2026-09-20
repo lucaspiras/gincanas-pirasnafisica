@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bolão · Copa 2026</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TY56KM22X8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-TY56KM22X8');
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+    <div id="loading" class="empty"><strong>Carregando…</strong></div>
+    <div id="content" class="hidden">
+
+      <!-- Pool header -->
+      <div class="section-header">
+        <h2 id="pool-name"></h2>
+        <div class="pitch-rule"></div>
+      </div>
+
+      <!-- Action bar -->
+      <div class="pool-actions-bar mt-12">
+        <a id="link-rules" href="rules.html" class="pool-action-btn" style="text-decoration:none">📋 Regras</a>
+        <a id="link-final" href="final.html" class="pool-action-btn" style="text-decoration:none">🏆 Resultado final</a>
+        <div class="pool-actions-spacer"></div>
+        <button id="btn-config" class="pool-action-btn hidden">⚙ Configurações</button>
+      </div>
+
+      <!-- Ranking banner (expansível) -->
+      <div style="margin-top:14px">
+        <button class="ranking-toggle" id="ranking-toggle">
+          <span class="ranking-toggle-label">📊 Placar do Bolão</span>
+          <span class="ranking-toggle-pos" id="ranking-my-pos"></span>
+          <span class="ranking-arrow" id="ranking-arrow">▾</span>
+        </button>
+        <div id="ranking-panel" class="card hidden" style="padding:0;overflow:hidden;border-radius:0 0 var(--radius-lg) var(--radius-lg);border-top:none;margin-top:-6px">
+          <div id="ranking-list"></div>
+        </div>
+      </div>
+
+      <!-- Config panel (owner only) -->
+      <div id="config-panel" class="card hidden mt-12">
+        <h3>Configurações do bolão</h3>
+
+        <!-- Membros -->
+        <div class="card mt-12">
+          <h3 style="font-size:1rem">Membros</h3>
+          <div id="members-list" class="stack gap-8 mt-12">
+            <div class="empty"><strong>Carregando…</strong></div>
+          </div>
+          <p id="members-msg" class="hidden mt-8" style="font-size:.85rem"></p>
+        </div>
+
+        <!-- Regras de placar -->
+        <div class="card mt-8">
+          <h3 style="font-size:1rem">Palpites de placar — Fase de grupos</h3>
+          <div id="rules-match" class="stack gap-12 mt-12"></div>
+        </div>
+        <div class="card mt-8">
+          <h3 style="font-size:1rem">Palpites de placar — Mata-mata</h3>
+          <p class="muted mt-4" style="font-size:.8rem">Mesmos critérios, pontuação em dobro por padrão.</p>
+          <div id="rules-ko" class="stack gap-12 mt-12"></div>
+        </div>
+        <div class="card mt-8">
+          <h3 style="font-size:1rem">Classificação dos grupos</h3>
+          <div id="rules-cls" class="stack gap-12 mt-12"></div>
+        </div>
+        <div class="card mt-8">
+          <h3 style="font-size:1rem">Pódio da Copa</h3>
+          <div id="rules-tourn" class="stack gap-12 mt-12"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:16px">
+          <span style="font-size:.82rem;color:var(--muted)">
+            Máx/jogo grupos: <strong id="rules-max-match">—</strong> &nbsp;·&nbsp;
+            Máx/jogo mata-mata: <strong id="rules-max-ko">—</strong>
+          </span>
+          <button id="btn-save-rules" class="btn btn-primary btn-sm">Salvar regras</button>
+        </div>
+        <p id="rules-msg" class="hidden mt-8" style="font-size:.85rem"></p>
+      </div>
+
+      <!-- Pool nav -->
+      <nav class="pool-nav">
+        <button class="pool-nav-item active" data-tab="palpites">Palpites</button>
+        <button class="pool-nav-item" data-tab="grupos">Grupos</button>
+        <button class="pool-nav-item" data-tab="podio">🏆 Pódio</button>
+        <button class="pool-nav-item" data-tab="planilha">Planilha</button>
+        <button class="pool-nav-item" data-tab="premios">🏅 Prêmios</button>
+        <button class="pool-nav-item" data-tab="evolucao">📈 Evolução</button>
+      </nav>
+
+      <!-- Tab: Palpites -->
+      <div id="tab-palpites">
+        <div id="countdown-banner" class="countdown-banner hidden"></div>
+
+        <!-- Apostas reveladas — destaque das partidas mais recentes (qualquer fase) -->
+        <div id="revealed-section" class="revealed-section hidden"></div>
+
+        <!-- Mata-mata (fase ativa) -->
+        <div id="ko-section" class="hidden">
+          <div class="section-header" style="margin-bottom:16px">
+            <h3 style="font-size:1rem;font-weight:700">⚔ Mata-mata</h3>
+            <div class="pitch-rule" style="margin-top:6px"></div>
+          </div>
+          <div id="ko-list"></div>
+        </div>
+
+        <!-- Fase de grupos (encerrada) — recolhível, fechada por padrão -->
+        <div id="group-stage-block" style="margin-top:28px">
+          <button class="ranking-toggle" id="group-toggle" type="button">
+            <span class="ranking-toggle-label">⚽ Palpites da fase de grupos</span>
+            <span class="ranking-toggle-pos" id="group-toggle-hint"></span>
+            <span class="ranking-arrow" id="group-arrow">▾</span>
+          </button>
+          <div id="group-collapse" class="hidden" style="margin-top:14px">
+            <div id="progress-section" class="progress-section hidden">
+              <div class="progress-meta">
+                <span class="progress-label" id="progress-label">Palpites feitos</span>
+                <span class="progress-fraction" id="progress-fraction"></span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+              </div>
+            </div>
+            <div id="filter-bar" class="filter-bar hidden"></div>
+            <div id="matches-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Grupos -->
+      <div id="tab-grupos" class="hidden">
+        <p class="muted mt-4 mb-16" style="font-size:.82rem">
+          Classificação prevista com base nos seus palpites. Atualiza a cada palpite salvo.
+        </p>
+        <div id="groups-grid" class="groups-grid"></div>
+        <div class="mt-16">
+          <a id="link-standings-full" href="#" class="btn btn-ghost btn-sm">Ver tabela completa →</a>
+        </div>
+      </div>
+
+      <!-- Tab: Planilha -->
+      <div id="tab-planilha" class="hidden">
+        <p class="muted mt-4 mb-4" style="font-size:.82rem">
+          Apostas de todos os membros — visíveis a partir de 1h antes de cada partida.
+        </p>
+        <div class="planilha-filter-bar hidden" id="planilha-filter-bar">
+          <select id="planilha-member-sel" class="filter-select">
+            <option value="">Todos os membros</option>
+          </select>
+          <span class="planilha-filter-hint" id="planilha-hint">← role para ver todos os jogos</span>
+        </div>
+        <div id="planilha-wrap" class="planilha-wrap">
+          <div class="empty" style="padding:20px"><strong>Carregando…</strong></div>
+        </div>
+
+        <div style="margin-top:32px">
+          <div class="section-header" style="margin-bottom:12px">
+            <h3 style="font-size:.95rem;font-weight:700">Classificação dos grupos</h3>
+            <div class="pitch-rule" style="margin-top:6px"></div>
+          </div>
+          <p class="muted mb-8" style="font-size:.82rem">
+            Classificação apostada por cada membro, comparada com o resultado real.
+            Verde = posição correta · Vermelho = errou · — = sem palpite.
+          </p>
+          <div id="grupos-planilha-filter-bar" class="planilha-filter-bar hidden">
+            <select id="grupos-planilha-member-sel" class="filter-select">
+              <option value="">Todos os membros</option>
+            </select>
+            <span class="planilha-filter-hint">← role para ver todos os grupos</span>
+          </div>
+          <div id="grupos-planilha-wrap" class="planilha-wrap">
+            <div class="empty" style="padding:20px"><strong>Carregando…</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Prêmios -->
+      <div id="tab-premios" class="hidden"></div>
+
+      <!-- Tab: Evolução -->
+      <div id="tab-evolucao" class="hidden"></div>
+
+      <!-- Tab: Pódio -->
+      <div id="tab-podio" class="hidden">
+        <div id="podio-card" class="card mt-8">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+            <div style="text-align:center">
+              <div style="font-size:1.3rem">🥇</div>
+              <div id="pts-1st" style="font-family:var(--font-display);font-weight:800;font-size:1rem;color:var(--pitch-deep)">100 pts</div>
+              <div style="font-size:.68rem;color:var(--muted)">Campeão</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:1.3rem">🥈</div>
+              <div id="pts-2nd" style="font-family:var(--font-display);font-weight:800;font-size:1rem;color:var(--pitch-deep)">50 pts</div>
+              <div style="font-size:.68rem;color:var(--muted)">Vice</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:1.3rem">🥉</div>
+              <div id="pts-3rd" style="font-family:var(--font-display);font-weight:800;font-size:1rem;color:var(--pitch-deep)">25 pts</div>
+              <div style="font-size:.68rem;color:var(--muted)">3º lugar</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:1.3rem">🎯</div>
+              <div id="pts-bonus" style="font-family:var(--font-display);font-weight:800;font-size:1rem;color:var(--pitch-deep)">225 pts</div>
+              <div style="font-size:.68rem;color:var(--muted)">Pódio exato</div>
+            </div>
+          </div>
+          <div id="result-banner-pod" class="hidden card mb-16"
+            style="background:var(--pitch-light);border-color:rgba(14,159,80,.25);padding:12px 14px">
+            <p style="font-size:.75rem;font-weight:700;color:var(--pitch-deep);margin-bottom:6px">RESULTADO OFICIAL</p>
+            <div id="result-content-pod"></div>
+          </div>
+          <div class="stack gap-10">
+            <div>
+              <label style="font-size:.75rem;font-weight:700;color:var(--muted);display:block;margin-bottom:5px">🥇 Campeão</label>
+              <select class="filter-select" id="pod-sel-1" style="width:100%;max-width:none"></select>
+            </div>
+            <div>
+              <label style="font-size:.75rem;font-weight:700;color:var(--muted);display:block;margin-bottom:5px">🥈 Vice-campeão</label>
+              <select class="filter-select" id="pod-sel-2" style="width:100%;max-width:none"></select>
+            </div>
+            <div>
+              <label style="font-size:.75rem;font-weight:700;color:var(--muted);display:block;margin-bottom:5px">🥉 3º lugar</label>
+              <select class="filter-select" id="pod-sel-3" style="width:100%;max-width:none"></select>
+            </div>
+            <button id="btn-save-pod" class="btn btn-primary btn-full">Salvar palpite</button>
+            <p id="pod-msg" class="hidden" style="font-size:.85rem;text-align:center"></p>
+          </div>
+        </div>
+        <!-- Palpites da galera -->
+        <div class="card mt-12" style="padding:0;overflow:hidden">
+          <div style="padding:12px 16px 8px;font-size:.75rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--line)">PALPITES DA GALERA</div>
+          <div id="pod-others"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script type="module">
+    import {
+      supabase, requireAuthWithProfile, callAdmin,
+      renderHeader, bindSignOut,
+      escHtml, fmtDate, fmtTime,
+      matchStatus, statusBadge, medalIcon, translateTeam, teamFlag,
+      getRules, MATCH_RULE_LABELS, KO_RULE_LABELS, CLS_RULE_LABELS, TOURN_RULE_LABELS,
+      simulateGroupStandings, saveGroupStandings,
+      matchMetaLabel, koRoundLabel
+    } from './supabase.js'
+
+    function showFatal(error) {
+      console.error(error)
+      const loading = document.getElementById('loading')
+      loading.innerHTML = `
+        <strong>Nao foi possivel abrir este bolao.</strong>
+        <p class="muted mt-8" style="font-size:.88rem;line-height:1.5">
+          ${escHtml(error?.message || 'Tente novamente em alguns instantes.')}
+        </p>
+        <a href="dashboard.html" class="btn btn-ghost btn-sm mt-12" style="text-decoration:none">Voltar ao painel</a>`
+      loading.classList.remove('hidden')
+      document.getElementById('content').classList.add('hidden')
+    }
+
+    main().catch(showFatal)
+
+    async function main() {
+    const poolId = new URLSearchParams(location.search).get('id')
+    if (!poolId) {
+      location.replace('dashboard.html')
+      return
+    }
+
+    const auth = await requireAuthWithProfile()
+    if (!auth) return
+    const { user, profile } = auth
+
+    document.getElementById('header-slot').innerHTML = renderHeader(profile, true)
+    bindSignOut()
+    document.getElementById('link-rules').href = `rules.html?pool=${poolId}`
+    document.getElementById('link-final').href = `final.html?id=${poolId}`
+    document.getElementById('link-standings-full').href = `standings.html?pool=${poolId}`
+
+    const [{ data: pool, error: poolError }, { data: membership, error: membershipError }] = await Promise.all([
+      supabase.from('pools').select('id, name').eq('id', poolId).maybeSingle(),
+      supabase.from('pool_members').select('role').eq('pool_id', poolId).eq('user_id', user.id).maybeSingle()
+    ])
+    if (poolError) throw new Error(`Erro ao buscar o bolao: ${poolError.message}`)
+    if (membershipError) throw new Error(`Erro ao verificar sua participacao: ${membershipError.message}`)
+    if (!pool) throw new Error('Bolao nao encontrado ou sem permissao de acesso.')
+    if (!membership) throw new Error('Voce nao participa deste bolao.')
+
+    const isOwner = membership?.role === 'owner'
+    document.title = `${pool.name} · Copa 2026`
+    document.getElementById('pool-name').textContent = pool.name
+    if (isOwner) document.getElementById('btn-config').classList.remove('hidden')
+
+    document.getElementById('loading').classList.add('hidden')
+    document.getElementById('content').classList.remove('hidden')
+
+    // ── Ranking banner ────────────────────────────────────────
+    let rankingOpen = false, rankingLoaded = false
+    document.getElementById('ranking-toggle').addEventListener('click', async () => {
+      rankingOpen = !rankingOpen
+      document.getElementById('ranking-panel').classList.toggle('hidden', !rankingOpen)
+      document.getElementById('ranking-arrow').classList.toggle('open', rankingOpen)
+      if (rankingOpen && !rankingLoaded) { rankingLoaded = true; await loadRanking() }
+    })
+
+    // ── Fase de grupos (recolhível) ───────────────────────────
+    // Encerrada: fica fechada por padrão; o usuário abre para rever/editar.
+    let groupOpen = false
+    document.getElementById('group-toggle').addEventListener('click', () => {
+      groupOpen = !groupOpen
+      document.getElementById('group-collapse').classList.toggle('hidden', !groupOpen)
+      document.getElementById('group-arrow').classList.toggle('open', groupOpen)
+    })
+
+    async function loadRanking() {
+      const { data } = await supabase.rpc('pool_ranking', { p: poolId })
+      const list = document.getElementById('ranking-list')
+      if (!data?.length) { list.innerHTML = '<p class="muted" style="padding:14px">Sem participantes ainda.</p>'; return }
+      const me = data.find(r => r.user_id === user.id)
+      if (me) {
+        document.getElementById('ranking-my-pos').textContent = `${me.placement}º · ${me.total_points} pts`
+      }
+      // Só detalha quando o bolão pontua grupos/pódio (há bolão que pontua só jogos).
+      const detalha = data.some(r => r.group_points > 0 || r.podium_points > 0)
+      const parcela = (label, valor, titulo) =>
+        `<span class="${valor > 0 ? '' : 'zero'}" title="${titulo}">${label} <b>${valor}</b></span>`
+
+      list.innerHTML = data.map(r => `
+        <div class="rank-row${r.user_id === user.id ? ' me' : ''}">
+          <span class="rank-pos">${medalIcon(r.placement)}</span>
+          <span class="rank-name">${escHtml(r.display_name)}
+            ${r.user_id === user.id ? '<span style="font-size:.7rem;color:var(--muted);margin-left:4px">(você)</span>' : ''}
+          </span>
+          <span style="text-align:right">
+            <span class="rank-pts">${r.total_points}</span>
+            ${detalha ? `<span class="rank-breakdown">
+              ${parcela('jogos', r.match_points, 'Pontos dos palpites de placar')}
+              ${parcela('grupos', r.group_points, 'Classificação dos grupos e melhores 3ºs')}
+              ${parcela('pódio', r.podium_points, 'Campeão, vice e 3º lugar')}
+            </span>` : ''}
+          </span>
+        </div>`).join('')
+    }
+
+    // ── Config panel ──────────────────────────────────────────
+    let configOpen = false, configLoaded = false
+    document.getElementById('btn-config').addEventListener('click', () => {
+      configOpen = !configOpen
+      document.getElementById('config-panel').classList.toggle('hidden', !configOpen)
+      document.getElementById('btn-config').textContent = configOpen ? '✕ Fechar config.' : '⚙ Configurações'
+      if (configOpen && !configLoaded) { configLoaded = true; loadConfig() }
+    })
+
+    async function loadConfig() {
+      // ── Membros ──────────────────────────────────────────────
+      const { data: members } = await supabase
+        .from('pool_members')
+        .select('user_id, role, profiles(display_name, avatar)')
+        .eq('pool_id', poolId)
+
+      const membersList = document.getElementById('members-list')
+      membersList.innerHTML = (members ?? []).map(m => {
+        const name   = m.profiles?.display_name ?? '?'
+        const avatar = m.profiles?.avatar || '⚽'
+        const isMe   = m.user_id === user.id
+        const canKick = !isMe && m.role !== 'owner'
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)">
+          <span style="font-size:1.2rem">${escHtml(avatar)}</span>
+          <span style="flex:1;font-size:.9rem;font-weight:500">${escHtml(name)}</span>
+          ${canKick ? `<button class="pool-action-btn danger btn-kick" data-uid="${m.user_id}" data-name="${escHtml(name)}" style="font-size:.75rem;padding:4px 9px">Remover</button>` : ''}
+        </div>`
+      }).join('') || '<p class="muted" style="font-size:.85rem">Nenhum membro.</p>'
+
+      membersList.querySelectorAll('.btn-kick').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const memberId   = btn.dataset.uid
+          const memberName = btn.dataset.name
+          const msg = document.getElementById('members-msg')
+          if (!confirm(`Remover "${memberName}" do bolão? Esta ação é irreversível.`)) return
+          const pw = prompt('Confirme sua senha para continuar:')
+          if (!pw) return
+          // Re-autenticar
+          const { data: { user: authUser } } = await supabase.auth.getUser()
+          const { error: authErr } = await supabase.auth.signInWithPassword({ email: authUser.email, password: pw })
+          if (authErr) {
+            msg.textContent = 'Senha incorreta. Membro não removido.'
+            msg.style.color = 'var(--flare)'; msg.classList.remove('hidden'); return
+          }
+          const { error } = await supabase.from('pool_members').delete()
+            .eq('pool_id', poolId).eq('user_id', memberId)
+          if (error) {
+            msg.textContent = error.message; msg.style.color = 'var(--flare)'
+          } else {
+            btn.closest('div').remove()
+            msg.textContent = `✓ ${memberName} removido do bolão.`; msg.style.color = 'var(--pitch-deep)'
+          }
+          msg.classList.remove('hidden')
+        })
+      })
+
+      // ── Regras ───────────────────────────────────────────────
+      const rules = await getRules(poolId)
+      const MATCH_KEYS = Object.keys(MATCH_RULE_LABELS)
+      const KO_KEYS    = Object.keys(KO_RULE_LABELS)
+      const CLS_KEYS   = Object.keys(CLS_RULE_LABELS)
+      const TOURN_KEYS = Object.keys(TOURN_RULE_LABELS)
+      const ALL_KEYS   = [...MATCH_KEYS, ...KO_KEYS, ...CLS_KEYS, ...TOURN_KEYS]
+
+      const renderInputs = (keys, labels, id) => {
+        document.getElementById(id).innerHTML = keys.map(k => `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+            <label for="rule-${k}" style="font-size:.85rem;font-weight:500;flex:1">${labels[k]}</label>
+            <input id="rule-${k}" class="rules-input" type="number" min="0" max="999" value="${rules[k] ?? 0}">
+          </div>`).join('')
+      }
+      renderInputs(MATCH_KEYS,  MATCH_RULE_LABELS,  'rules-match')
+      renderInputs(KO_KEYS,     KO_RULE_LABELS,     'rules-ko')
+      renderInputs(CLS_KEYS,    CLS_RULE_LABELS,    'rules-cls')
+      renderInputs(TOURN_KEYS,  TOURN_RULE_LABELS,  'rules-tourn')
+
+      const updateMax = () => {
+        const mMax  = MATCH_KEYS.reduce((s,k) => s+(parseInt(document.getElementById(`rule-${k}`)?.value)||0),0)
+        const koMax = KO_KEYS.reduce((s,k) => s+(parseInt(document.getElementById(`rule-${k}`)?.value)||0),0)
+        document.getElementById('rules-max-match').textContent = `${mMax} pts`
+        document.getElementById('rules-max-ko').textContent    = `${koMax} pts`
+      }
+      updateMax()
+      document.querySelectorAll('.rules-input').forEach(inp => inp.addEventListener('input', updateMax))
+
+      document.getElementById('btn-save-rules').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-save-rules')
+        const msg = document.getElementById('rules-msg')
+        const updates = { updated_at: new Date().toISOString() }
+        for (const k of ALL_KEYS) {
+          const v = parseInt(document.getElementById(`rule-${k}`)?.value)
+          if (isNaN(v) || v < 0) { msg.textContent = 'Todos os valores precisam ser ≥ 0.'; msg.style.color='var(--flare)'; msg.classList.remove('hidden'); return }
+          updates[k] = v
+        }
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'
+        msg.classList.add('hidden')
+        const { error } = await supabase.from('pool_scoring_rules').update(updates).eq('pool_id', poolId)
+        btn.disabled = false; btn.textContent = 'Salvar regras'
+        msg.textContent = error ? error.message : '✓ Regras salvas.'
+        msg.style.color = error ? 'var(--flare)' : 'var(--pitch-deep)'
+        msg.classList.remove('hidden')
+      })
+    }
+
+    // ── Estado das apostas reveladas ──────────────────────────
+    let poolPreds = null, poolPredsLoading = false
+    const poolPredsCallbacks = []
+
+    async function getPoolPreds() {
+      if (poolPreds) return poolPreds
+      if (poolPredsLoading) return new Promise(res => poolPredsCallbacks.push(res))
+      poolPredsLoading = true
+      try {
+        poolPreds = await callAdmin('get_pool_predictions', { pool_id: poolId })
+      } catch (e) {
+        console.error('Erro ao buscar apostas do bolão:', e)
+        poolPreds = { members: [], matches: [], predictions: [], revealed_match_ids: [] }
+      }
+      poolPredsCallbacks.forEach(cb => cb(poolPreds))
+      poolPredsCallbacks.length = 0
+      return poolPreds
+    }
+
+    // ── Tabs ──────────────────────────────────────────────────
+    const mainContainer = document.querySelector('.container')
+    let tabsLoaded = { palpites: false, grupos: false, podio: false, planilha: false, premios: false, evolucao: false }
+    document.querySelectorAll('.pool-nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.pool-nav-item').forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+        const tab = btn.dataset.tab
+        document.getElementById('tab-palpites').classList.toggle('hidden', tab !== 'palpites')
+        document.getElementById('tab-grupos').classList.toggle('hidden', tab !== 'grupos')
+        document.getElementById('tab-podio').classList.toggle('hidden', tab !== 'podio')
+        document.getElementById('tab-planilha').classList.toggle('hidden', tab !== 'planilha')
+        document.getElementById('tab-premios').classList.toggle('hidden', tab !== 'premios')
+        document.getElementById('tab-evolucao').classList.toggle('hidden', tab !== 'evolucao')
+        mainContainer.classList.toggle('planilha-wide', tab === 'planilha')
+        if (!tabsLoaded[tab]) {
+          tabsLoaded[tab] = true
+          if (tab === 'grupos') loadGrupos()
+          if (tab === 'podio') loadPodio()
+          if (tab === 'planilha') loadPlanilha()
+          if (tab === 'premios') loadPremios()
+          if (tab === 'evolucao') loadEvolucao()
+        }
+      })
+    })
+
+    // ── Estado palpites ───────────────────────────────────────
+    const timers = {}, latestVals = {}
+    let predsMap = {}, allMatches = [], koMatches = []
+    let activeGroup = 'todos', activeRound = 'todos', activeDate = '', viewMode = 'group'
+
+    function getLocalDate(d) { return new Date(d).toLocaleDateString('sv-SE') }
+
+    async function loadMatches() {
+      const [{ data: matches }, { data: preds }] = await Promise.all([
+        supabase.from('matches').select('id,match_date,home_team,away_team,home_score,away_score,group_name,status,match_number,phase,advancing_team').order('match_date'),
+        supabase.from('predictions').select('match_id,home_score,away_score,points,advancing_team').eq('pool_id',poolId).eq('user_id',user.id)
+      ])
+      predsMap = {}
+      for (const p of preds ?? []) predsMap[p.match_id] = p
+      const list = document.getElementById('matches-list')
+      if (!matches?.length) { list.innerHTML = `<div class="empty"><strong>Nenhuma partida importada ainda</strong></div>`; return }
+      allMatches = matches.filter(m => (m.phase ?? 'group') === 'group')
+      koMatches  = matches.filter(m => m.phase && m.phase !== 'group')
+      const ghint = document.getElementById('group-toggle-hint')
+      if (ghint) {
+        const feitos = allMatches.filter(m => predsMap[m.id] !== undefined).length
+        ghint.textContent = `${feitos}/${allMatches.length} palpites`
+      }
+      const todayLocal = new Date().toLocaleDateString('sv-SE')
+      if (allMatches.some(m => getLocalDate(m.match_date) === todayLocal)) activeDate = todayLocal
+      updateProgress(); startCountdown(matches); buildFilterBar(allMatches); renderMatches(); renderKoMatches()
+    }
+
+    function updateProgress() {
+      const open = allMatches.filter(m => matchStatus(m) === 'open')
+      const total = open.length, done = open.filter(m => predsMap[m.id] !== undefined).length
+      const pct = total ? Math.round(done/total*100) : 0
+      const sec = document.getElementById('progress-section')
+      if (!total) { sec.classList.add('hidden'); return }
+      sec.classList.remove('hidden')
+      document.getElementById('progress-label').textContent = pct === 100 ? 'Todos os palpites feitos! 🎉' : 'Palpites feitos'
+      document.getElementById('progress-fraction').textContent = `${done} de ${total}`
+      document.getElementById('progress-fill').style.width = pct + '%'
+    }
+
+    function startCountdown(allMatchesAll = allMatches) {
+      const banner = document.getElementById('countdown-banner')
+      const next = allMatchesAll.filter(m => new Date(m.match_date) > new Date() && m.status === 'scheduled').sort((a,b) => new Date(a.match_date)-new Date(b.match_date))[0]
+      if (!next) { banner.classList.add('hidden'); return }
+      const update = () => {
+        const diff = new Date(next.match_date) - new Date()
+        if (diff <= 0) { banner.classList.add('hidden'); return }
+        const totalH = Math.floor(diff/3600000), d = Math.floor(totalH/24), h = totalH%24, m = Math.floor((diff%3600000)/60000)
+        banner.textContent = `⏱ Próxima partida em ${d>0?`${d}d ${h}h`:h>0?`${h}h ${m}min`:`${m}min`} · ${translateTeam(next.home_team)} × ${translateTeam(next.away_team)}`
+        banner.classList.remove('hidden')
+      }
+      update(); setInterval(update, 60000)
+    }
+
+    function buildFilterBar(matches) {
+      const groups = [...new Set(matches.map(m=>m.group_name).filter(Boolean))].sort()
+      const rounds = [...new Set(matches.map(m=>m.match_number).filter(n=>n>0))].sort((a,b)=>a-b)
+      const todayLocal = new Date().toLocaleDateString('sv-SE')
+      const dateLabelMap = {}
+      for (const m of matches) {
+        const d = getLocalDate(m.match_date)
+        if (!dateLabelMap[d]) dateLabelMap[d] = fmtDate(m.match_date)
+      }
+      const dates = Object.keys(dateLabelMap).sort()
+      const bar = document.getElementById('filter-bar')
+      bar.classList.remove('hidden')
+      bar.innerHTML = `<div class="filter-selects">
+        ${dates.length > 1 ? `<select class="filter-select" id="sel-date">
+          <option value="">Todos os dias</option>
+          ${dates.map(d=>`<option value="${escHtml(d)}"${d===activeDate?' selected':''}>${d===todayLocal?'Hoje · ':''}${escHtml(dateLabelMap[d])}</option>`).join('')}
+        </select>` : ''}
+        ${groups.length?`<select class="filter-select" id="sel-group"><option value="todos">Todos os grupos</option>${groups.map(g=>`<option value="${escHtml(g)}">Grupo ${escHtml(g)}</option>`).join('')}</select>`:''}
+        ${rounds.length?`<select class="filter-select" id="sel-round"><option value="todos">Todas as rodadas</option>${rounds.map(r=>`<option value="${r}">Rodada ${r}</option>`).join('')}</select>`:''}
+        <select class="filter-select" id="sel-view"><option value="group">Por grupo</option><option value="date">Por data</option></select>
+      </div>`
+      document.getElementById('sel-date')?.addEventListener('change',e=>{activeDate=e.target.value;renderMatches()})
+      document.getElementById('sel-group')?.addEventListener('change',e=>{activeGroup=e.target.value;renderMatches()})
+      document.getElementById('sel-round')?.addEventListener('change',e=>{activeRound=e.target.value;renderMatches()})
+      document.getElementById('sel-view').addEventListener('change',e=>{viewMode=e.target.value;renderMatches()})
+    }
+
+    function renderMatches() {
+      const filtered = allMatches.filter(m => (activeGroup==='todos'||m.group_name===activeGroup) && (activeRound==='todos'||String(m.match_number)===String(activeRound)) && (activeDate===''||getLocalDate(m.match_date)===activeDate))
+      const list = document.getElementById('matches-list')
+      if (!filtered.length) { list.innerHTML='<div class="empty"><strong>Nenhuma partida nesse filtro</strong></div>'; return }
+      const bucket = m => viewMode==='group' ? (m.group_name??'?') : m.match_date.slice(0,10)
+      const label  = k => viewMode==='group' ? `Grupo ${escHtml(k)}` : new Date(k+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})
+      const sections = {}
+      for (const m of filtered) { const k=bucket(m); if(!sections[k]) sections[k]=[]; sections[k].push(m) }
+      list.innerHTML = Object.entries(sections).sort(([a],[b])=>a.localeCompare(b)).map(([k,ms])=>`
+        <div style="margin-bottom:28px">
+          <div class="round-header"><span class="round-label" style="text-transform:capitalize">${label(k)}</span><div class="round-line"></div></div>
+          <div class="stack gap-8">${ms.sort((a,b)=>new Date(a.match_date)-new Date(b.match_date)).map(m=>renderMatchCard(m)).join('')}</div>
+        </div>`).join('')
+      for (const m of filtered) {
+        if (matchStatus(m)!=='open') continue
+        const h=document.getElementById(`home-${m.id}`), a=document.getElementById(`away-${m.id}`)
+        if (!h||!a) continue
+        h.addEventListener('input',()=>schedSave(m.id)); a.addEventListener('input',()=>schedSave(m.id))
+      }
+    }
+
+    function renderMatchCard(m) {
+      const isTbd = m.home_team === 'TBD' || m.away_team === 'TBD'
+      const isKo = !!(m.phase && m.phase !== 'group')
+      const rawStatus = matchStatus(m)
+      const status = isTbd && rawStatus === 'open' ? 'locked' : rawStatus
+      const pred=predsMap[m.id], isOpen=status==='open', isClosed=status==='closed'
+      const home=translateTeam(m.home_team)||'A definir', away=translateTeam(m.away_team)||'A definir'
+      const scoreArea = isOpen
+        ? `<span class="score-area"><input id="home-${m.id}" class="score-input" type="number" min="0" max="20" value="${pred?pred.home_score:''}" placeholder="—"><span class="score-sep">:</span><input id="away-${m.id}" class="score-input" type="number" min="0" max="20" value="${pred?pred.away_score:''}" placeholder="—"></span>`
+        : `<span class="score-locked">${m.home_score!==null?`<span>${m.home_score}</span><span class="score-sep">:</span><span>${m.away_score}</span>`:`<span style="font-size:.9rem;color:var(--muted)">— : —</span>`}</span>`
+
+      // Mata-mata: seletor de "quem avança nos pênaltis" (aparece quando o palpite é empate).
+      let advanceBlock = ''
+      if (isKo && isOpen && !isTbd) {
+        const advHome = pred?.advancing_team && pred.advancing_team === m.home_team
+        const advAway = pred?.advancing_team && pred.advancing_team === m.away_team
+        const isDrawNow = pred && pred.home_score != null && pred.home_score === pred.away_score
+        advanceBlock = `
+        <div class="ko-advance" id="advance-${m.id}"${isDrawNow ? '' : ' style="display:none"'}>
+          <span class="ko-advance-q">⚖️ Empate — quem avança nos pênaltis?</span>
+          <div class="ko-advance-opts">
+            <button type="button" class="ko-adv-btn${advHome?' selected':''}" data-adv="${m.id}" data-side="home">${escHtml(home)}</button>
+            <button type="button" class="ko-adv-btn${advAway?' selected':''}" data-adv="${m.id}" data-side="away">${escHtml(away)}</button>
+          </div>
+        </div>`
+      }
+
+      // Nota de "avança" do palpite do usuário (mata-mata, palpite de empate).
+      const advPick = (isKo && pred?.advancing_team)
+        ? ` <span style="color:var(--muted)">· avança: ${escHtml(translateTeam(pred.advancing_team))}</span>` : ''
+      // Nota de quem realmente avançou (mata-mata encerrado decidido nos pênaltis).
+      const advReal = (isKo && isClosed && m.advancing_team && m.home_score === m.away_score)
+        ? ` <span style="color:var(--muted)">· avançou: ${escHtml(translateTeam(m.advancing_team))}</span>` : ''
+
+      let footer = ''
+      if (isTbd&&!isClosed) footer = `<span style="color:var(--muted)">Times a definir — apostas abertas assim que o confronto for definido</span>`
+      else if (isClosed&&pred) footer = `Seu palpite: ${pred.home_score}–${pred.away_score}${advPick} ${pred.points!==null?`<span class="points-earned">+${pred.points} pts</span>`:'<span style="font-style:italic">calculando…</span>'}${advReal}`
+      else if (isClosed&&!pred) footer = `<span style="color:var(--flare)">Sem palpite registrado</span>${advReal}`
+      else if (!isOpen&&pred) footer = `Seu palpite: ${pred.home_score}–${pred.away_score}${advPick} <span style="color:var(--muted)">· apostas encerradas</span>`
+      else if (!isOpen&&!pred) footer = `<span style="color:var(--flare)">Apostas encerradas — sem palpite</span>`
+      return `<div class="match-card ${status}" id="card-${m.id}">
+        <div class="match-meta"><strong>${escHtml(matchMetaLabel(m))}</strong><span>·</span><span>${fmtDate(m.match_date)} · ${fmtTime(m.match_date)}</span>${statusBadge(status)}</div>
+        <div class="match-row"><span class="team-name team-home">${escHtml(home)}${teamFlag(m.home_team)}</span>${scoreArea}<span class="team-name team-away">${teamFlag(m.away_team)}${escHtml(away)}</span></div>
+        ${advanceBlock}
+        <div class="match-footer" id="footer-${m.id}">${footer}</div>
+      </div>`
+    }
+
+    function renderKoMatches() {
+      const sec = document.getElementById('ko-section')
+      const list = document.getElementById('ko-list')
+      if (!koMatches.length) { sec.classList.add('hidden'); return }
+      sec.classList.remove('hidden')
+
+      // Agrupar por rodada (group_name ou fase)
+      const sections = {}
+      for (const m of koMatches) {
+        const k = m.group_name ?? 'ko'
+        ;(sections[k] ??= []).push(m)
+      }
+      const sectionOrder = Object.keys(sections)
+        .sort((a, b) => new Date(sections[a][0].match_date) - new Date(sections[b][0].match_date))
+
+      list.innerHTML = sectionOrder.map(k => {
+        const ms = sections[k].sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+        return `
+          <div style="margin-bottom:28px">
+            <div class="round-header"><span class="round-label">${escHtml(koRoundLabel(k))}</span><div class="round-line"></div></div>
+            <div class="stack gap-8">${ms.map(m => renderMatchCard(m)).join('')}</div>
+          </div>`
+      }).join('')
+
+      for (const m of koMatches) {
+        if (matchStatus(m) !== 'open' || m.home_team === 'TBD' || m.away_team === 'TBD') continue
+        const h = document.getElementById(`home-${m.id}`), a = document.getElementById(`away-${m.id}`)
+        if (!h || !a) continue
+        h.addEventListener('input', () => { toggleAdvance(m.id); schedSave(m.id) })
+        a.addEventListener('input', () => { toggleAdvance(m.id); schedSave(m.id) })
+        // Botões "quem avança nos pênaltis"
+        const block = document.getElementById(`advance-${m.id}`)
+        block?.querySelectorAll('.ko-adv-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const team = btn.dataset.side === 'home' ? m.home_team : m.away_team
+            predsMap[m.id] = { ...predsMap[m.id], advancing_team: team }
+            block.querySelectorAll('.ko-adv-btn').forEach(x => x.classList.remove('selected'))
+            btn.classList.add('selected')
+            schedSave(m.id, 200)
+          })
+        })
+        toggleAdvance(m.id)
+      }
+    }
+
+    // Mostra/esconde o seletor "quem avança" conforme o palpite seja empate,
+    // e sincroniza o destaque dos botões com o time já salvo.
+    function toggleAdvance(matchId) {
+      const block = document.getElementById(`advance-${matchId}`)
+      if (!block) return
+      const hI = document.getElementById(`home-${matchId}`), aI = document.getElementById(`away-${matchId}`)
+      const h = parseInt(hI?.value), a = parseInt(aI?.value)
+      const isDraw = !isNaN(h) && !isNaN(a) && h === a
+      block.style.display = isDraw ? '' : 'none'
+      if (!isDraw) return
+      const match = koMatches.find(mm => mm.id === matchId)
+      const picked = predsMap[matchId]?.advancing_team
+      block.querySelectorAll('.ko-adv-btn').forEach(btn => {
+        const team = btn.dataset.side === 'home' ? match?.home_team : match?.away_team
+        btn.classList.toggle('selected', !!picked && team === picked)
+      })
+    }
+
+    function schedSave(matchId, delay=700) {
+      const hI=document.getElementById(`home-${matchId}`), aI=document.getElementById(`away-${matchId}`)
+      if (hI) latestVals[matchId]={home:hI.value,away:aI.value}
+      clearTimeout(timers[matchId])
+      timers[matchId]=setTimeout(async()=>{
+        const {home,away}=latestVals[matchId]??{}
+        const h=parseInt(home), a=parseInt(away)
+        if (isNaN(h)||isNaN(a)||h<0||a<0) return
+        // Mata-mata: em palpite de empate, exige escolher quem avança nos pênaltis.
+        const predMatch=[...allMatches,...koMatches].find(m=>m.id===matchId)
+        const isKo=!!(predMatch?.phase&&predMatch.phase!=='group')
+        let advancing_team=null
+        if (isKo && h===a) {
+          advancing_team=predsMap[matchId]?.advancing_team ?? null
+          if (!advancing_team) {
+            setFooter(matchId,'<span style="color:var(--flare)">Empate: escolha quem avança nos pênaltis para salvar.</span>')
+            return
+          }
+        }
+        setFooter(matchId,'<span class="save-status">Salvando…</span>')
+        const {error}=await supabase.from('predictions').upsert({user_id:user.id,match_id:matchId,pool_id:poolId,home_score:h,away_score:a,advancing_team,updated_at:new Date().toISOString()},{onConflict:'user_id,match_id,pool_id'})
+        if (error) { setFooter(matchId,'<span style="color:var(--flare)">Erro ao salvar</span>') }
+        else {
+          predsMap[matchId]={...predsMap[matchId],home_score:h,away_score:a,advancing_team}
+          updateProgress()
+          setFooter(matchId,'<span class="save-status" style="color:var(--pitch)">✓ Salvo</span>')
+          setTimeout(()=>setFooter(matchId,''),2000)
+          const match=allMatches.find(m=>m.id===matchId)
+          if (match?.group_name) saveGroupStandings(poolId,user.id,match.group_name,allMatches.filter(m=>m.group_name===match.group_name),predsMap)
+        }
+      },delay)
+    }
+
+    function setFooter(id,html) { const el=document.getElementById(`footer-${id}`); if(el) el.innerHTML=html }
+
+    await loadMatches()
+
+    // Carregar apostas reveladas em background e renderizar destaque
+    getPoolPreds().then(data => renderRevealedSection(data))
+
+    // ── Apostas reveladas (destaque na aba Palpites) ──────────
+    function renderRevealedSection(data) {
+      const sec = document.getElementById('revealed-section')
+      const revealedIds = new Set(data.revealed_match_ids ?? [])
+      if (!revealedIds.size) { sec.classList.add('hidden'); return }
+
+      // Partidas reveladas (qualquer fase — grupos ou mata-mata), mais recentes primeiro
+      const revealed = (data.matches ?? [])
+        .filter(m => revealedIds.has(m.id))
+        .sort((a, b) => new Date(b.match_date) - new Date(a.match_date))
+
+      if (!revealed.length) { sec.classList.add('hidden'); return }
+
+      // Pegar até 2 (simultâneas = mesma data/hora até 15 min de diferença)
+      const featured = [revealed[0]]
+      if (revealed[1]) {
+        const diff = Math.abs(new Date(revealed[0].match_date) - new Date(revealed[1].match_date))
+        if (diff < 15 * 60 * 1000) featured.push(revealed[1])
+      }
+
+      const predsIndex = {}
+      for (const pr of data.predictions ?? []) {
+        if (!predsIndex[pr.match_id]) predsIndex[pr.match_id] = {}
+        predsIndex[pr.match_id][pr.user_id] = pr
+      }
+
+      const cards = featured.map(m => {
+        const matchPreds = predsIndex[m.id] ?? {}
+        const status = matchStatus(m)
+        const hasScore = m.home_score !== null && m.away_score !== null
+        const scoreHtml = hasScore
+          ? `<span class="revealed-card-score">${m.home_score} : ${m.away_score}</span>`
+          : status === 'live' ? `<span class="revealed-card-score" style="color:var(--flare)">AO VIVO</span>` : ''
+        const rows = (data.members ?? []).map(mem => {
+          const pr = matchPreds[mem.user_id]
+          const isMe = mem.user_id === user.id
+          const scoreStr = pr ? `${pr.home_score}–${pr.away_score}` : null
+          const ptsStr = pr?.points != null ? `+${pr.points} pts` : ''
+          return `<div class="revealed-pred-row${isMe ? ' me' : ''}">
+            <span style="font-size:1rem">${escHtml(mem.avatar)}</span>
+            <span class="revealed-pred-name">${escHtml(mem.display_name)}${isMe ? ' <span style="font-size:.68rem;color:var(--muted)">(você)</span>' : ''}</span>
+            ${scoreStr
+              ? `<span class="revealed-pred-score">${escHtml(scoreStr)}</span>
+                 <span class="revealed-pred-pts">${escHtml(ptsStr)}</span>`
+              : `<span class="revealed-no-pred">sem palpite</span>`}
+          </div>`
+        }).join('')
+        return `<div class="revealed-card">
+          <div class="revealed-card-header">
+            <div class="revealed-card-meta">${escHtml(matchMetaLabel(m))} · ${fmtDate(m.match_date)} · ${fmtTime(m.match_date)}</div>
+            <div class="revealed-card-teams">
+              ${teamFlag(m.home_team)}${escHtml(translateTeam(m.home_team))}
+              ${scoreHtml}
+              ${escHtml(translateTeam(m.away_team))}${teamFlag(m.away_team)}
+            </div>
+          </div>
+          ${rows}
+        </div>`
+      }).join('')
+
+      sec.innerHTML = `<div class="revealed-label">🔓 Apostas reveladas</div>${cards}`
+      sec.classList.remove('hidden')
+    }
+
+    // ── Tab Planilha ──────────────────────────────────────────
+    async function loadPlanilha() {
+      const [matchData, groupData] = await Promise.all([
+        getPoolPreds(),
+        callAdmin('get_pool_group_preds', { pool_id: poolId }).catch(() => null),
+      ])
+      renderPlanilha(matchData, document.getElementById('planilha-wrap'))
+      renderGroupPlanilha(groupData)
+    }
+
+    function renderPlanilha(data, wrap) {
+      const members = data.members ?? []
+      const matches = data.matches ?? []
+      const revealedIds = new Set(data.revealed_match_ids ?? [])
+
+      if (!members.length || !matches.length) {
+        wrap.innerHTML = '<div class="empty" style="padding:20px"><strong>Sem dados ainda.</strong></div>'
+        return
+      }
+
+      const predsIndex = {}
+      for (const pr of data.predictions ?? []) {
+        if (!predsIndex[pr.match_id]) predsIndex[pr.match_id] = {}
+        predsIndex[pr.match_id][pr.user_id] = pr
+      }
+
+      // Ordenar membros por pts desc (de apostas reveladas), empate por nome
+      const ptsByUser = {}
+      for (const pr of data.predictions ?? [])
+        ptsByUser[pr.user_id] = (ptsByUser[pr.user_id] ?? 0) + (pr.points ?? 0)
+      const sortedMembers = [...members].sort((a, b) =>
+        (ptsByUser[b.user_id] ?? 0) - (ptsByUser[a.user_id] ?? 0) ||
+        a.display_name.localeCompare(b.display_name, 'pt-BR')
+      )
+
+      // Preencher filtro de membro
+      const filterSel = document.getElementById('planilha-member-sel')
+      const filterBar = document.getElementById('planilha-filter-bar')
+      const hint = document.getElementById('planilha-hint')
+      filterSel.innerHTML = '<option value="">Todos os membros</option>' +
+        sortedMembers.map(m =>
+          `<option value="${escHtml(m.user_id)}">${escHtml(m.display_name)} (${ptsByUser[m.user_id] ?? 0} pts)</option>`
+        ).join('')
+      filterBar.classList.remove('hidden')
+      filterSel.onchange = () => {
+        const uid = filterSel.value
+        wrap.querySelectorAll('[data-uid]').forEach(el =>
+          el.classList.toggle('col-hidden', uid !== '' && el.dataset.uid !== uid))
+        hint.classList.toggle('hidden', uid !== '')
+      }
+
+      // Cabeçalho: coluna Partida + uma coluna por membro (ordenados por pts)
+      const thMembers = sortedMembers.map(m => {
+        const isMe = m.user_id === user.id
+        return `<th data-uid="${escHtml(m.user_id)}" class="${isMe ? 'col-me' : ''}" title="${escHtml(m.display_name)}">
+          <span style="font-size:.85rem">${escHtml(m.avatar)}</span><br>
+          ${escHtml(m.display_name.split(' ')[0])}
+          <span class="planilha-th-pts">${ptsByUser[m.user_id] ?? 0} pts</span>
+        </th>`
+      }).join('')
+
+      // Agrupar por group_name/phase
+      const groupOrder = [...new Set(matches.map(m => m.group_name ?? m.phase ?? '?'))]
+      let rows = ''
+      for (const grp of groupOrder) {
+        const grpMatches = matches.filter(m => (m.group_name ?? m.phase ?? '?') === grp)
+          .sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+        const label = grpMatches[0]?.phase === 'group' ? `Grupo ${grp}` : koRoundLabel(grp)
+        rows += `<tr class="planilha-group-row"><td class="col-match">${escHtml(label)}</td>${sortedMembers.map(m => `<td data-uid="${escHtml(m.user_id)}"></td>`).join('')}</tr>`
+        for (const m of grpMatches) {
+          const revealed = revealedIds.has(m.id)
+          const matchPreds = predsIndex[m.id] ?? {}
+          const hasScore = m.home_score !== null && m.away_score !== null
+          const matchCell = `<span style="font-weight:700">${escHtml(translateTeam(m.home_team))} × ${escHtml(translateTeam(m.away_team))}</span>
+            <br><span style="font-size:.66rem;color:var(--muted)">${fmtDate(m.match_date)}</span>
+            ${hasScore ? `<br><span class="planilha-match-score">${m.home_score}–${m.away_score}</span>` : ''}`
+          const cells = sortedMembers.map(mem => {
+            const isMe = mem.user_id === user.id
+            const cls = isMe ? 'col-me' : ''
+            if (!revealed) return `<td data-uid="${escHtml(mem.user_id)}" class="${cls}"><span class="planilha-none">—</span></td>`
+            const pr = matchPreds[mem.user_id]
+            if (!pr) return `<td data-uid="${escHtml(mem.user_id)}" class="${cls}"><span class="planilha-none">sem</span></td>`
+            const pts = pr.points != null ? `<span class="planilha-pts">+${pr.points} pts</span>` : ''
+            return `<td data-uid="${escHtml(mem.user_id)}" class="${cls}">
+              <span class="planilha-pred">${pr.home_score}–${pr.away_score}</span>${pts}
+            </td>`
+          }).join('')
+          rows += `<tr><td class="col-match">${matchCell}</td>${cells}</tr>`
+        }
+      }
+
+      wrap.innerHTML = `<table class="planilha-table">
+        <thead><tr><th class="col-match">Partida</th>${thMembers}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`
+    }
+
+    function renderGroupPlanilha(data) {
+      const wrap    = document.getElementById('grupos-planilha-wrap')
+      const filterBar = document.getElementById('grupos-planilha-filter-bar')
+      const memberSel = document.getElementById('grupos-planilha-member-sel')
+
+      const finishedGroups = new Set(data?.finished_groups ?? [])
+      if (!data || !finishedGroups.size) {
+        wrap.innerHTML = '<div class="empty" style="padding:20px"><strong>Classificação ainda não disponível.</strong><br><span style="font-size:.82rem;color:var(--muted)">Os grupos aparecem aqui conforme os jogos são encerrados.</span></div>'
+        return
+      }
+
+      const members  = data.members ?? []
+      const posLabel = ['', '🥇 1º', '🥈 2º', '🥉 3º', '4º']
+
+      // Regras de pontuação do bolão (com fallback para padrão)
+      const rules = data.scoring_rules ?? {}
+      const DEF = { cls_1st: 2, cls_2nd: 2, cls_3rd: 1, cls_4th: 1, cls_qualify: 4, cls_exact: 10 }
+      const r = (k) => rules[k] ?? DEF[k] ?? 0
+
+      // actualMap[grupo][posição] = team
+      const actualMap = {}
+      for (const row of data.actual_standings ?? [])
+        (actualMap[row.group_name] ??= {})[row.position] = row.team
+
+      // predsMap[user_id][grupo][posição] = team_name
+      const predsMap = {}
+      for (const row of data.predicted_standings ?? [])
+        ((predsMap[row.user_id] ??= {})[row.group_name] ??= {})[row.position] = row.team_name
+
+      // Calcula pontos de classificação para um grupo, de acordo com as regras do bolão
+      function calcGroupPts(uid, g) {
+        const pred   = predsMap[uid]?.[g] ?? {}
+        const actual = actualMap[g] ?? {}
+        if (!Object.keys(actual).length) return 0
+        const POS_RULE = { 1: 'cls_1st', 2: 'cls_2nd', 3: 'cls_3rd', 4: 'cls_4th' }
+        let pts = 0, allCorrect = true
+        for (const pos of [1, 2, 3, 4]) {
+          const p = pred[pos], a = actual[pos]
+          if (!p || !a) { allCorrect = false; continue }
+          if (p === a) pts += r(POS_RULE[pos])
+          else allCorrect = false
+        }
+        // cls_qualify: ambos os classificados previstos estão no top 2 real
+        const actualTop2 = new Set([actual[1], actual[2]].filter(Boolean))
+        const predTop2   = [pred[1], pred[2]].filter(Boolean)
+        if (predTop2.length === 2 && predTop2.every(t => actualTop2.has(t)))
+          pts += r('cls_qualify')
+        // cls_exact: ordem exata dos 4
+        if (allCorrect) pts += r('cls_exact')
+        return pts
+      }
+
+      // Apenas grupos com todos os jogos encerrados
+      const groups = [...finishedGroups].sort()
+
+      // Totais por membro (soma de todos os grupos finalizados)
+      const totalByUser = {}
+      for (const m of members)
+        totalByUser[m.user_id] = groups.reduce((s, g) => s + calcGroupPts(m.user_id, g), 0)
+
+      const sortedMembers = [...members].sort(
+        (a, b) => (totalByUser[b.user_id] ?? 0) - (totalByUser[a.user_id] ?? 0)
+          || a.display_name.localeCompare(b.display_name, 'pt-BR')
+      )
+
+      // Filtro de membro
+      memberSel.innerHTML = '<option value="">Todos os membros</option>' +
+        sortedMembers.map(m =>
+          `<option value="${escHtml(m.user_id)}">${escHtml(m.display_name)} (${totalByUser[m.user_id] ?? 0} pts)</option>`
+        ).join('')
+      filterBar.classList.remove('hidden')
+      memberSel.onchange = () => {
+        const uid = memberSel.value
+        wrap.querySelectorAll('[data-uid]').forEach(el =>
+          el.classList.toggle('col-hidden', uid !== '' && el.dataset.uid !== uid))
+      }
+
+      const thMembers = sortedMembers.map(m => `
+        <th data-uid="${escHtml(m.user_id)}" title="${escHtml(m.display_name)}">
+          <span style="font-size:.85rem">${escHtml(m.avatar)}</span><br>
+          ${escHtml(m.display_name.split(' ')[0])}
+          <span class="planilha-th-pts">${totalByUser[m.user_id] ?? 0} pts</span>
+        </th>`).join('')
+
+      let rows = ''
+      for (const g of groups) {
+        const pts4member = sortedMembers.map(m => calcGroupPts(m.user_id, g))
+
+        rows += `<tr class="planilha-group-row">
+          <td class="col-match">Grupo ${escHtml(g)}</td>
+          ${sortedMembers.map((m, i) =>
+            `<td data-uid="${escHtml(m.user_id)}" style="text-align:center">
+              <span class="planilha-pts">+${pts4member[i]} pts</span>
+            </td>`
+          ).join('')}
+        </tr>`
+
+        // Linhas de posição (1º a 4º)
+        for (const pos of [1, 2, 3, 4]) {
+          const actualTeam = actualMap[g]?.[pos]
+          rows += `<tr>
+            <td class="col-match" style="padding-left:20px">
+              <span style="font-size:.73rem;color:var(--muted)">${posLabel[pos]}</span>
+              ${actualTeam
+                ? `<br><span style="font-size:.82rem;font-weight:600">${teamFlag(actualTeam)}${escHtml(translateTeam(actualTeam))}</span>`
+                : ''}
+            </td>
+            ${sortedMembers.map(m => {
+              const pred    = predsMap[m.user_id]?.[g]?.[pos]
+              const correct = actualTeam && pred === actualTeam
+              const wrong   = actualTeam && pred && pred !== actualTeam
+              const bg = correct ? 'background:rgba(14,159,80,.12)' : wrong ? 'background:rgba(239,68,68,.08)' : ''
+              const content = pred
+                ? `<span style="font-size:.8rem">${teamFlag(pred)}${escHtml(translateTeam(pred))}</span>
+                   <span style="font-size:.7rem;margin-left:2px">${correct ? '✓' : wrong ? '✗' : ''}</span>`
+                : `<span class="planilha-none">—</span>`
+              return `<td data-uid="${escHtml(m.user_id)}" style="text-align:center;${bg}">${content}</td>`
+            }).join('')}
+          </tr>`
+        }
+      }
+
+      wrap.innerHTML = `
+        <table>
+          <thead><tr>
+            <th class="col-match">Grupo / Posição</th>
+            ${thMembers}
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`
+    }
+
+    // ── Tab Grupos ────────────────────────────────────────────
+    async function loadGrupos() {
+      if (!allMatches.length) { document.getElementById('groups-grid').innerHTML='<div class="empty"><strong>Sem partidas ainda</strong></div>'; return }
+      const groupNames = [...new Set(allMatches.map(m=>m.group_name).filter(Boolean))].sort()
+      document.getElementById('groups-grid').innerHTML = groupNames.map(g => {
+        const gMatches = allMatches.filter(m=>m.group_name===g)
+        const standings = simulateGroupStandings(gMatches, predsMap)
+        return `<div class="group-mini-card">
+          <div class="group-mini-title">Grupo ${escHtml(g)}</div>
+          ${standings.map((s,i)=>{
+            const pos=i+1
+            return `<div class="group-mini-team">
+              <span class="group-mini-pos gmp-${pos}">${pos}</span>
+              <span style="flex:1;font-size:.82rem">${teamFlag(s.team)}${escHtml(translateTeam(s.team))}</span>
+              <span class="group-mini-pts">${s.pts}</span>
+            </div>`
+          }).join('')}
+        </div>`
+      }).join('')
+    }
+
+    // ── Tab Pódio ─────────────────────────────────────────────
+    async function loadPodio() {
+      const rules = await getRules(poolId)
+      document.getElementById('pts-1st').textContent   = `${rules.tourn_1st??100} pts`
+      document.getElementById('pts-2nd').textContent   = `${rules.tourn_2nd??50} pts`
+      document.getElementById('pts-3rd').textContent   = `${rules.tourn_3rd??25} pts`
+      document.getElementById('pts-bonus').textContent = `${rules.tourn_bonus??225} pts`
+
+      const [{ data: teamsData }, { data: myPred }, { data: results }, { data: allPreds }, { data: members }] = await Promise.all([
+        supabase.from('matches').select('home_team,away_team').eq('phase','group'),
+        supabase.from('tournament_predictions').select('pred_1st,pred_2nd,pred_3rd').eq('pool_id',poolId).eq('user_id',user.id).maybeSingle(),
+        supabase.from('tournament_results').select('position,team_name').order('position'),
+        supabase.from('tournament_predictions').select('user_id,pred_1st,pred_2nd,pred_3rd').eq('pool_id',poolId),
+        supabase.from('pool_members').select('user_id,profiles(display_name,avatar)').eq('pool_id',poolId)
+      ])
+
+      const teamSet = new Set()
+      for (const m of teamsData??[]) { if(m.home_team&&m.home_team!=='TBD') teamSet.add(m.home_team); if(m.away_team&&m.away_team!=='TBD') teamSet.add(m.away_team) }
+      const teams = [...teamSet].sort((a,b)=>translateTeam(a).localeCompare(translateTeam(b),'pt-BR'))
+      const opts = `<option value="">— Escolha —</option>` + teams.map(t=>`<option value="${escHtml(t)}">${escHtml(translateTeam(t))}</option>`).join('')
+      ;['pod-sel-1','pod-sel-2','pod-sel-3'].forEach((id,i)=>{ const sel=document.getElementById(id); sel.innerHTML=opts; const sv=[myPred?.pred_1st,myPred?.pred_2nd,myPred?.pred_3rd][i]; if(sv) sel.value=sv })
+
+      if (results?.length===3) {
+        const resultMap={}; for (const r of results) resultMap[r.position]=r.team_name
+        document.getElementById('result-content-pod').innerHTML=['🥇','🥈','🥉'].map((m,i)=>`<div style="font-size:.88rem;font-weight:600;margin-bottom:3px">${m} ${teamFlag(resultMap[i+1])}${escHtml(translateTeam(resultMap[i+1]))}</div>`).join('')
+        document.getElementById('result-banner-pod').classList.remove('hidden')
+      }
+
+      document.getElementById('btn-save-pod').addEventListener('click', async()=>{
+        const v1=document.getElementById('pod-sel-1').value, v2=document.getElementById('pod-sel-2').value, v3=document.getElementById('pod-sel-3').value
+        const msg=document.getElementById('pod-msg')
+        if (!v1||!v2||!v3) { msg.textContent='Escolha as 3 seleções.'; msg.style.color='var(--flare)'; msg.classList.remove('hidden'); return }
+        if (new Set([v1,v2,v3]).size<3) { msg.textContent='Repita não pode.'; msg.style.color='var(--flare)'; msg.classList.remove('hidden'); return }
+        const btn=document.getElementById('btn-save-pod')
+        btn.disabled=true; btn.innerHTML='<span class="spinner"></span>'
+        msg.classList.add('hidden')
+        const {error}=await supabase.from('tournament_predictions').upsert({pool_id:poolId,user_id:user.id,pred_1st:v1,pred_2nd:v2,pred_3rd:v3,updated_at:new Date().toISOString()},{onConflict:'pool_id,user_id'})
+        btn.disabled=false; btn.textContent='Salvar palpite'
+        msg.textContent=error?error.message:'✓ Palpite do pódio salvo!'; msg.style.color=error?'var(--flare)':'var(--pitch-deep)'; msg.classList.remove('hidden')
+        renderPodioOthers(allPreds, members, results, rules)
+      })
+
+      renderPodioOthers(allPreds, members, results, rules)
+    }
+
+    function renderPodioOthers(allPreds, members, results, rules) {
+      const nameMap={}, avatarMap={}
+      for (const m of members??[]) { nameMap[m.user_id]=m.profiles?.display_name??'?'; avatarMap[m.user_id]=m.profiles?.avatar||'⚽' }
+      const resultMap={}; for (const r of results??[]) resultMap[r.position]=r.team_name
+      const hasResult=Object.keys(resultMap).length===3
+      const list=document.getElementById('pod-others')
+      if (!allPreds?.length) { list.innerHTML='<p class="muted" style="padding:14px">Nenhum palpite ainda.</p>'; return }
+      list.innerHTML=allPreds.map(p=>{
+        let pts=0
+        if (hasResult) {
+          if(p.pred_1st===resultMap[1]) pts+=rules.tourn_1st??100
+          if(p.pred_2nd===resultMap[2]) pts+=rules.tourn_2nd??50
+          if(p.pred_3rd===resultMap[3]) pts+=rules.tourn_3rd??25
+          if(p.pred_1st===resultMap[1]&&p.pred_2nd===resultMap[2]&&p.pred_3rd===resultMap[3]) pts+=rules.tourn_bonus??225
+        }
+        const isMe=p.user_id===user.id
+        return `<div style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);${isMe?'background:var(--pitch-light)':''}">
+          <span style="font-size:1.1rem">${escHtml(avatarMap[p.user_id])}</span>
+          <span style="flex:1;font-size:.85rem;font-weight:${isMe?'700':'500'}">${escHtml(nameMap[p.user_id])}</span>
+          <span style="font-size:.78rem;color:var(--muted)">🥇${escHtml(translateTeam(p.pred_1st??'?'))} 🥈${escHtml(translateTeam(p.pred_2nd??'?'))} 🥉${escHtml(translateTeam(p.pred_3rd??'?'))}</span>
+          ${hasResult?`<span style="font-family:var(--font-display);font-weight:800;font-size:.88rem;color:var(--pitch-deep);min-width:46px;text-align:right">${pts>0?'+'+pts:'0'} pts</span>`:''}
+        </div>`
+      }).join('')
+    }
+
+    // ── Tab Prêmios ───────────────────────────────────────────
+    async function loadPremios() {
+      const el = document.getElementById('tab-premios')
+      el.innerHTML = '<p class="muted" style="padding:20px 0">Calculando prêmios…</p>'
+
+      const [data, { data: ranking }] = await Promise.all([
+        getPoolPreds(),
+        supabase.rpc('pool_ranking', { p: poolId })
+      ])
+
+      const { matches: allM, predictions: allP, members } = data
+      const classMap = Object.fromEntries((ranking ?? []).map(r => [r.user_id, r.class_points ?? 0]))
+
+      const matchById = Object.fromEntries((allM ?? []).map(m => [m.id, m]))
+      const completed = (allM ?? []).filter(m => m.home_score != null && m.away_score != null)
+      const completedIds = new Set(completed.map(m => m.id))
+
+      const stats = {}
+      for (const mem of (members ?? [])) {
+        stats[mem.user_id] = {
+          user_id: mem.user_id,
+          display_name: mem.display_name,
+          exactScores: 0,
+          correctResults: 0,
+          correctDiff: 0,
+          koPoints: 0,
+          totalPlayed: 0,
+          maxStreak: 0,
+        }
+      }
+
+      const predsByUser = {}
+      for (const p of (allP ?? [])) {
+        if (!stats[p.user_id]) continue
+        if (!predsByUser[p.user_id]) predsByUser[p.user_id] = {}
+        predsByUser[p.user_id][p.match_id] = p
+        if (!completedIds.has(p.match_id)) continue
+        const m = matchById[p.match_id]
+        if (!m) continue
+        const s = stats[p.user_id]
+        s.totalPlayed++
+        const aD = m.home_score - m.away_score, pD = p.home_score - p.away_score
+        if (p.home_score === m.home_score && p.away_score === m.away_score) s.exactScores++
+        if (Math.sign(pD) === Math.sign(aD)) s.correctResults++
+        if (pD === aD) s.correctDiff++
+        if (m.phase && m.phase !== 'group') s.koPoints += (p.points ?? 0)
+      }
+
+      // Streak: percorre partidas concluídas em ordem cronológica
+      const sortedCompleted = [...completed].sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+      for (const uid of Object.keys(stats)) {
+        let cur = 0, best = 0
+        for (const m of sortedCompleted) {
+          const p = predsByUser[uid]?.[m.id]
+          if (!p) { cur = 0; continue }
+          const aD = m.home_score - m.away_score, pD = p.home_score - p.away_score
+          if (Math.sign(pD) === Math.sign(aD)) { cur++; if (cur > best) best = cur }
+          else cur = 0
+        }
+        stats[uid].maxStreak = best
+      }
+
+      const rows = Object.values(stats).map(s => ({
+        ...s,
+        classPoints: classMap[s.user_id] ?? 0,
+        pct: s.totalPlayed >= 5 ? Math.round(s.correctResults / s.totalPlayed * 100) : null
+      }))
+
+      const hasData = completed.length > 0
+      const hasKO = completed.some(m => m.phase && m.phase !== 'group')
+      const hasCls = Object.values(classMap).some(v => v > 0)
+      const n = completed.length
+
+      const sortBy = (key) => [...rows].sort((a, b) => b[key] - a[key] || a.display_name.localeCompare(b.display_name, 'pt-BR'))
+
+      const awards = [
+        { icon: '🎯', title: 'Rei/Rainha do Placar Exato',
+          desc: 'Mais placares completos acertados (casa e visitante)',
+          empty: !hasData, sorted: sortBy('exactScores'),
+          val: s => s.exactScores, suf: s => s.exactScores === 1 ? 'acerto' : 'acertos' },
+        { icon: '✅', title: 'Rei/Rainha do Resultado',
+          desc: 'Mais resultados corretos (vitória / empate / derrota)',
+          empty: !hasData, sorted: sortBy('correctResults'),
+          val: s => s.correctResults, suf: s => s.correctResults === 1 ? 'resultado' : 'resultados' },
+        { icon: '📐', title: 'Rei/Rainha do Saldo',
+          desc: 'Mais acertos de diferença de gols (mesma margem)',
+          empty: !hasData, sorted: sortBy('correctDiff'),
+          val: s => s.correctDiff, suf: s => s.correctDiff === 1 ? 'acerto' : 'acertos' },
+        { icon: '⚡', title: 'Craque das Eliminatórias',
+          desc: 'Mais pontos somados nas fases mata-mata',
+          empty: !hasKO, emptyMsg: 'A fase eliminatória ainda não começou.',
+          sorted: sortBy('koPoints'), val: s => s.koPoints, suf: () => 'pts' },
+        { icon: '📊', title: 'Mestre das Classificações',
+          desc: 'Mais pontos nas previsões de classificação de grupos',
+          empty: !hasCls, emptyMsg: 'Classificações de grupos ainda não computadas.',
+          sorted: [...rows].sort((a, b) => b.classPoints - a.classPoints || a.display_name.localeCompare(b.display_name, 'pt-BR')),
+          val: s => s.classPoints, suf: () => 'pts' },
+        { icon: '💯', title: 'Melhor Aproveitamento',
+          desc: 'Maior % de resultados corretos (mín. 5 jogos concluídos)',
+          empty: !hasData || rows.every(s => s.pct === null),
+          emptyMsg: 'Ainda não há 5 jogos concluídos.',
+          sorted: [...rows].filter(s => s.pct !== null).sort((a, b) => b.pct - a.pct || a.display_name.localeCompare(b.display_name, 'pt-BR')),
+          val: s => s.pct, suf: () => '%' },
+        { icon: '🔥', title: 'Sequência Imparável',
+          desc: 'Maior sequência consecutiva de resultados corretos',
+          empty: !hasData, sorted: sortBy('maxStreak'),
+          val: s => s.maxStreak, suf: s => s.maxStreak === 1 ? 'seguido' : 'seguidos' },
+        { icon: '🏃', title: 'Apostador Dedicado',
+          desc: 'Mais partidas apostadas das que já foram jogadas',
+          empty: !hasData, sorted: sortBy('totalPlayed'),
+          val: s => s.totalPlayed, suf: () => `de ${n} jogos` },
+      ]
+
+      el.innerHTML = `
+        <p class="muted mt-4 mb-16" style="font-size:.82rem">Rankings individuais — não contam para a pontuação do bolão.</p>
+        <div class="premios-grid">
+          ${awards.map(a => renderPremio(a)).join('')}
+        </div>`
+
+      el.addEventListener('click', e => {
+        const btn = e.target.closest('.premios-expand-btn')
+        if (!btn) return
+        const card = btn.closest('.premios-card')
+        const isOpen = card.classList.toggle('premios-expanded')
+        btn.textContent = isOpen ? 'Ver menos ▴' : `Ver todos (${btn.dataset.count}) ▾`
+      })
+    }
+
+    // ── Tab Evolução ──────────────────────────────────────────
+    function loadScript(src) {
+      if (document.querySelector(`script[src="${src}"]`)) return Promise.resolve()
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script'); s.src = src; s.onload = resolve; s.onerror = reject
+        document.head.appendChild(s)
+      })
+    }
+
+    function buildEvolucaoData(matches, predictions, members) {
+      const completed = matches
+        .filter(m => m.home_score != null && m.away_score != null)
+        .sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+
+      const predsByUser = {}
+      for (const p of predictions) {
+        if (!predsByUser[p.user_id]) predsByUser[p.user_id] = {}
+        predsByUser[p.user_id][p.match_id] = p.points ?? 0
+      }
+
+      const labels = completed.map(m =>
+        `${translateTeam(m.home_team)} × ${translateTeam(m.away_team)}`
+      )
+
+      const cumulativeByUser = {}
+      for (const mem of members) {
+        let acc = 0
+        cumulativeByUser[mem.user_id] = completed.map(m => {
+          acc += predsByUser[mem.user_id]?.[m.id] ?? 0
+          return acc
+        })
+      }
+
+      return { labels, cumulativeByUser, completed }
+    }
+
+    const EVOLUCAO_PALETTE = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f',
+                              '#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac']
+
+    function initEvolucaoChart(canvasEl, chartData, members, myUserId) {
+      const { labels, cumulativeByUser } = chartData
+      const datasets = members.map((mem, i) => ({
+        label: mem.display_name,
+        data: [...cumulativeByUser[mem.user_id]],
+        borderColor: EVOLUCAO_PALETTE[i % EVOLUCAO_PALETTE.length],
+        backgroundColor: EVOLUCAO_PALETTE[i % EVOLUCAO_PALETTE.length] + '22',
+        fill: false,
+        tension: 0.3,
+        borderWidth: mem.user_id === myUserId ? 3 : 1.5,
+        pointRadius: mem.user_id === myUserId ? 4 : 2,
+      }))
+      return new Chart(canvasEl.getContext('2d'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 250 },
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            x: { ticks: { maxRotation: 45, font: { size: 9 } } },
+            y: { beginAtZero: true, title: { display: true, text: 'Pontos acumulados' } }
+          }
+        }
+      })
+    }
+
+    async function loadEvolucao() {
+      const el = document.getElementById('tab-evolucao')
+      el.innerHTML = '<p class="muted" style="padding:20px 0">Carregando gráfico…</p>'
+
+      await loadScript('https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js')
+      const { matches, predictions, members } = await getPoolPreds()
+      const chartData = buildEvolucaoData(matches, predictions, members)
+
+      if (!chartData.labels.length) {
+        el.innerHTML = '<p class="muted" style="padding:20px 0">Nenhuma partida concluída ainda.</p>'
+        return
+      }
+
+      const N = chartData.labels.length
+      el.innerHTML = `
+        <div class="evolucao-mode-toggle mt-8" id="evolucao-toggle">
+          <button class="active" data-mode="static">Estático</button>
+          <button data-mode="anim">Animado</button>
+        </div>
+        <div class="card mt-8" style="padding:12px">
+          <div class="evolucao-canvas-wrap"><canvas id="evolucao-canvas"></canvas></div>
+        </div>
+        <div id="evolucao-controls" class="evolucao-controls hidden">
+          <button class="btn btn-ghost btn-sm" id="evolucao-play">▶ Reproduzir</button>
+          <button class="btn btn-ghost btn-sm" id="evolucao-reset">↺ Reiniciar</button>
+          <span class="evolucao-step-label" id="evolucao-step"></span>
+        </div>
+        <p class="muted mt-8" style="font-size:.75rem">
+          Mostra pontos de palpites de placar por partida. Pontos de classificação de grupos não incluídos.
+        </p>`
+
+      const chart = initEvolucaoChart(el.querySelector('#evolucao-canvas'), chartData, members, user.id)
+
+      let animStep = N, animTimer = null
+
+      function showStep(n) {
+        chart.data.labels = chartData.labels.slice(0, n)
+        members.forEach((mem, i) => {
+          chart.data.datasets[i].data = chartData.cumulativeByUser[mem.user_id].slice(0, n)
+        })
+        chart.update()
+        el.querySelector('#evolucao-step').textContent = `Partida ${n} de ${N}`
+      }
+
+      el.querySelector('#evolucao-play').addEventListener('click', () => {
+        const btn = el.querySelector('#evolucao-play')
+        if (animTimer) {
+          clearInterval(animTimer); animTimer = null; btn.textContent = '▶ Reproduzir'; return
+        }
+        if (animStep >= N) animStep = 0
+        btn.textContent = '⏸ Pausar'
+        animTimer = setInterval(() => {
+          animStep++; showStep(animStep)
+          if (animStep >= N) { clearInterval(animTimer); animTimer = null; btn.textContent = '▶ Reproduzir' }
+        }, 600)
+      })
+
+      el.querySelector('#evolucao-reset').addEventListener('click', () => {
+        clearInterval(animTimer); animTimer = null
+        animStep = 0; showStep(0)
+        el.querySelector('#evolucao-play').textContent = '▶ Reproduzir'
+      })
+
+      el.querySelector('#evolucao-toggle').addEventListener('click', e => {
+        const btn = e.target.closest('button[data-mode]')
+        if (!btn) return
+        el.querySelectorAll('#evolucao-toggle button').forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+        const controls = el.querySelector('#evolucao-controls')
+        if (btn.dataset.mode === 'anim') {
+          controls.classList.remove('hidden')
+          animStep = 0; showStep(0)
+        } else {
+          clearInterval(animTimer); animTimer = null
+          controls.classList.add('hidden')
+          showStep(N)
+        }
+      })
+    }
+
+    function renderPremio(a) {
+      const header = `<div class="premios-card-header">
+        <span class="premios-icon">${a.icon}</span>
+        <div>
+          <div class="premios-title">${escHtml(a.title)}</div>
+          <div class="premios-desc">${escHtml(a.desc)}</div>
+        </div>
+      </div>`
+
+      if (a.empty || !a.sorted.length) {
+        return `<div class="card premios-card">${header}
+          <p class="muted" style="font-size:.8rem;margin-top:12px">${escHtml(a.emptyMsg ?? 'Sem dados ainda.')}</p>
+        </div>`
+      }
+
+      const positions = []
+      let pos = 1
+      for (let i = 0; i < a.sorted.length; i++) {
+        positions.push(i > 0 && a.val(a.sorted[i]) === a.val(a.sorted[i - 1]) ? positions[i - 1] : pos)
+        pos = i + 2
+      }
+
+      const rankRows = a.sorted.map((s, i) => {
+        const isMe = s.user_id === user.id
+        return `<div class="rank-row${isMe ? ' me' : ''}${i >= 3 ? ' premios-extra-row' : ''}">
+          <span class="rank-pos">${medalIcon(positions[i])}</span>
+          <span class="rank-name">${escHtml(s.display_name)}${isMe ? ' <span style="font-size:.7rem;color:var(--muted)">(você)</span>' : ''}</span>
+          <span style="text-align:right">
+            <span class="rank-pts">${a.val(s)}</span>
+            <span style="display:block;font-size:.68rem;color:var(--muted)">${escHtml(a.suf(s))}</span>
+          </span>
+        </div>`
+      }).join('')
+
+      const expandBtn = a.sorted.length > 3
+        ? `<button class="premios-expand-btn" data-count="${a.sorted.length}">Ver todos (${a.sorted.length}) ▾</button>`
+        : ''
+
+      return `<div class="card premios-card" style="padding:0;overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--line)">${header}</div>
+        ${rankRows}${expandBtn}
+      </div>`
+    }
+    }
+  </script>
+</body>
+</html>

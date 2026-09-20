@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Regulamento · Gincana Quiz</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/icons/favicon-32.png">
+  <link rel="stylesheet" href="../bolao/style.css">
+  <style>
+    /* Acentos específicos da gincana (sobre o style.css do bolão) */
+    .gq-hero { text-align:center; padding:8px 0 4px; }
+    .gq-eyebrow {
+      font-size:.72rem; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+      color:var(--pitch); margin-bottom:6px;
+    }
+    .gq-hero h1 { font-size:2rem; line-height:1.1; margin:0; }
+    .gq-phase-tag {
+      display:inline-block; font-size:.7rem; font-weight:700; letter-spacing:.06em;
+      text-transform:uppercase; padding:4px 10px; border-radius:999px; margin-bottom:10px;
+    }
+    .gq-phase-1 { background:var(--pitch-light); color:var(--pitch-deep); }
+    .gq-phase-2 { background:rgba(244,160,36,.16); color:#a86a12; }
+    .gq-list { font-size:.9rem; color:var(--muted); line-height:1.85; padding-left:18px; margin:8px 0 0; }
+    .gq-list strong { color:var(--ink); }
+    .gq-ol { counter-reset:g; list-style:none; padding:0; margin:10px 0 0; }
+    .gq-ol li {
+      position:relative; padding:8px 0 8px 40px; font-size:.9rem; color:var(--muted);
+      line-height:1.5; border-top:1px solid var(--line);
+    }
+    .gq-ol li:first-child { border-top:none; }
+    .gq-ol li strong { color:var(--ink); }
+    .gq-ol li::before {
+      counter-increment:g; content:counter(g); position:absolute; left:0; top:8px;
+      width:26px; height:26px; border-radius:50%; background:var(--pitch); color:#fff;
+      font-size:.8rem; font-weight:700; display:flex; align-items:center; justify-content:center;
+    }
+    .gq-points { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+    .gq-pt {
+      flex:1; min-width:130px; background:var(--paper); border:1px solid var(--line);
+      border-radius:14px; padding:14px 16px; text-align:center;
+    }
+    .gq-pt .n { font-family:var(--font-mono,monospace); font-size:1.6rem; font-weight:700; color:var(--pitch-deep); }
+    .gq-pt .l { font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-top:2px; }
+    .gq-bracket { display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:8px; }
+    .gq-round {
+      background:var(--paper); border:1px solid var(--line); border-radius:12px;
+      padding:10px 14px; text-align:center; min-width:120px;
+    }
+    .gq-round .t { font-weight:700; font-size:.9rem; }
+    .gq-round .s { font-size:.72rem; color:var(--muted); }
+    .gq-round .p { font-family:var(--font-mono,monospace); font-weight:700; color:var(--pitch-deep); margin-top:4px; }
+    .gq-arrow { color:var(--muted); font-size:1.2rem; }
+    .gq-note {
+      font-size:.82rem; color:var(--muted); background:rgba(244,160,36,.10);
+      border:1px solid rgba(244,160,36,.25); border-radius:12px; padding:12px 14px; margin-top:12px;
+    }
+  </style>
+</head>
+<body>
+  <main class="container pt-24 pb-32">
+
+    <div class="gq-hero">
+      <div class="gq-eyebrow">Gincana · Quiz ao vivo</div>
+      <h1>Regulamento</h1>
+      <div class="pitch-rule" style="margin:14px auto 0;max-width:120px"></div>
+    </div>
+
+    <p class="muted mt-16" style="text-align:center;max-width:640px;margin-left:auto;margin-right:auto;font-size:1.05rem">
+      <strong>Um jogo de perguntas e respostas sobre a Copa do Mundo. Traga sua equipe para a disputa!</strong>
+    </p>
+
+    <div class="gq-points" style="max-width:640px;margin:16px auto 0">
+      <div class="gq-pt"><div class="n" style="font-size:1.05rem">Auditório</div><div class="l">Local</div></div>
+      <div class="gq-pt"><div class="n" style="font-size:1.05rem">08/07/2026</div><div class="l">Data</div></div>
+      <div class="gq-pt"><div class="n" style="font-size:1.05rem">14h</div><div class="l">Horário</div></div>
+    </div>
+
+    <p class="muted mt-16" style="text-align:center;max-width:640px;margin-left:auto;margin-right:auto">
+      Uma disputa de perguntas e respostas entre <strong>10 equipes</strong>, conduzida ao vivo por um
+      apresentador, em <strong>25 perguntas</strong>. As <strong>20 primeiras</strong> são respondidas por
+      todas as equipes; a partir da <strong>21ª</strong>, cada pergunta <strong>elimina as 2 piores</strong>,
+      até a grande final na <strong>25ª</strong>.
+    </p>
+
+    <!-- Participantes -->
+    <div class="card mt-24">
+      <h3>Participantes e apresentador</h3>
+      <ul class="gq-list">
+        <li>Disputam <strong>10 equipes</strong>, cada uma com seu login no sistema.</li>
+        <li>O <strong>apresentador</strong> comanda o jogo: exibe cada pergunta, inicia o tempo,
+          encerra e revela a resposta correta e o placar.</li>
+        <li>Todas as perguntas são de <strong>múltipla escolha</strong> (A, B, C, D), com correção automática.</li>
+      </ul>
+
+      <h3 class="mt-16" style="font-size:1rem">Composição das equipes</h3>
+      <ul class="gq-list">
+        <li>Cada equipe deve ter <strong>5 alunos</strong>, com <strong>no mínimo 1 homem e 1 mulher</strong>,
+          mais <strong>1 trabalhador do campus</strong> (professor, técnico, bolsista ou terceirizado).</li>
+        <li>A partir da <strong>pergunta 21</strong>, apenas <strong>1 aluno e 1 aluna</strong> por equipe
+          vão à frente para responder — o <strong>trabalhador do campus não</strong> participa dessa fase.</li>
+      </ul>
+    </div>
+
+    <!-- Proibições e Sanções -->
+    <div class="card mt-16">
+      <h3>Proibições e sanções</h3>
+      <ul class="gq-list">
+        <li>É <strong>proibida a consulta</strong> a qualquer material, recurso eletrônico (celular, tablet,
+          computador, fones etc.) ou <strong>pessoa que não esteja participando</strong> da atividade,
+          durante as perguntas.</li>
+        <li>O descumprimento pode acarretar em <strong>punições à equipe</strong>, a critério da comissão
+          organizadora — incluindo <strong>perda de pontos</strong> e, em casos mais graves,
+          <strong>desclassificação</strong>.</li>
+      </ul>
+    </div>
+
+    <!-- FASE 1 -->
+    <div class="card mt-16">
+      <span class="gq-phase-tag gq-phase-1">Fase 1 · Classificatória</span>
+      <h3>20 perguntas, todas as equipes</h3>
+      <ul class="gq-list">
+        <li>São <strong>20 perguntas</strong> respondidas por <strong>todas as 10 equipes</strong>.</li>
+        <li>Cada equipe responde <strong>uma vez</strong> por pergunta, dentro do tempo definido pelo apresentador.</li>
+        <li><strong>Acertou</strong>, ganha os pontos da pergunta; <strong>errou ou não respondeu</strong>, zero.</li>
+        <li>Após cada pergunta, o <strong>placar de todas as equipes</strong> é atualizado na tela.</li>
+      </ul>
+
+      <div class="gq-points">
+        <div class="gq-pt"><div class="n">10 pts</div><div class="l">Perguntas 1 a 10</div></div>
+        <div class="gq-pt"><div class="n">20 pts</div><div class="l">Perguntas 11 a 20</div></div>
+      </div>
+
+      <p class="muted" style="font-size:.86rem;margin-top:16px">
+        Ao fim das 20 perguntas, <strong>todas as 10 equipes seguem</strong> para a rodada final —
+        as eliminações começam a partir da pergunta 21.
+      </p>
+    </div>
+
+    <!-- FASE 2 -->
+    <div class="card mt-16">
+      <span class="gq-phase-tag gq-phase-2">Fase 2 · Rodada final</span>
+      <h3>Perguntas 21 a 25 — eliminação a cada pergunta</h3>
+      <ul class="gq-list">
+        <li>A partir da <strong>pergunta 21</strong>, <strong>1 aluno e 1 aluna</strong> de cada equipe
+          vão à frente para responder.</li>
+        <li>Todas as equipes ainda em jogo respondem cada pergunta; <strong>quem acerta soma os pontos</strong>.</li>
+        <li>As perguntas <strong>21 a 24 valem 40 pontos</strong> cada; a <strong>25ª</strong>
+          (grande final) vale <strong>80 pontos</strong>.</li>
+        <li>Após cada uma das perguntas 21, 22, 23 e 24, as <strong>2 piores</strong> equipes
+          (pelo placar acumulado) são <strong>eliminadas</strong>.</li>
+      </ul>
+
+      <div class="gq-bracket">
+        <div class="gq-round"><div class="t">Após a 21</div><div class="s">−2</div><div class="p">8 equipes</div></div>
+        <span class="gq-arrow">→</span>
+        <div class="gq-round"><div class="t">Após a 22</div><div class="s">−2</div><div class="p">6 equipes</div></div>
+        <span class="gq-arrow">→</span>
+        <div class="gq-round"><div class="t">Após a 23</div><div class="s">−2</div><div class="p">4 equipes</div></div>
+        <span class="gq-arrow">→</span>
+        <div class="gq-round"><div class="t">Após a 24</div><div class="s">−2</div><div class="p">2 equipes</div></div>
+        <span class="gq-arrow">→</span>
+        <div class="gq-round"><div class="t">Pergunta 25</div><div class="s">grande final</div><div class="p">80 pts</div></div>
+      </div>
+
+      <h3 class="mt-24" style="font-size:1rem">Critérios de desempate (para eliminar e classificar)</h3>
+      <p class="muted" style="font-size:.86rem;margin-top:4px">Em caso de empate, valem os critérios abaixo, <strong>nesta ordem</strong>:</p>
+      <ol class="gq-ol">
+        <li><strong>Mais pontos</strong> acumulados.</li>
+        <li><strong>Mais acertos</strong> no total.</li>
+        <li><strong>Erro mais antigo:</strong> quem cometeu o último erro em uma pergunta de número
+          <em>menor</em> passa à frente (ex.: errar na 15 fica à frente de errar na 18); quem
+          <strong>não errou</strong> fica à frente de todos.</li>
+        <li><strong>Menor tempo total</strong> de resposta.</li>
+        <li><strong>Decisão do apresentador.</strong></li>
+      </ol>
+
+      <div class="gq-note">
+        🏆 A <strong>pergunta 25</strong> é disputada pelas <strong>2 equipes restantes</strong>.
+        Campeã é a equipe com a <strong>maior pontuação acumulada</strong> ao final.
+      </div>
+    </div>
+
+    <!-- Pontuação -->
+    <div class="card mt-16">
+      <h3>Pontuação e placar</h3>
+      <ul class="gq-list">
+        <li>Os pontos são <strong>acumulados do início ao fim</strong> — não há reinício entre as fases.</li>
+        <li>Valores por pergunta: <strong>1–10 = 10 pts</strong> · <strong>11–20 = 20 pts</strong> ·
+          <strong>21–24 = 40 pts</strong> · <strong>25 = 80 pts</strong>.</li>
+        <li>O <strong>placar ao vivo</strong> aparece após cada resposta, para todas as equipes.</li>
+        <li>O tempo de cada resposta é registrado <strong>automaticamente pelo sistema</strong> e usado
+          como critério de desempate.</li>
+      </ul>
+    </div>
+
+    <div class="mt-24" style="text-align:center">
+      <a href="index.html" class="btn btn-ghost">← Voltar</a>
+    </div>
+
+    <p class="muted mt-16" style="text-align:center;font-size:.75rem">
+      Parâmetros ajustáveis pelo apresentador antes do início: tempo por pergunta e ordem das perguntas.
+    </p>
+
+  </main>
+</body>
+</html>

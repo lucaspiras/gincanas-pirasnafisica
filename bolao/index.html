@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bolão da Copa 2026</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TY56KM22X8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-TY56KM22X8');
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="auth-page center">
+    <div class="spinner" style="margin:auto;border-color:rgba(0,0,0,.15);border-top-color:var(--pitch)"></div>
+  </div>
+  <script type="module">
+    import { supabase } from './supabase.js'
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { location.replace('login.html'); }
+    else {
+      const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).maybeSingle()
+      if (profile) { location.replace('dashboard.html') }
+      else { await supabase.auth.signOut(); location.replace('login.html') }
+    }
+  </script>
+</body>
+</html>

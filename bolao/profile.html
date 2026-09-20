@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meu Perfil · Bolão Copa 2026</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TY56KM22X8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-TY56KM22X8');
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+    <div id="loading" class="empty"><strong>Carregando…</strong></div>
+    <div id="content" class="hidden">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div class="section-header" style="margin-bottom:0">
+          <h2>Meu perfil</h2>
+          <div class="pitch-rule"></div>
+        </div>
+        <a href="dashboard.html" class="btn btn-ghost btn-sm">⚽ Meus bolões</a>
+      </div>
+
+      <!-- Avatar atual + nome -->
+      <div style="display:flex;align-items:center;gap:16px;margin-top:20px">
+        <div id="current-avatar" style="font-size:3rem;line-height:1">⚽</div>
+        <div>
+          <div id="current-name" style="font-family:var(--font-display);font-size:1.4rem;font-weight:800"></div>
+          <div id="current-email" style="font-size:.82rem;color:var(--muted);margin-top:2px"></div>
+        </div>
+      </div>
+
+      <!-- Avatar -->
+      <div class="card mt-24">
+        <h3>Escolha seu avatar</h3>
+        <div class="avatar-grid mt-16" id="avatar-grid"></div>
+        <button id="btn-save-avatar" class="btn btn-primary btn-sm mt-16" disabled>Salvar avatar</button>
+        <p id="avatar-msg" class="hidden mt-8" style="font-size:.85rem"></p>
+      </div>
+
+      <!-- Apelido -->
+      <div class="card mt-12">
+        <h3>Apelido</h3>
+        <p class="muted mt-4" style="font-size:.82rem">É o nome que aparece no ranking para a galera.</p>
+        <div class="stack gap-8 mt-12">
+          <input id="input-name" class="input" type="text" minlength="2" maxlength="30" placeholder="Seu apelido">
+          <button id="btn-save-name" class="btn btn-primary btn-sm" style="align-self:flex-start">Salvar apelido</button>
+          <p id="name-msg" class="hidden" style="font-size:.85rem"></p>
+        </div>
+      </div>
+
+      <!-- Senha -->
+      <div class="card mt-12">
+        <h3>Trocar senha</h3>
+        <div class="stack gap-8 mt-12">
+          <input id="input-pw1" class="input" type="password" autocomplete="new-password" placeholder="Nova senha (mín. 6 caracteres)" minlength="6">
+          <input id="input-pw2" class="input" type="password" autocomplete="new-password" placeholder="Confirmar nova senha">
+          <button id="btn-save-pw" class="btn btn-primary btn-sm" style="align-self:flex-start">Trocar senha</button>
+          <p id="pw-msg" class="hidden" style="font-size:.85rem"></p>
+        </div>
+      </div>
+
+      <div class="mt-24">
+        <a href="dashboard.html" class="btn btn-ghost">← Voltar</a>
+      </div>
+
+    </div>
+  </main>
+
+  <script type="module">
+    import {
+      supabase, requireAuthWithProfile,
+      renderHeader, bindSignOut, escHtml
+    } from './supabase.js'
+
+    const AVATARS = [
+      '⚽','🏆','🥇','🎯','⭐','🔥','🌟','💪',
+      '🦁','🐯','🦅','🐉','🎪','⚡','🌎','🏅',
+      '🎮','🎭','🤩','😎','🤙','🦊','🐺','🦄',
+    ]
+
+    const { user, profile } = await requireAuthWithProfile() ?? {}
+    if (!user) throw new Error('not reached')
+
+    document.getElementById('header-slot').innerHTML = renderHeader(profile, false)
+    bindSignOut()
+
+    // Preencher dados atuais
+    document.getElementById('current-avatar').textContent = profile.avatar || '⚽'
+    document.getElementById('current-name').textContent   = profile.display_name
+    document.getElementById('input-name').value           = profile.display_name
+
+    const { data: authUser } = await supabase.auth.getUser()
+    document.getElementById('current-email').textContent = authUser?.user?.email ?? ''
+
+    document.getElementById('loading').classList.add('hidden')
+    document.getElementById('content').classList.remove('hidden')
+
+    // ── Avatar ────────────────────────────────────────────────
+    let selectedAvatar = profile.avatar || '⚽'
+    const grid = document.getElementById('avatar-grid')
+    grid.innerHTML = AVATARS.map(a => `
+      <button class="avatar-opt${a === selectedAvatar ? ' selected' : ''}" data-avatar="${escHtml(a)}">${a}</button>
+    `).join('')
+
+    grid.addEventListener('click', e => {
+      const opt = e.target.closest('.avatar-opt')
+      if (!opt) return
+      selectedAvatar = opt.dataset.avatar
+      grid.querySelectorAll('.avatar-opt').forEach(b => b.classList.remove('selected'))
+      opt.classList.add('selected')
+      document.getElementById('current-avatar').textContent = selectedAvatar
+      document.getElementById('btn-save-avatar').disabled = (selectedAvatar === (profile.avatar || '⚽'))
+    })
+
+    document.getElementById('btn-save-avatar').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-save-avatar')
+      const msg = document.getElementById('avatar-msg')
+      btn.disabled = true; btn.innerHTML = '<span class="spinner" style="border-top-color:var(--pitch)"></span>'
+      const { error } = await supabase.from('profiles').update({ avatar: selectedAvatar }).eq('id', user.id)
+      btn.disabled = false; btn.textContent = 'Salvar avatar'
+      msg.textContent = error ? error.message : '✓ Avatar atualizado!'
+      msg.style.color = error ? 'var(--flare)' : 'var(--pitch-deep)'
+      msg.classList.remove('hidden')
+    })
+
+    // ── Apelido ───────────────────────────────────────────────
+    document.getElementById('btn-save-name').addEventListener('click', async () => {
+      const name = document.getElementById('input-name').value.trim()
+      const btn  = document.getElementById('btn-save-name')
+      const msg  = document.getElementById('name-msg')
+      if (name.length < 2) { msg.textContent = 'Mínimo 2 caracteres.'; msg.style.color = 'var(--flare)'; msg.classList.remove('hidden'); return }
+      btn.disabled = true; btn.innerHTML = '<span class="spinner" style="border-top-color:#fff"></span>'
+      const { error } = await supabase.from('profiles').update({ display_name: name }).eq('id', user.id)
+      btn.disabled = false; btn.textContent = 'Salvar apelido'
+      if (!error) document.getElementById('current-name').textContent = name
+      msg.textContent = error ? error.message : '✓ Apelido atualizado!'
+      msg.style.color = error ? 'var(--flare)' : 'var(--pitch-deep)'
+      msg.classList.remove('hidden')
+    })
+
+    // ── Senha ─────────────────────────────────────────────────
+    document.getElementById('btn-save-pw').addEventListener('click', async () => {
+      const pw1 = document.getElementById('input-pw1').value
+      const pw2 = document.getElementById('input-pw2').value
+      const btn = document.getElementById('btn-save-pw')
+      const msg = document.getElementById('pw-msg')
+      if (pw1.length < 6) { msg.textContent = 'Mínimo 6 caracteres.'; msg.style.color = 'var(--flare)'; msg.classList.remove('hidden'); return }
+      if (pw1 !== pw2)    { msg.textContent = 'As senhas não coincidem.'; msg.style.color = 'var(--flare)'; msg.classList.remove('hidden'); return }
+      btn.disabled = true; btn.innerHTML = '<span class="spinner" style="border-top-color:#fff"></span>'
+      const { error } = await supabase.auth.updateUser({ password: pw1 })
+      btn.disabled = false; btn.textContent = 'Trocar senha'
+      if (!error) { document.getElementById('input-pw1').value = ''; document.getElementById('input-pw2').value = '' }
+      msg.textContent = error ? error.message : '✓ Senha alterada com sucesso!'
+      msg.style.color = error ? 'var(--flare)' : 'var(--pitch-deep)'
+      msg.classList.remove('hidden')
+    })
+  </script>
+</body>
+</html>

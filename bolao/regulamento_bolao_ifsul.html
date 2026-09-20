@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bolão da Copa do Mundo 2026 — 2ª Gincana IFSUL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Sora:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --pitch: #1a4731;
+      --pitch-mid: #22603f;
+      --pitch-light: #2d7a50;
+      --cream: #f5f0e8;
+      --cream-dark: #e8e0d0;
+      --gold: #d4a017;
+      --gold-light: #f0c030;
+      --red: #c0392b;
+      --ink: #1a1a1a;
+      --ink-light: #444;
+      --white: #ffffff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--pitch);
+      color: var(--cream);
+      font-family: 'Sora', sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 60px,
+          rgba(255,255,255,0.02) 60px,
+          rgba(255,255,255,0.02) 61px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 60px,
+          rgba(255,255,255,0.02) 60px,
+          rgba(255,255,255,0.02) 61px
+        );
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative;
+      min-height: 340px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
+      padding: 0 0 48px;
+    }
+
+    .hero::before {
+      content: '⚽';
+      position: absolute;
+      font-size: 480px;
+      right: -80px;
+      top: -80px;
+      opacity: 0.05;
+      line-height: 1;
+      user-select: none;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(12deg); }
+    }
+
+    .hero-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 64px 24px 0;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-label {
+      font-family: 'Sora', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hero-label::before {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 2px;
+      background: var(--gold);
+    }
+
+    .hero-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', cursive;
+      font-size: clamp(56px, 10vw, 100px);
+      line-height: 0.92;
+      color: var(--white);
+      letter-spacing: 0.02em;
+    }
+
+    .hero-title span {
+      color: var(--gold-light);
+    }
+
+    .hero-logo {
+      width: clamp(150px, 22vw, 240px);
+      height: auto;
+      flex-shrink: 0;
+      transform: translateY(-24px);
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.35));
+    }
+
+    .hero-subtitle {
+      margin-top: 20px;
+      font-size: 15px;
+      font-weight: 300;
+      color: rgba(245,240,232,0.65);
+      max-width: 480px;
+      line-height: 1.6;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 32px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+
+    .meta-pill {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .meta-pill-label {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    /* ─── DIVIDER ─── */
+    .divider {
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light), transparent);
+      max-width: 900px;
+      margin: 0 auto 0;
+    }
+
+    /* ─── CONTENT WRAPPER ─── */
+    .content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ─── DOC HEADING (Regulamento) ─── */
+    .doc-heading {
+      margin-top: 56px;
+    }
+
+    .doc-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .doc-eyebrow::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: var(--gold);
+    }
+
+    .doc-heading h2 {
+      font-family: 'Bebas Neue', cursive;
+      font-size: clamp(34px, 6vw, 54px);
+      letter-spacing: 0.06em;
+      color: var(--white);
+      line-height: 1;
+    }
+
+    .doc-heading p {
+      margin-top: 16px;
+      font-size: 15px;
+      color: rgba(245,240,232,0.65);
+      line-height: 1.7;
+    }
+
+    /* ─── GOAL LIST (Objetivos) ─── */
+    .goal-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .goal-list li {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      font-size: 15px;
+      color: rgba(245,240,232,0.82);
+    }
+
+    .goal-icon {
+      color: var(--gold);
+      font-size: 16px;
+      line-height: 1.5;
+      flex-shrink: 0;
+    }
+
+    /* ─── TEXTO JUSTIFICADO (corpo, exceto títulos/rótulos) ─── */
+    .doc-heading p,
+    .access-card > p,
+    .rank-card p,
+    .scoring-table td,
+    .alert-box span:last-child,
+    .rules-list li span:last-child,
+    .goal-list li span:last-child {
+      text-align: justify;
+      text-justify: inter-word;
+    }
+
+    /* ─── SECTION ─── */
+    .section {
+      margin-top: 64px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section:nth-child(1) { animation-delay: 0.1s; }
+    .section:nth-child(2) { animation-delay: 0.2s; }
+    .section:nth-child(3) { animation-delay: 0.3s; }
+    .section:nth-child(4) { animation-delay: 0.4s; }
+    .section:nth-child(5) { animation-delay: 0.5s; }
+    .section:nth-child(6) { animation-delay: 0.6s; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .section-number {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 13px;
+      color: var(--gold);
+      letter-spacing: 0.15em;
+      min-width: 32px;
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 26px;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      line-height: 1;
+    }
+
+    .section-title-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.12);
+    }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 28px 32px;
+      backdrop-filter: blur(4px);
+    }
+
+    .card p, .card li {
+      color: rgba(245,240,232,0.82);
+      font-size: 15px;
+    }
+
+    /* ─── ACCESS CARD ─── */
+    .access-card {
+      background: linear-gradient(135deg, rgba(212,160,23,0.15), rgba(212,160,23,0.05));
+      border: 1px solid rgba(212,160,23,0.3);
+      border-radius: 8px;
+      padding: 28px 32px;
+    }
+
+    .access-url {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gold-light);
+      word-break: break-all;
+      background: rgba(0,0,0,0.25);
+      padding: 10px 14px;
+      border-radius: 4px;
+      margin: 12px 0 20px;
+      letter-spacing: 0.01em;
+      display: block;
+    }
+
+    .access-url:hover { color: var(--white); }
+
+    .password-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(192,57,43,0.2);
+      border: 1px solid rgba(192,57,43,0.4);
+      border-radius: 4px;
+      padding: 8px 16px;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .password-badge strong {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 18px;
+      letter-spacing: 0.1em;
+      color: var(--gold-light);
+    }
+
+    .alert-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: rgba(192,57,43,0.1);
+      border-left: 3px solid var(--red);
+      border-radius: 0 6px 6px 0;
+      padding: 14px 18px;
+      margin-top: 20px;
+      font-size: 13px;
+      color: rgba(245,240,232,0.8);
+    }
+
+    .alert-icon { font-size: 16px; flex-shrink: 0; }
+
+    /* ─── TEAMS TABLE ─── */
+    .teams-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+    }
+
+    .team-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 6px;
+      padding: 12px 16px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .team-row:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(212,160,23,0.25);
+    }
+
+    .team-flag {
+      width: 32px;
+      height: 22px;
+      border-radius: 2px;
+      object-fit: cover;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .team-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white);
+      line-height: 1.2;
+    }
+
+    .team-turma {
+      font-size: 11px;
+      color: var(--gold);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .team-login {
+      margin-left: auto;
+      font-size: 11px;
+      color: rgba(245,240,232,0.5);
+      font-weight: 400;
+      text-align: right;
+      letter-spacing: 0.01em;
+      line-height: 1.5;
+    }
+
+    .team-login-label {
+      display: block;
+      font-size: 10px;
+      color: var(--gold);
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    /* ─── RULES LIST ─── */
+    .rules-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .rules-list li {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      font-size: 15px;
+      color: rgba(245,240,232,0.82);
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .rules-list li:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .rule-num {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 18px;
+      color: var(--gold);
+      min-width: 24px;
+      line-height: 1.4;
+    }
+
+    /* ─── SCORING TABLE ─── */
+    .scoring-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .scoring-table th {
+      background: rgba(212,160,23,0.15);
+      color: var(--gold);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(212,160,23,0.25);
+    }
+
+    .scoring-table th:last-child { text-align: center; }
+
+    .scoring-table td {
+      padding: 14px 16px;
+      color: rgba(245,240,232,0.82);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      vertical-align: top;
+    }
+
+    .scoring-table tr:last-child td { border-bottom: none; }
+
+    .scoring-table tr:hover td { background: rgba(255,255,255,0.03); }
+
+    .points-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: rgba(212,160,23,0.15);
+      border: 1px solid rgba(212,160,23,0.3);
+      border-radius: 50%;
+      font-family: 'Bebas Neue', cursive;
+      font-size: 20px;
+      color: var(--gold-light);
+      margin: 0 auto;
+      display: block;
+      text-align: center;
+      line-height: 38px;
+    }
+
+    .scoring-table td:last-child { text-align: center; }
+
+    .bonus-row td {
+      background: rgba(212,160,23,0.06);
+    }
+
+    .bonus-row .points-badge {
+      background: rgba(212,160,23,0.25);
+      border-color: rgba(212,160,23,0.5);
+    }
+
+    /* ─── MAX SCORE ─── */
+    .max-score {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(212,160,23,0.08);
+      border: 1px solid rgba(212,160,23,0.2);
+      border-radius: 6px;
+      padding: 14px 20px;
+      font-size: 14px;
+      color: rgba(245,240,232,0.75);
+    }
+
+    .max-score strong {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 28px;
+      color: var(--gold-light);
+      letter-spacing: 0.05em;
+    }
+
+    /* ─── EXAMPLES ─── */
+    .examples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .example-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .example-card.perfect {
+      background: rgba(212,160,23,0.08);
+      border-color: rgba(212,160,23,0.25);
+    }
+
+    .example-match {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(245,240,232,0.5);
+      margin-bottom: 10px;
+      letter-spacing: 0.03em;
+    }
+
+    .example-real {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+
+    .example-guess {
+      font-size: 13px;
+      color: rgba(245,240,232,0.55);
+      margin-bottom: 12px;
+    }
+
+    .example-hits {
+      font-size: 12px;
+      color: rgba(245,240,232,0.55);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .example-score {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .example-score-num {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 32px;
+      color: var(--gold-light);
+      line-height: 1;
+    }
+
+    .example-score-label {
+      font-size: 12px;
+      color: rgba(245,240,232,0.45);
+      line-height: 1.3;
+    }
+
+    /* ─── RANKING SECTION ─── */
+    .ranking-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .rank-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+
+    .rank-card-icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .rank-card-title {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 17px;
+      letter-spacing: 0.07em;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .rank-card p {
+      font-size: 13px;
+      color: rgba(245,240,232,0.65);
+      line-height: 1.6;
+    }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      max-width: 900px;
+      margin: 64px auto 0;
+      padding: 32px 24px 48px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+    }
+
+    .footer-slogan {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 22px;
+      color: rgba(245,240,232,0.55);
+      margin-bottom: 16px;
+    }
+
+    .footer-slogan strong {
+      color: var(--gold-light);
+      font-style: normal;
+    }
+
+    .footer-meta {
+      font-size: 12px;
+      color: rgba(245,240,232,0.25);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 600px) {
+      .ranking-info { grid-template-columns: 1fr; }
+      .hero::before { font-size: 240px; right: -30px; top: -20px; }
+      .access-url { font-size: 12px; }
+      .card, .access-card { padding: 20px 18px; }
+      .hero-title-row { gap: 16px; }
+      .hero-logo { width: 120px; }
+    }
+
+    /* ─── IMPRESSÃO / PDF ─── */
+    @media print {
+      /* Imprime as cores e o fundo escuro do design (Chrome/Edge/Firefox).
+         Também desliga animações: sem isso o PDF captura o quadro inicial
+         (opacity:0) das seções e elas saem invisíveis. */
+      *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        animation: none !important;
+        transition: none !important;
+      }
+
+      @page { margin: 12mm; }
+
+      html, body { background-color: var(--pitch) !important; }
+
+      /* Reverte o estado inicial das animações para o conteúdo aparecer */
+      .section { opacity: 1 !important; transform: none !important; }
+
+      /* Espaçamento mais enxuto no papel */
+      .hero { min-height: 0; padding-bottom: 28px; }
+      .section { margin-top: 36px; }
+      .content { padding-bottom: 24px; }
+      .footer { margin-top: 40px; }
+
+      /* ── Quebras de página ── */
+      /* Não quebrar logo depois de um título de seção */
+      .section-header { break-after: avoid; page-break-after: avoid; }
+      /* Manter blocos atômicos inteiros numa mesma página */
+      .access-card, .alert-box, .team-row, .example-card, .rank-card,
+      .max-score, .footer, .rules-list li {
+        break-inside: avoid; page-break-inside: avoid;
+      }
+      /* Tabela de pontuação: linhas inteiras + cabeçalho repetido por página */
+      .scoring-table tr { break-inside: avoid; page-break-inside: avoid; }
+      .scoring-table thead { display: table-header-group; }
+      /* O overflow:hidden do card da tabela cortaria linhas na quebra; libera */
+      .card { overflow: visible !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── HERO ─── -->
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="hero-label">2ª Gincana IFSUL 2026 · Tarefa Extensa</div>
+      <div class="hero-title-row">
+        <h1 class="hero-title">
+          Bolão<br>
+          <span>Copa 2026</span>
+        </h1>
+        <img class="hero-logo" src="logo_gincana_novo.png"
+             alt="2ª Gincana IFSUL — Copa do Mundo 2026">
+      </div>
+      <p class="hero-subtitle">
+        Preveja os resultados da fase de grupos, acumule pontos para sua equipe
+        e mostre que sua turma entende de futebol — e de gincana.
+      </p>
+      <div class="hero-meta">
+        <div class="meta-pill">
+          <span class="meta-pill-label">Divulgação</span>
+          08 de junho de 2026
+        </div>
+        <div class="meta-pill">
+          <span class="meta-pill-label">Encerramento</span>
+          27 de junho de 2026
+        </div>
+        <div class="meta-pill">
+          <span class="meta-pill-label">Partidas</span>
+          72 jogos · Fase de Grupos
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="divider"></div>
+
+  <!-- ─── CONTENT ─── -->
+  <main class="content">
+
+    <!-- TÍTULO DO DOCUMENTO -->
+    <div class="doc-heading">
+      <span class="doc-eyebrow">Documento Oficial</span>
+      <h2>Regulamento da Atividade</h2>
+      <p>
+        Este documento reúne tudo o que a sua equipe precisa para participar do Bolão da
+        Copa do Mundo 2026 — tarefa extensa da 2ª Gincana IFSUL: os objetivos, o acesso ao
+        sistema, as regras, o sistema de pontuação e os critérios de classificação. A
+        participação implica concordância integral com o que segue.
+      </p>
+    </div>
+
+    <!-- OBJETIVOS -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">01</span>
+        <h2 class="section-title">Objetivos da Atividade</h2>
+        <div class="section-title-line"></div>
+      </div>
+      <div class="card">
+        <ul class="goal-list">
+          <li>
+            <span class="goal-icon">⚽</span>
+            <span>Estimular o interesse pela <strong>Copa do Mundo FIFA 2026</strong> e pelo esporte como tema integrador entre as turmas.</span>
+          </li>
+          <li>
+            <span class="goal-icon">⚽</span>
+            <span>Promover o <strong>engajamento e o espírito de equipe</strong>, incentivando a participação coletiva na 2ª Gincana IFSUL.</span>
+          </li>
+          <li>
+            <span class="goal-icon">⚽</span>
+            <span>Desenvolver o <strong>raciocínio lógico e estatístico</strong> ao analisar seleções, desempenhos e probabilidades para elaborar os palpites.</span>
+          </li>
+          <li>
+            <span class="goal-icon">⚽</span>
+            <span>Trabalhar a <strong>responsabilidade e a organização</strong>, com o acompanhamento dos jogos e o cumprimento dos prazos de envio.</span>
+          </li>
+          <li>
+            <span class="goal-icon">⚽</span>
+            <span>Integrar a comunidade escolar por meio de uma <strong>competição saudável e divertida</strong> que soma pontos para a classificação geral da gincana.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ACESSO AO SISTEMA -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">02</span>
+        <h2 class="section-title">Acesso ao Sistema</h2>
+        <div class="section-title-line"></div>
+      </div>
+      <div class="access-card">
+        <p style="font-size:13px; color: rgba(245,240,232,0.55); letter-spacing:0.08em; text-transform:uppercase; font-weight:600; margin-bottom:6px;">Site do Bolão</p>
+        <a class="access-url" href="https://gincanas.pirasnafisica.com.br/bolao/login.html" target="_blank">
+          https://gincanas.pirasnafisica.com.br/bolao/login.html
+        </a>
+        <p style="font-size:13px; color:rgba(245,240,232,0.65); margin-bottom:8px;">Senha inicial para todas as equipes:</p>
+        <div class="password-badge">
+          🔑 <strong>123456</strong>
+        </div>
+        <div class="alert-box">
+          <span class="alert-icon">⚠️</span>
+          <span><strong style="color:var(--cream)">Atenção:</strong> Recomendamos fortemente que cada equipe altere sua senha logo após o primeiro acesso, para garantir a segurança dos seus palpites.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- EQUIPES -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">03</span>
+        <h2 class="section-title">Equipes Participantes</h2>
+        <div class="section-title-line"></div>
+      </div>
+      <div class="teams-grid">
+        <div class="team-row">
+          <img class="team-flag" src="https://flagcdn.com/h40/ec.png" alt="" loading="lazy">
+          <div>
+            <div class="team-turma">1IM</div>
+            <div class="team-name">Equador</div>
+          </div>
+          <div class="team-login"><span class="team-login-label">Login</span>1_im_equador@gincana.com</div>
+        </div>
+        <div class="team-row">
+          <img class="team-flag" src="https://flagcdn.com/h40/za.png" alt="" loading="lazy">
+          <div>
+            <div class="team-turma">1IT</div>
+            <div class="team-name">África do Sul</div>
+          </div>
+          <div class="team-login"><span class="team-login-label">Login</span>1_it_africa_do_sul@gincana.com</div>
+        </div>
+        <div class="team-row">
+          <img class="team-flag" src="https://flagcdn.com/h40/ht.png" alt="" loading="lazy">
+          <div>
+            <div class="team-turma">1RT</div>
+            <div class="team-name">Haiti</div>
+          </div>
+          <div class="team-login"><span class="team-login-label">Login</span>1_rt_haiti@gincana.com</div>
+        </div>
+        <div class="team-row">
+          <img class="team-flag" src="https://flagcdn.com/h40/py.png" alt="" loading="lazy">
+          <div>
+            <div class="team-turma">2IM</div>
+            <div class="team-name">Paraguai</div>
+          </div>
+          <div class="team-login"><span class="team-login-label">Login</span>2_im_paraguai@gincana.com</div>
+        </div>
+        <div class="team-row">
+          <img class="team-flag" src="https://flagcdn.com/h40/ci.png" alt="" loading="lazy">
+          <div>
+            <div class="team-turma">2IT</div>
+            <div class="team-name">Costa do Marfim</div>
+          </div>
+          <div class="team-login"><span class="team-login-label">Login</span>2_it_costa_do_marfim@gincana.com</div>
+        </div>
+        <div class="team-row">
+          <img class="team-flag" src="https://flagcdn.com/h40/co.png" alt="" loading="lazy">
+          <div>
+            <div class="team-turma">2RM</div>
+            <div class="team-name">Colômbia</div>
+          </div>
+          <div class="team-login"><span class="team-login-label">Login</span>2_rm_colombia@gincana.com</div>
+        </div>
+        <div class="team-row">
+          <img class="team-flag" src="https://flagcdn.com/h40/cd.png" alt="" loading="lazy">
+          <div>
+            <div class="team-turma">3IM</div>
+            <div class="team-name">Rep. Dem. do Congo</div>
+          </div>
+          <div class="team-login"><span class="team-login-label">Login</span>3_im_r_d_congo@gincana.com</div>
+        </div>
+        <div class="team-row">
+          <img class="team-flag" src="https://flagcdn.com/h40/gh.png" alt="" loading="lazy">
+          <div>
+            <div class="team-turma">3IT</div>
+            <div class="team-name">Gana</div>
+          </div>
+          <div class="team-login"><span class="team-login-label">Login</span>3_it_gana@gincana.com</div>
+        </div>
+        <div class="team-row">
+          <img class="team-flag" src="https://flagcdn.com/h40/sn.png" alt="" loading="lazy">
+          <div>
+            <div class="team-turma">4IM</div>
+            <div class="team-name">Senegal</div>
+          </div>
+          <div class="team-login"><span class="team-login-label">Login</span>4_im_senegal@gincana.com</div>
+        </div>
+        <div class="team-row">
+          <img class="team-flag" src="https://flagcdn.com/h40/pa.png" alt="" loading="lazy">
+          <div>
+            <div class="team-turma">4IT</div>
+            <div class="team-name">Panamá</div>
+          </div>
+          <div class="team-login"><span class="team-login-label">Login</span>4_it_panama@gincana.com</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REGULAMENTO -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">04</span>
+        <h2 class="section-title">Regras de Participação</h2>
+        <div class="section-title-line"></div>
+      </div>
+      <div class="card">
+        <ul class="rules-list">
+          <li>
+            <span class="rule-num">1</span>
+            <span>O bolão abrangerá exclusivamente a <strong>fase de grupos</strong> da Copa do Mundo FIFA 2026, contemplando os 72 jogos desta etapa.</span>
+          </li>
+          <li>
+            <span class="rule-num">2</span>
+            <span>Cada equipe deve registrar seus palpites diretamente no sistema do bolão, acessando o site com seu login e senha.</span>
+          </li>
+          <li>
+            <span class="rule-num">3</span>
+            <span>Os palpites podem ser alterados livremente até <strong>2 horas antes do início de cada partida</strong>, prazo em que o sistema os bloqueará automaticamente. Após o encerramento, nenhuma alteração será aceita.</span>
+          </li>
+          <li>
+            <span class="rule-num">4</span>
+            <span>Cada equipe é integralmente responsável por acompanhar os horários dos jogos e garantir o envio de palpites dentro do prazo estabelecido.</span>
+          </li>
+          <li>
+            <span class="rule-num">5</span>
+            <span>A comissão organizadora não se responsabiliza por palpites não realizados em razão de esquecimento, problemas de acesso ou perda do prazo por parte da equipe.</span>
+          </li>
+          <li>
+            <span class="rule-num">6</span>
+            <span>Em caso de dúvidas técnicas ou dificuldades de acesso ao sistema, a equipe deverá procurar a comissão organizadora <strong>com antecedência</strong>, antes do início da partida em questão.</span>
+          </li>
+          <li>
+            <span class="rule-num">7</span>
+            <span>A participação implica concordância com todas as regras deste regulamento. Decisões da comissão organizadora são soberanas e definitivas.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- PONTUAÇÃO -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">05</span>
+        <h2 class="section-title">Sistema de Pontuação</h2>
+        <div class="section-title-line"></div>
+      </div>
+      <div class="card" style="padding: 0; overflow:hidden;">
+        <table class="scoring-table">
+          <thead>
+            <tr>
+              <th>Critério</th>
+              <th>Descrição</th>
+              <th>Pts</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--white); font-weight:600;">Resultado</td>
+              <td>Acerto do vencedor da partida ou empate (independente dos placares)</td>
+              <td><div class="points-badge">4</div></td>
+            </tr>
+            <tr>
+              <td style="color:var(--white); font-weight:600;">Gols Mandante</td>
+              <td>Acerto do número exato de gols marcados pela equipe da casa</td>
+              <td><div class="points-badge">1</div></td>
+            </tr>
+            <tr>
+              <td style="color:var(--white); font-weight:600;">Gols Visitante</td>
+              <td>Acerto do número exato de gols marcados pela equipe visitante</td>
+              <td><div class="points-badge">1</div></td>
+            </tr>
+            <tr>
+              <td style="color:var(--white); font-weight:600;">Saldo de Gols</td>
+              <td>Acerto da diferença entre os gols (ex.: 2×1 → saldo +1; 0×0 → saldo 0)</td>
+              <td><div class="points-badge">1</div></td>
+            </tr>
+            <tr class="bonus-row">
+              <td style="color:var(--gold-light); font-weight:700; white-space:nowrap;">🏆 Placar Exato</td>
+              <td style="color:rgba(245,240,232,0.75);">Bônus por acertar o placar completo — concedido <em>em adição</em> aos demais critérios acima</td>
+              <td><div class="points-badge">+3</div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="max-score">
+        <div>
+          <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); font-weight:600; margin-bottom:2px;">Pontuação máxima por jogo</div>
+          <strong>10 pts</strong>
+        </div>
+        <div style="width:1px; height:40px; background:rgba(255,255,255,0.1);"></div>
+        <div>
+          <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); font-weight:600; margin-bottom:2px;">Pontuação máxima total</div>
+          <strong>720 pts</strong>
+          <span style="font-size:12px; color:rgba(245,240,232,0.45); margin-left:4px;">(72 jogos × 10)</span>
+        </div>
+        <div style="width:1px; height:40px; background:rgba(255,255,255,0.1);"></div>
+        <div>
+          <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); font-weight:600; margin-bottom:2px;">Critérios</div>
+          <span style="font-size:13px; color:rgba(245,240,232,0.65);">Independentes e cumulativos</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXEMPLOS -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">06</span>
+        <h2 class="section-title">Exemplos Práticos</h2>
+        <div class="section-title-line"></div>
+      </div>
+      <p style="font-size:13px; color:rgba(245,240,232,0.5); margin-bottom:20px; letter-spacing:0.02em;">Resultado real: <strong style="color:var(--white)">Brasil 2 × 1 Japão</strong></p>
+      <div class="examples-grid">
+        <div class="example-card">
+          <div class="example-match">Palpite A</div>
+          <div class="example-real">Brasil 1 × 0 Japão</div>
+          <div class="example-hits">
+            ✅ Acertou o vencedor (Brasil)<br>
+            ✅ Acertou o saldo (+1)<br>
+            ❌ Gols do Brasil (chutou 1, foram 2)<br>
+            ❌ Gols do Japão (chutou 0, foi 1)
+          </div>
+          <div class="example-score">
+            <div class="example-score-num">5</div>
+            <div class="example-score-label">pontos<br><span style="color:rgba(245,240,232,0.35); font-size:11px;">resultado (4) + saldo (1)</span></div>
+          </div>
+        </div>
+        <div class="example-card">
+          <div class="example-match">Palpite B</div>
+          <div class="example-real">Brasil 2 × 0 Japão</div>
+          <div class="example-hits">
+            ✅ Acertou o vencedor (Brasil)<br>
+            ✅ Acertou os gols do Brasil (2)<br>
+            ❌ Saldo (chutou +2, foi +1)<br>
+            ❌ Gols do Japão (chutou 0, foi 1)
+          </div>
+          <div class="example-score">
+            <div class="example-score-num">5</div>
+            <div class="example-score-label">pontos<br><span style="color:rgba(245,240,232,0.35); font-size:11px;">resultado (4) + mandante (1)</span></div>
+          </div>
+        </div>
+        <div class="example-card perfect">
+          <div class="example-match">Palpite C — Placar Exato ⭐</div>
+          <div class="example-real">Brasil 2 × 1 Japão</div>
+          <div class="example-hits">
+            ✅ Acertou o vencedor (Brasil)<br>
+            ✅ Acertou os gols do Brasil (2)<br>
+            ✅ Acertou os gols do Japão (1)<br>
+            ✅ Acertou o saldo (+1)
+          </div>
+          <div class="example-score">
+            <div class="example-score-num" style="color:var(--gold-light)">10</div>
+            <div class="example-score-label">pontos<br><span style="color:rgba(245,240,232,0.45); font-size:11px;">todos os critérios + bônus (3)</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLASSIFICAÇÃO -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-number">07</span>
+        <h2 class="section-title">Classificação e Premiação</h2>
+        <div class="section-title-line"></div>
+      </div>
+      <div class="ranking-info">
+        <div class="rank-card">
+          <div class="rank-card-icon">📊</div>
+          <div class="rank-card-title">Classificação da Tarefa</div>
+          <p>Ao término da fase de grupos, as equipes serão classificadas em ordem decrescente de pontuação total acumulada no sistema do bolão. O placar parcial pode ser consultado a qualquer momento no site.</p>
+        </div>
+        <div class="rank-card">
+          <div class="rank-card-icon">🏅</div>
+          <div class="rank-card-title">Pontuação na Gincana</div>
+          <p>Cada ponto conquistado no bolão equivale a <strong style="color:var(--gold-light)">um ponto na classificação geral</strong> da 2ª Gincana IFSUL 2026, sendo incorporado diretamente ao placar da equipe.</p>
+        </div>
+        <div class="rank-card" style="grid-column: 1 / -1;">
+          <div class="rank-card-icon">📅</div>
+          <div class="rank-card-title">Calendário de Palpites</div>
+          <p>Os palpites devem ser registrados individualmente antes de cada partida. O sistema fecha automaticamente 2 horas antes do apito inicial. Fique de olho na tabela de jogos da Copa e não perca os prazos — cada jogo sem palpite é zero ponto garantido para a equipe adversária.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="footer">
+    <p class="footer-slogan">
+      <em>O apito inicial já soou.</em><br>
+      <strong>Mostrem que a sua turma entende de futebol — e de gincana!</strong> ⚽🏆
+    </p>
+    <p class="footer-meta">2ª Gincana IFSUL 2026 · Comissão Organizadora</p>
+  </footer>
+
+</body>
+</html>

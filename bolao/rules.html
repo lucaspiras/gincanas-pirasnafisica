@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Regras · Bolão da Copa 2026</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TY56KM22X8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-TY56KM22X8');
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+    <div class="section-header">
+      <h2>Regras de pontuação</h2>
+      <div class="pitch-rule"></div>
+    </div>
+
+    <p class="muted mt-12">
+      Para cada partida, você palpita o placar. Os pontos abaixo são somados quando
+      seu palpite bater com o resultado real. Os jogos do mata-mata valem mais.
+    </p>
+
+    <div class="card mt-24" style="padding:0;overflow:hidden" id="rules-card">
+      <div class="empty"><strong>Carregando…</strong></div>
+    </div>
+
+    <div class="card mt-16" style="background:var(--pitch-light);border-color:rgba(14,159,80,.2)">
+      <h3 style="color:var(--pitch-deep)">Exemplo</h3>
+      <p class="mt-8" style="font-size:.88rem;color:var(--pitch-deep);line-height:1.6">
+        Jogo real: <strong>Brasil 2 × 1 Argentina</strong><br>
+        Seu palpite: <strong>Brasil 2 × 1 Argentina</strong><br>
+        → Placar casa + placar visitante + resultado + saldo + bônus exato = pontuação máxima.
+      </p>
+    </div>
+
+    <div class="card mt-16">
+      <h3>Como funciona o ranking</h3>
+      <ul class="mt-8" style="font-size:.88rem;color:var(--muted);line-height:1.9;padding-left:16px">
+        <li>Pontos são somados ao longo de todo o torneio.</li>
+        <li>O palpite só pode ser enviado <strong>antes do apito inicial</strong>.</li>
+        <li>Palpites não enviados valem zero — não deixe para a última hora.</li>
+        <li>Jogos do mata-mata valem o dobro dos jogos da fase de grupos (padrão).</li>
+        <li>Em caso de empate no total, a posição é compartilhada.</li>
+      </ul>
+    </div>
+
+    <div class="mt-24" style="text-align:center">
+      <a href="dashboard.html" class="btn btn-ghost">← Voltar</a>
+    </div>
+  </main>
+
+  <script type="module">
+    import { supabase, getRules, MATCH_RULE_LABELS, KO_RULE_LABELS, CLS_RULE_LABELS, TOURN_RULE_LABELS, requireAuthWithProfile, renderHeader, bindSignOut } from './supabase.js'
+
+    const result = await requireAuthWithProfile()
+    if (!result) throw new Error('not reached')
+    const { profile } = result
+    document.getElementById('header-slot').innerHTML = renderHeader(profile, true)
+    bindSignOut()
+
+    const poolId = new URLSearchParams(location.search).get('pool')
+    const rules  = await getRules(poolId)
+    const MATCH_ORDER = Object.keys(MATCH_RULE_LABELS)
+    const KO_ORDER    = Object.keys(KO_RULE_LABELS)
+    const CLS_ORDER   = Object.keys(CLS_RULE_LABELS)
+    const TOURN_ORDER = Object.keys(TOURN_RULE_LABELS)
+    const ALL_LABELS  = { ...MATCH_RULE_LABELS, ...KO_RULE_LABELS, ...CLS_RULE_LABELS, ...TOURN_RULE_LABELS }
+    const matchMax = MATCH_ORDER.reduce((s, k) => s + (rules[k] ?? 0), 0)
+    const koMax    = KO_ORDER.reduce((s, k) => s + (rules[k] ?? 0), 0)
+
+    const sectionRow = (title) =>
+      `<tr><td colspan="2" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:16px 14px 4px">${title}</td></tr>`
+    const ruleRows = (keys) => keys.map(k => `
+      <tr>
+        <td>${ALL_LABELS[k]}</td>
+        <td style="text-align:right"><span class="pts-badge">${rules[k] ?? 0}</span></td>
+      </tr>`).join('')
+    const maxRow = (label, val) => `
+      <tr style="background:var(--pitch-light)">
+        <td><strong>${label}</strong></td>
+        <td style="text-align:right"><span class="pts-badge" style="background:var(--pitch);color:#fff">${val}</span></td>
+      </tr>`
+
+    document.getElementById('rules-card').innerHTML = `
+      <table class="rules-table">
+        <thead>
+          <tr><th>Critério</th><th style="text-align:right">Pontos</th></tr>
+        </thead>
+        <tbody>
+          ${sectionRow('Palpites de placar — Fase de grupos')}
+          ${ruleRows(MATCH_ORDER)}
+          ${maxRow('Máximo por jogo de grupo', matchMax)}
+          ${sectionRow('Palpites de placar — Mata-mata')}
+          ${ruleRows(KO_ORDER)}
+          ${maxRow('Máximo por jogo de mata-mata', koMax)}
+          ${sectionRow('Classificação dos grupos')}
+          ${ruleRows(CLS_ORDER)}
+          ${sectionRow('Pódio da Copa')}
+          ${ruleRows(TOURN_ORDER)}
+        </tbody>
+      </table>`
+  </script>
+</body>
+</html>

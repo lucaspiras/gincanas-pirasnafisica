@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resultado Final · Bolão Copa 2026</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TY56KM22X8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-TY56KM22X8');
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+    <div id="loading" class="empty"><strong>Apurando o resultado final…</strong></div>
+
+    <div id="content" class="hidden">
+
+      <!-- Abertura -->
+      <div class="final-hero">
+        <div class="final-trofeu">🏆</div>
+        <h1 id="final-titulo">Resultado Final</h1>
+        <p id="final-sub">Copa do Mundo 2026</p>
+      </div>
+
+      <!-- Pódio -->
+      <div class="section-header">
+        <h2>O pódio</h2>
+        <div class="pitch-rule"></div>
+      </div>
+      <div class="podio" id="podio"></div>
+      <p class="muted" style="text-align:center;font-size:.78rem;margin-top:10px" id="podio-nota"></p>
+
+      <!-- Campeões da Copa -->
+      <div class="section-header mt-32">
+        <h2>Campeões da Copa</h2>
+        <div class="pitch-rule"></div>
+      </div>
+      <div class="destaques-grid" id="copa-podio"></div>
+
+      <!-- Destaques dos prêmios -->
+      <div class="section-header mt-32">
+        <h2>Destaques</h2>
+        <div class="pitch-rule"></div>
+      </div>
+      <p class="muted" style="font-size:.85rem;margin-top:6px">
+        Quem se destacou em cada categoria ao longo do campeonato.
+      </p>
+      <div class="destaques-grid" id="destaques"></div>
+
+      <!-- Classificação completa -->
+      <div class="section-header mt-32">
+        <h2>Classificação final</h2>
+        <div class="pitch-rule"></div>
+      </div>
+      <div class="card mt-12" style="padding:0;overflow:hidden">
+        <div id="classificacao"></div>
+      </div>
+
+      <div class="mt-24" style="text-align:center">
+        <a id="voltar" href="dashboard.html" class="btn btn-ghost btn-sm" style="text-decoration:none">← Voltar ao bolão</a>
+      </div>
+
+    </div>
+  </main>
+
+  <script type="module">
+    import {
+      supabase, requireAuthWithProfile, callAdmin,
+      renderHeader, bindSignOut, escHtml, medalIcon, translateTeam
+    } from './supabase.js'
+
+    function showFatal(error) {
+      console.error(error)
+      const loading = document.getElementById('loading')
+      loading.innerHTML = `
+        <strong>Não foi possível montar o resultado final.</strong>
+        <p class="muted mt-8" style="font-size:.88rem;line-height:1.5">
+          ${escHtml(error?.message || 'Tente novamente em alguns instantes.')}
+        </p>
+        <a href="dashboard.html" class="btn btn-ghost btn-sm mt-12" style="text-decoration:none">Voltar ao painel</a>`
+      loading.classList.remove('hidden')
+      document.getElementById('content').classList.add('hidden')
+    }
+
+    main().catch(showFatal)
+
+    async function main() {
+      const poolId = new URLSearchParams(location.search).get('id')
+      if (!poolId) { location.replace('dashboard.html'); return }
+
+      const auth = await requireAuthWithProfile()
+      if (!auth) return
+      const { user, profile } = auth
+
+      document.getElementById('header-slot').innerHTML = renderHeader(profile, true)
+      bindSignOut()
+      document.getElementById('voltar').href = `pool.html?id=${poolId}`
+
+      const [{ data: pool, error: poolErr }, { data: membership }] = await Promise.all([
+        supabase.from('pools').select('id, name').eq('id', poolId).maybeSingle(),
+        supabase.from('pool_members').select('role').eq('pool_id', poolId).eq('user_id', user.id).maybeSingle()
+      ])
+      if (poolErr) throw new Error(`Erro ao buscar o bolão: ${poolErr.message}`)
+      if (!pool) throw new Error('Bolão não encontrado ou sem permissão de acesso.')
+      if (!membership) throw new Error('Você não participa deste bolão.')
+
+      document.getElementById('final-titulo').textContent = pool.name
+      document.getElementById('final-sub').textContent = 'Resultado final · Copa do Mundo 2026'
+
+      const [{ data: ranking }, grid, { data: tourn }] = await Promise.all([
+        supabase.rpc('pool_ranking', { p: poolId }),
+        callAdmin('get_pool_predictions', { pool_id: poolId }),
+        supabase.from('tournament_results').select('position, team_name').order('position')
+      ])
+
+      renderPodio(ranking ?? [], user.id)
+      renderCopaPodio(tourn ?? [])
+      renderDestaques(grid, ranking ?? [])
+      renderClassificacao(ranking ?? [], user.id)
+
+      document.getElementById('loading').classList.add('hidden')
+      document.getElementById('content').classList.remove('hidden')
+    }
+
+    // ── Pódio do bolão ────────────────────────────────────────
+    function renderPodio(ranking, meId) {
+      const top = ranking.filter(r => r.placement <= 3)
+      const el = document.getElementById('podio')
+      if (!top.length) { el.innerHTML = '<p class="muted">Sem participantes.</p>'; return }
+
+      // ordem visual: 2º, 1º, 3º
+      const porLugar = n => top.filter(r => r.placement === n)
+      const bloco = (r, lugar) => `
+        <div class="podio-lugar p${lugar}">
+          <div class="medalha">${medalIcon(lugar)}</div>
+          <div class="nome">${escHtml(r.display_name)}${r.user_id === meId ? ' <span style="font-size:.7rem;color:var(--muted)">(você)</span>' : ''}</div>
+          <div class="pts">${r.total_points}</div>
+          <div class="detalhe">jogos ${r.match_points} · grupos ${r.group_points} · pódio ${r.podium_points}</div>
+        </div>`
+
+      el.innerHTML = [
+        ...porLugar(2).map(r => bloco(r, 2)),
+        ...porLugar(1).map(r => bloco(r, 1)),
+        ...porLugar(3).map(r => bloco(r, 3)),
+      ].join('')
+
+      const empatados = [1, 2, 3].filter(n => porLugar(n).length > 1)
+      document.getElementById('podio-nota').textContent = empatados.length
+        ? 'Há empate em pontos no pódio — participantes com a mesma pontuação dividem a posição.'
+        : ''
+    }
+
+    // ── Pódio da Copa (campeão, vice, 3º) ─────────────────────
+    function renderCopaPodio(tourn) {
+      const el = document.getElementById('copa-podio')
+      if (!tourn.length) {
+        el.innerHTML = '<div class="destaque-card vazio"><span class="icone">🏳️</span><div><div class="titulo">Pódio da Copa</div><div class="vencedor">Ainda não definido</div></div></div>'
+        return
+      }
+      const rotulo = { 1: ['🥇', 'Campeã'], 2: ['🥈', 'Vice-campeã'], 3: ['🥉', 'Terceiro lugar'] }
+      el.innerHTML = tourn.map(t => {
+        const [icone, titulo] = rotulo[t.position] ?? ['🏅', `${t.position}º`]
+        return `<div class="destaque-card">
+          <span class="icone">${icone}</span>
+          <div>
+            <div class="titulo">${titulo}</div>
+            <div class="vencedor">${escHtml(translateTeam(t.team_name))}</div>
+          </div>
+        </div>`
+      }).join('')
+    }
+
+    // ── Destaques (mesmos 8 prêmios da aba Prêmios) ───────────
+    function renderDestaques(grid, ranking) {
+      const { matches: allM, predictions: allP, members } = grid ?? {}
+      const el = document.getElementById('destaques')
+
+      const classMap = Object.fromEntries(ranking.map(r => [r.user_id, r.group_points ?? 0]))
+      const matchById = Object.fromEntries((allM ?? []).map(m => [m.id, m]))
+      const completed = (allM ?? []).filter(m => m.home_score != null && m.away_score != null)
+      const completedIds = new Set(completed.map(m => m.id))
+
+      const stats = {}
+      for (const mem of (members ?? [])) {
+        stats[mem.user_id] = { user_id: mem.user_id, display_name: mem.display_name,
+          exactScores: 0, correctResults: 0, correctDiff: 0, koPoints: 0, totalPlayed: 0, maxStreak: 0 }
+      }
+      const predsByUser = {}
+      for (const p of (allP ?? [])) {
+        if (!stats[p.user_id]) continue
+        ;(predsByUser[p.user_id] ??= {})[p.match_id] = p
+        if (!completedIds.has(p.match_id)) continue
+        const m = matchById[p.match_id]; if (!m) continue
+        const s = stats[p.user_id]; s.totalPlayed++
+        const aD = m.home_score - m.away_score, pD = p.home_score - p.away_score
+        if (p.home_score === m.home_score && p.away_score === m.away_score) s.exactScores++
+        if (Math.sign(pD) === Math.sign(aD)) s.correctResults++
+        if (pD === aD) s.correctDiff++
+        if (m.phase && m.phase !== 'group') s.koPoints += (p.points ?? 0)
+      }
+      const ordenados = [...completed].sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+      for (const uid of Object.keys(stats)) {
+        let cur = 0, best = 0
+        for (const m of ordenados) {
+          const p = predsByUser[uid]?.[m.id]
+          if (!p) { cur = 0; continue }
+          const aD = m.home_score - m.away_score, pD = p.home_score - p.away_score
+          if (Math.sign(pD) === Math.sign(aD)) { cur++; if (cur > best) best = cur } else cur = 0
+        }
+        stats[uid].maxStreak = best
+      }
+
+      const rows = Object.values(stats).map(s => ({
+        ...s, classPoints: classMap[s.user_id] ?? 0,
+        pct: s.totalPlayed >= 5 ? Math.round(s.correctResults / s.totalPlayed * 100) : null
+      }))
+      const temDados = completed.length > 0
+      const temKO = completed.some(m => m.phase && m.phase !== 'group')
+      const temCls = Object.values(classMap).some(v => v > 0)
+      const n = completed.length
+      const por = key => [...rows].sort((a, b) => b[key] - a[key] || a.display_name.localeCompare(b.display_name, 'pt-BR'))
+
+      const premios = [
+        { icon:'🎯', titulo:'Placar Exato', vazio:!temDados, lista:por('exactScores'),
+          val:s=>s.exactScores, suf:s=>s.exactScores===1?'acerto':'acertos' },
+        { icon:'✅', titulo:'Resultado', vazio:!temDados, lista:por('correctResults'),
+          val:s=>s.correctResults, suf:s=>s.correctResults===1?'resultado':'resultados' },
+        { icon:'📐', titulo:'Saldo de gols', vazio:!temDados, lista:por('correctDiff'),
+          val:s=>s.correctDiff, suf:s=>s.correctDiff===1?'acerto':'acertos' },
+        { icon:'⚡', titulo:'Eliminatórias', vazio:!temKO, lista:por('koPoints'),
+          val:s=>s.koPoints, suf:()=>'pts' },
+        { icon:'📊', titulo:'Classificações', vazio:!temCls,
+          lista:[...rows].sort((a,b)=>b.classPoints-a.classPoints || a.display_name.localeCompare(b.display_name,'pt-BR')),
+          val:s=>s.classPoints, suf:()=>'pts' },
+        { icon:'💯', titulo:'Aproveitamento', vazio:!temDados || rows.every(s=>s.pct===null),
+          lista:[...rows].filter(s=>s.pct!==null).sort((a,b)=>b.pct-a.pct || a.display_name.localeCompare(b.display_name,'pt-BR')),
+          val:s=>s.pct, suf:()=>'%' },
+        { icon:'🔥', titulo:'Maior sequência', vazio:!temDados, lista:por('maxStreak'),
+          val:s=>s.maxStreak, suf:s=>s.maxStreak===1?'seguido':'seguidos' },
+        { icon:'🏃', titulo:'Mais dedicado', vazio:!temDados, lista:por('totalPlayed'),
+          val:s=>s.totalPlayed, suf:()=>`de ${n} jogos` },
+      ]
+
+      el.innerHTML = premios.map(p => {
+        if (p.vazio || !p.lista.length) {
+          return `<div class="destaque-card vazio">
+            <span class="icone">${p.icon}</span>
+            <div><div class="titulo">${escHtml(p.titulo)}</div><div class="vencedor">Sem dados</div></div>
+          </div>`
+        }
+        const topo = p.val(p.lista[0])
+        const vencedores = p.lista.filter(s => p.val(s) === topo)
+        const nomes = vencedores.map(s => escHtml(s.display_name)).join(', ')
+        return `<div class="destaque-card">
+          <span class="icone">${p.icon}</span>
+          <div>
+            <div class="titulo">${escHtml(p.titulo)}</div>
+            <div class="vencedor">${nomes}</div>
+            <div class="valor">${topo} ${escHtml(p.suf(p.lista[0]))}</div>
+            ${vencedores.length > 1 ? `<div class="empate">empate entre ${vencedores.length}</div>` : ''}
+          </div>
+        </div>`
+      }).join('')
+    }
+
+    // ── Classificação final completa ──────────────────────────
+    function renderClassificacao(ranking, meId) {
+      const el = document.getElementById('classificacao')
+      if (!ranking.length) { el.innerHTML = '<p class="muted" style="padding:14px">Sem participantes.</p>'; return }
+      const detalha = ranking.some(r => r.group_points > 0 || r.podium_points > 0)
+      const parcela = (label, valor) => `<span class="${valor > 0 ? '' : 'zero'}">${label} <b>${valor}</b></span>`
+
+      el.innerHTML = ranking.map(r => `
+        <div class="rank-row${r.user_id === meId ? ' me' : ''}">
+          <span class="rank-pos">${medalIcon(r.placement)}</span>
+          <span class="rank-name">${escHtml(r.display_name)}${r.user_id === meId ? ' <span style="font-size:.7rem;color:var(--muted)">(você)</span>' : ''}</span>
+          <span style="text-align:right">
+            <span class="rank-pts">${r.total_points}</span>
+            ${detalha ? `<span class="rank-breakdown">
+              ${parcela('jogos', r.match_points)}
+              ${parcela('grupos', r.group_points)}
+              ${parcela('pódio', r.podium_points)}
+            </span>` : ''}
+          </span>
+        </div>`).join('')
+    }
+  </script>
+</body>
+</html>

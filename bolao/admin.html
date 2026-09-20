@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · Bolão da Copa 2026</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TY56KM22X8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-TY56KM22X8');
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="matches">Resultados</button>
+      <button class="tab" data-tab="third">3ºs Colocados</button>
+      <button class="tab" data-tab="standings">Classificação</button>
+      <button class="tab" data-tab="tournament">Torneio</button>
+      <button class="tab" data-tab="participants">Participantes</button>
+      <button class="tab" data-tab="pools">Bolões</button>
+      <button class="tab" data-tab="audit">Auditoria</button>
+      <button class="tab" data-tab="export">Exportar</button>
+      <button class="tab" data-tab="planilha">Planilha</button>
+      <button class="tab" data-tab="premios">🏅 Prêmios</button>
+    </div>
+
+    <!-- Resultados -->
+    <div id="tab-matches">
+      <div class="card mt-12" style="background:#fffbea;border-color:#e6d88a;font-size:.82rem;color:#7a6000;padding:12px 16px">
+        Para sincronizar as partidas da API, rode no terminal:<br>
+        <code style="font-family:monospace;font-weight:700">node sync.mjs</code>
+        dentro da pasta <code style="font-family:monospace">bolao-html</code>.
+      </div>
+      <div id="matches-list" class="stack gap-8 mt-16">
+        <div class="empty"><strong>Carregando…</strong></div>
+      </div>
+    </div>
+
+    <!-- Torneio -->
+    <div id="tab-tournament" class="hidden">
+      <div class="card mt-16">
+        <h3>Resultado final — Pódio</h3>
+        <p class="muted mt-8" style="font-size:.85rem">
+          Após a final da Copa, registre o pódio oficial para calcular os pontos.
+        </p>
+        <div class="stack gap-12 mt-16">
+          <div>
+            <label style="font-size:.8rem;font-weight:700;color:var(--muted);display:block;margin-bottom:6px">🥇 1º Lugar — Campeão</label>
+            <select class="filter-select" id="tourn-1st" style="width:100%;max-width:none">
+              <option value="">— Selecione —</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:.8rem;font-weight:700;color:var(--muted);display:block;margin-bottom:6px">🥈 2º Lugar — Vice-campeão</label>
+            <select class="filter-select" id="tourn-2nd" style="width:100%;max-width:none">
+              <option value="">— Selecione —</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:.8rem;font-weight:700;color:var(--muted);display:block;margin-bottom:6px">🥉 3º Lugar</label>
+            <select class="filter-select" id="tourn-3rd" style="width:100%;max-width:none">
+              <option value="">— Selecione —</option>
+            </select>
+          </div>
+          <button id="btn-save-tourn" class="btn btn-primary btn-sm" style="align-self:flex-start">
+            Salvar e pontuar todos os bolões
+          </button>
+          <p id="tourn-msg" class="hidden" style="font-size:.85rem"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3ºs Colocados -->
+    <div id="tab-third" class="hidden">
+      <div class="card mt-16">
+        <h3>Confirmar 8 melhores 3ºs colocados</h3>
+        <p class="muted mt-8" style="font-size:.85rem">
+          Após o fim da fase de grupos, marque quais 8 grupos tiveram seu 3º colocado avançando.
+          Depois clique em <strong>Salvar e pontuar</strong>.
+        </p>
+        <div id="third-list" class="stack gap-8 mt-16">
+          <div class="empty"><strong>Carregando…</strong></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+          <button id="btn-save-3rd" class="btn btn-primary btn-sm">Salvar e pontuar melhores 3ºs</button>
+          <button id="btn-score-groups" class="btn btn-ghost btn-sm">Pontuar classificações de grupos concluídos</button>
+        </div>
+        <p id="third-msg" class="hidden mt-8" style="font-size:.85rem"></p>
+      </div>
+    </div>
+
+    <!-- Participantes -->
+    <div id="tab-participants" class="hidden">
+      <div class="card mt-16">
+        <h3>Criar participante</h3>
+        <p class="muted mt-8" style="font-size:.85rem">
+          Cria a conta de login <strong>e</strong> o perfil. Anote a senha e entregue ao participante.
+        </p>
+        <form id="form-participant" class="stack gap-8 mt-16">
+          <input id="np-name" class="input" type="text" placeholder="Apelido (aparece no ranking)" minlength="2" maxlength="30" required>
+          <input id="np-email" class="input" type="email" placeholder="E-mail de login" autocomplete="off" required>
+          <input id="np-pass" class="input" type="text" placeholder="Senha (mín. 6 caracteres)" minlength="6" required>
+          <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-start" id="btn-create-participant">
+            Criar participante
+          </button>
+          <p id="np-msg" class="hidden" style="font-size:.85rem"></p>
+        </form>
+      </div>
+
+      <div class="card mt-12">
+        <h3>Participantes</h3>
+        <div id="participants-list" class="stack gap-8 mt-16">
+          <div class="empty"><strong>Carregando…</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bolões -->
+    <div id="tab-pools" class="hidden">
+      <div class="card mt-16">
+        <h3>Criar bolão</h3>
+        <form id="form-pool" class="stack gap-8 mt-16">
+          <input id="npool-name" class="input" type="text" placeholder="Nome do bolão" minlength="2" maxlength="60" required>
+          <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-start" id="btn-create-pool">
+            Criar bolão
+          </button>
+          <p id="npool-msg" class="hidden" style="font-size:.85rem"></p>
+        </form>
+      </div>
+
+      <div class="card mt-12">
+        <h3>Bolões e participantes</h3>
+        <div id="pools-admin-list" class="stack gap-12 mt-16">
+          <div class="empty"><strong>Carregando…</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auditoria -->
+    <div id="tab-audit" class="hidden">
+      <div class="card mt-16">
+        <h3>Auditoria de palpites</h3>
+        <p class="muted mt-8" style="font-size:.85rem">
+          Confira o que cada jogador apostou em cada jogo, os pontos calculados e o
+          histórico de toda alteração feita. O registro de mudanças vale a partir de
+          quando você ativou a trilha de auditoria no banco.
+        </p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
+          <select class="filter-select" id="audit-pool-select" style="flex:1;min-width:180px;max-width:none">
+            <option value="">— Selecione um bolão —</option>
+          </select>
+          <select class="filter-select" id="audit-player-select" style="flex:1;min-width:180px;max-width:none" disabled>
+            <option value="">Resumo de todos</option>
+          </select>
+        </div>
+        <p id="audit-msg" class="hidden mt-8" style="font-size:.85rem"></p>
+      </div>
+
+      <div id="audit-content" class="mt-12"></div>
+    </div>
+
+    <!-- Classificação -->
+    <div id="tab-standings" class="hidden">
+      <div id="standings-content" class="mt-16"></div>
+    </div>
+
+    <!-- Exportar -->
+    <div id="tab-export" class="hidden">
+      <div class="card mt-16">
+        <h3>Exportar perfis</h3>
+        <p class="muted mt-8" style="font-size:.85rem">
+          Todos os participantes: apelido, e-mail, avatar e se é administrador.
+        </p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+          <button class="btn btn-primary btn-sm" data-export="profiles-csv">⬇ Perfis (CSV)</button>
+          <button class="btn btn-ghost btn-sm" data-export="profiles-json">⬇ Perfis (JSON)</button>
+        </div>
+      </div>
+
+      <div class="card mt-12">
+        <h3>Exportar apostas — todos os bolões</h3>
+        <p class="muted mt-8" style="font-size:.85rem">
+          Palpites de placar (com os pontos calculados) e a classificação de grupos
+          apostada por cada jogador, em todos os bolões. O JSON traz tudo num arquivo só.
+        </p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+          <button class="btn btn-primary btn-sm" data-export="bets-scores-csv">⬇ Placares (CSV)</button>
+          <button class="btn btn-primary btn-sm" data-export="bets-groups-csv">⬇ Classificação de grupos (CSV)</button>
+          <button class="btn btn-ghost btn-sm" data-export="bets-json">⬇ Tudo (JSON)</button>
+        </div>
+        <p id="export-msg" class="hidden mt-8" style="font-size:.85rem"></p>
+      </div>
+    </div>
+
+    <!-- Prêmios -->
+    <div id="tab-premios" class="hidden">
+      <div class="card mt-16">
+        <h3>Prêmios individuais</h3>
+        <p class="muted mt-4" style="font-size:.85rem">
+          Rankings temáticos por categoria — não contam para a pontuação do bolão.
+        </p>
+        <select class="filter-select mt-12" id="premios-pool-select" style="width:100%;max-width:none">
+          <option value="">— Selecione um bolão —</option>
+        </select>
+      </div>
+      <div id="premios-content" class="mt-12"></div>
+    </div>
+
+    <!-- Planilha -->
+    <div id="tab-planilha" class="hidden">
+      <div class="card mt-16">
+        <h3>Planilha de apostas</h3>
+        <p class="muted mt-4" style="font-size:.85rem">
+          Todos os palpites de placar de todos os membros. Admin vê tudo, sem restrição de horário.
+        </p>
+        <select class="filter-select mt-12" id="planilha-pool-select" style="width:100%;max-width:none">
+          <option value="">— Selecione um bolão —</option>
+        </select>
+      </div>
+      <div class="planilha-filter-bar hidden" id="planilha-admin-filter-bar">
+        <select id="planilha-admin-member-filter" class="filter-select">
+          <option value="">Todos os membros</option>
+        </select>
+        <span class="planilha-filter-hint" id="planilha-admin-hint">← role para ver todos os jogos</span>
+      </div>
+      <div id="planilha-admin-wrap" class="planilha-wrap mt-8"></div>
+    </div>
+
+  </main>
+
+  <script type="module">
+    import {
+      supabase, requireAdmin, callAdmin,
+      renderHeader, bindSignOut,
+      escHtml, fmtDate, fmtTime, fmtDateTime, statusBadge, matchStatus, translateTeam, teamFlag,
+      getRules, RULE_LABELS, medalIcon,
+      MATCH_RULE_LABELS, KO_RULE_LABELS, CLS_RULE_LABELS, TOURN_RULE_LABELS,
+      matchMetaLabel, koRoundLabel
+    } from './supabase.js'
+
+    const { user, profile } = await requireAdmin() ?? {}
+    if (!user) throw new Error('not reached')
+
+    document.getElementById('header-slot').innerHTML = renderHeader(profile, true)
+    bindSignOut()
+
+    // ── Tabs ──────────────────────────────────────────────────
+    const TABS = ['matches', 'third', 'standings', 'tournament', 'participants', 'pools', 'audit', 'export', 'planilha', 'premios']
+    let thirdLoaded = false, tournLoaded = false, partLoaded = false, poolsLoaded = false, auditLoaded = false, standingsLoaded = false, exportLoaded = false, planilhaLoaded = false, premiosLoaded = false
+    const adminContainer = document.querySelector('.container')
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+        btn.classList.add('active')
+        const tab = btn.dataset.tab
+        for (const t of TABS) {
+          document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab)
+        }
+        adminContainer.classList.toggle('planilha-wide', tab === 'planilha')
+        if (tab === 'third' && !thirdLoaded)        { thirdLoaded = true;  loadThird() }
+        if (tab === 'tournament' && !tournLoaded)   { tournLoaded = true;  loadTournament() }
+        if (tab === 'participants' && !partLoaded)  { partLoaded = true;   loadParticipants() }
+        if (tab === 'pools' && !poolsLoaded)        { poolsLoaded = true;  loadPoolsAdmin() }
+        if (tab === 'audit' && !auditLoaded)        { auditLoaded = true;  loadAudit() }
+        if (tab === 'standings' && !standingsLoaded) { standingsLoaded = true; loadStandings() }
+        if (tab === 'export' && !exportLoaded)       { exportLoaded = true;  loadExport() }
+        if (tab === 'planilha' && !planilhaLoaded)   { planilhaLoaded = true; loadPlanilhaAdmin() }
+        if (tab === 'premios' && !premiosLoaded)     { premiosLoaded = true;  loadPremiosAdmin() }
+      })
+    })
+
+    // ── Resultados ────────────────────────────────────────────
+    async function loadMatches() {
+      const { data, error } = await supabase
+        .from('matches')
+        .select('id, match_date, home_team, away_team, home_score, away_score, group_name, match_number, status, phase, advancing_team')
+        .order('match_date')
+
+      const list = document.getElementById('matches-list')
+      if (error || !data?.length) {
+        list.innerHTML = `
+          <div class="empty">
+            <strong>Nenhuma partida ainda</strong>
+            Rode <code>node sync.mjs</code> para importar a tabela da Copa.
+          </div>`
+        return
+      }
+
+      list.innerHTML = data.map(m => renderMatchRow(m)).join('')
+      for (const m of data) {
+        const form = document.getElementById(`form-${m.id}`)
+        form?.addEventListener('submit', (e) => handleSave(e, m.id))
+        const isKo = !!(m.phase && m.phase !== 'group')
+        if (isKo && form) {
+          // Seleção inicial de quem avançou (se já houver resultado de empate gravado).
+          if (m.advancing_team) admAdvance[m.id] = m.advancing_team
+          const toggle = () => toggleAdmAdvance(m.id)
+          form.home?.addEventListener('input', toggle)
+          form.away?.addEventListener('input', toggle)
+          const block = document.getElementById(`adm-advance-${m.id}`)
+          block?.querySelectorAll('.ko-adv-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              admAdvance[m.id] = btn.dataset.side === 'home' ? m.home_team : m.away_team
+              block.querySelectorAll('.ko-adv-btn').forEach(x => x.classList.remove('selected'))
+              btn.classList.add('selected')
+            })
+          })
+          toggle()
+        }
+      }
+    }
+
+    // Quem avançou (mata-mata) selecionado pelo admin, por partida.
+    const admAdvance = {}
+
+    function toggleAdmAdvance(matchId) {
+      const block = document.getElementById(`adm-advance-${matchId}`)
+      if (!block) return
+      const form = document.getElementById(`form-${matchId}`)
+      const h = parseInt(form?.home.value), a = parseInt(form?.away.value)
+      block.style.display = (!isNaN(h) && !isNaN(a) && h === a) ? '' : 'none'
+    }
+
+    function renderMatchRow(m) {
+      const status = matchStatus(m)
+      const cls    = status === 'closed' ? 'closed' : status === 'live' ? 'live' : 'open'
+      return `
+        <div class="match-card ${cls}">
+          <div class="match-meta">
+            <strong>${escHtml(matchMetaLabel(m))}${m.phase === 'group' ? ` · Rodada ${m.match_number}` : ''}</strong>
+            <span>·</span>
+            <span>${fmtDate(m.match_date)} · ${fmtTime(m.match_date)}</span>
+            ${m.status === 'finished' ? '<span class="badge badge-closed">Encerrado</span>'
+            : m.status === 'live'    ? '<span class="badge badge-live">Ao vivo</span>' : ''}
+          </div>
+          <form id="form-${m.id}" class="match-row" style="gap:8px;align-items:center">
+            <span class="team-name team-home" style="font-size:.85rem">
+              ${escHtml(translateTeam(m.home_team))}${teamFlag(m.home_team)}
+            </span>
+            <span class="score-area">
+              <input name="home" class="score-input" type="number" min="0" max="20"
+                value="${m.home_score ?? ''}" placeholder="—"
+                style="width:46px;height:46px;font-size:1.2rem">
+              <span class="score-sep">:</span>
+              <input name="away" class="score-input" type="number" min="0" max="20"
+                value="${m.away_score ?? ''}" placeholder="—"
+                style="width:46px;height:46px;font-size:1.2rem">
+              <button type="submit" class="btn btn-primary btn-sm" style="margin-left:4px">
+                Salvar
+              </button>
+              ${(m.home_score != null || m.away_score != null)
+                ? `<button type="button" class="btn btn-ghost btn-sm" data-clear="${m.id}" style="margin-left:4px">Limpar</button>`
+                : ''}
+            </span>
+            <span class="team-name team-away" style="font-size:.85rem">
+              ${teamFlag(m.away_team)}${escHtml(translateTeam(m.away_team))}
+            </span>
+          </form>
+          ${(m.phase && m.phase !== 'group') ? `
+          <div class="ko-advance" id="adm-advance-${m.id}" style="display:none">
+            <span class="ko-advance-q">⚖️ Empate — quem avançou (pênaltis)?</span>
+            <div class="ko-advance-opts">
+              <button type="button" class="ko-adv-btn${m.advancing_team===m.home_team?' selected':''}" data-adm-adv="${m.id}" data-side="home">${escHtml(translateTeam(m.home_team))}</button>
+              <button type="button" class="ko-adv-btn${m.advancing_team===m.away_team?' selected':''}" data-adm-adv="${m.id}" data-side="away">${escHtml(translateTeam(m.away_team))}</button>
+            </div>
+          </div>` : ''}
+          <div class="match-footer" id="save-msg-${m.id}"></div>
+        </div>`
+    }
+
+    async function handleSave(e, matchId) {
+      e.preventDefault()
+      const form = e.currentTarget
+      const home = parseInt(form.home.value)
+      const away = parseInt(form.away.value)
+      const msg  = document.getElementById(`save-msg-${matchId}`)
+      if (isNaN(home) || isNaN(away) || home < 0 || away < 0) {
+        msg.innerHTML = '<span style="color:var(--flare)">Informe placar válido.</span>'
+        return
+      }
+      // Mata-mata: empate exige informar quem avançou (pênaltis).
+      const isKoDraw = home === away && !!document.getElementById(`adm-advance-${matchId}`)
+      if (isKoDraw && !admAdvance[matchId]) {
+        msg.innerHTML = '<span style="color:var(--flare)">Empate no mata-mata: selecione quem avançou nos pênaltis.</span>'
+        return
+      }
+      const btn = form.querySelector('button[type=submit]')
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'
+      msg.innerHTML = ''
+      const { error } = await supabase.rpc('set_match_result', {
+        p_match_id: matchId, p_home_score: home, p_away_score: away,
+        p_advancing_team: isKoDraw ? admAdvance[matchId] : null
+      })
+      btn.disabled = false; btn.textContent = 'Salvar'
+      if (error) {
+        msg.innerHTML = `<span style="color:var(--flare)">${escHtml(error.message)}</span>`
+      } else {
+        msg.innerHTML = '<span style="color:var(--pitch)">✓ Salvo e pontos recalculados</span>'
+        setTimeout(() => msg.innerHTML = '', 3000)
+      }
+    }
+
+    // ── Pontuação ─────────────────────────────────────────────
+    const ORDER = ['exact_home', 'exact_away', 'correct_result', 'correct_diff', 'exact_score', 'btts']
+    let rulesLoaded = false
+
+    async function loadRules() {
+      if (rulesLoaded) return
+      rulesLoaded = true
+      const rules = await getRules()
+      const container = document.getElementById('rules-form')
+
+      container.innerHTML = `
+        <div class="stack gap-12">
+          ${ORDER.map(k => `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <label for="rule-${k}" style="font-size:.9rem;font-weight:500;flex:1">
+                ${RULE_LABELS[k]}
+              </label>
+              <input
+                id="rule-${k}"
+                class="rules-input"
+                type="number" min="0" max="99"
+                value="${rules[k] ?? 0}"
+              >
+            </div>`).join('')}
+          <div style="border-top:1px solid var(--line);padding-top:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <span id="rules-max-label" style="font-size:.85rem;color:var(--muted)">
+              Máximo por jogo: <strong id="rules-max">${ORDER.reduce((s,k) => s + (rules[k]??0), 0)} pts</strong>
+            </span>
+            <button id="btn-save-rules" class="btn btn-primary btn-sm">
+              Salvar regras
+            </button>
+          </div>
+          <p id="rules-msg" class="hidden" style="font-size:.85rem"></p>
+        </div>`
+
+      // Live max update
+      container.querySelectorAll('.rules-input').forEach(inp => {
+        inp.addEventListener('input', () => {
+          const total = ORDER.reduce((s, k) => {
+            const el = document.getElementById(`rule-${k}`)
+            return s + (parseInt(el?.value) || 0)
+          }, 0)
+          document.getElementById('rules-max').textContent = `${total} pts`
+        })
+      })
+
+      document.getElementById('btn-save-rules').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-save-rules')
+        const msg = document.getElementById('rules-msg')
+        const updates = { updated_at: new Date().toISOString() }
+        for (const k of ORDER) {
+          const val = parseInt(document.getElementById(`rule-${k}`)?.value)
+          if (isNaN(val) || val < 0) {
+            msg.textContent = 'Todos os valores precisam ser números ≥ 0.'
+            msg.style.color = 'var(--flare)'
+            msg.classList.remove('hidden')
+            return
+          }
+          updates[k] = val
+        }
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'
+        msg.classList.add('hidden')
+
+        const { error } = await supabase
+          .from('scoring_rules').update(updates).eq('id', 1)
+        btn.disabled = false; btn.textContent = 'Salvar regras'
+        if (error) {
+          msg.textContent = error.message
+          msg.style.color = 'var(--flare)'
+        } else {
+          msg.textContent = '✓ Regras salvas. Novas pontuações valem para partidas encerradas a partir de agora.'
+          msg.style.color = 'var(--pitch-deep)'
+        }
+        msg.classList.remove('hidden')
+      })
+    }
+
+    await loadMatches()
+
+    // Limpar resultado de um jogo (volta placar/status e zera pontos).
+    document.getElementById('matches-list').addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-clear]')
+      if (!btn) return
+      const matchId = btn.dataset.clear
+      if (!confirm('Limpar o resultado deste jogo?\n\nO placar volta a ficar em branco, o jogo reabre para palpites e os pontos calculados são zerados. Esta ação não apaga os palpites dos jogadores.')) return
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'
+      const { error } = await supabase.rpc('clear_match_result', { p_match_id: String(matchId) })
+      if (error) {
+        btn.disabled = false; btn.textContent = 'Limpar'
+        const msg = document.getElementById(`save-msg-${matchId}`)
+        if (msg) msg.innerHTML = `<span style="color:var(--flare)">${escHtml(error.message)}</span>`
+      } else {
+        await loadMatches()  // re-renderiza a lista já sem o resultado
+      }
+    })
+
+    // ── Torneio ───────────────────────────────────────────────
+    async function loadTournament() {
+      const [{ data: teamsData }, { data: existing }] = await Promise.all([
+        supabase.from('matches').select('home_team, away_team').eq('phase', 'group'),
+        supabase.from('tournament_results').select('position, team_name').order('position')
+      ])
+
+      const teamSet = new Set()
+      for (const m of teamsData ?? []) {
+        if (m.home_team && m.home_team !== 'TBD') teamSet.add(m.home_team)
+        if (m.away_team && m.away_team !== 'TBD') teamSet.add(m.away_team)
+      }
+      const teams = [...teamSet].sort((a, b) => translateTeam(a).localeCompare(translateTeam(b), 'pt-BR'))
+      const existingMap = {}
+      for (const r of existing ?? []) existingMap[r.position] = r.team_name
+
+      const opts = `<option value="">— Selecione —</option>` +
+        teams.map(t => `<option value="${escHtml(t)}">${escHtml(translateTeam(t))}</option>`).join('')
+
+      ;['tourn-1st', 'tourn-2nd', 'tourn-3rd'].forEach((id, i) => {
+        const sel = document.getElementById(id)
+        sel.innerHTML = opts
+        const saved = existingMap[i + 1]
+        if (saved) sel.value = saved
+      })
+
+      document.getElementById('btn-save-tourn').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-save-tourn')
+        const msg = document.getElementById('tourn-msg')
+        const v1 = document.getElementById('tourn-1st').value
+        const v2 = document.getElementById('tourn-2nd').value
+        const v3 = document.getElementById('tourn-3rd').value
+
+        if (!v1 || !v2 || !v3) {
+          msg.textContent = 'Selecione as 3 seleções.'; msg.style.color = 'var(--flare)'; msg.classList.remove('hidden'); return
+        }
+        if (new Set([v1, v2, v3]).size < 3) {
+          msg.textContent = 'As 3 seleções precisam ser diferentes.'; msg.style.color = 'var(--flare)'; msg.classList.remove('hidden'); return
+        }
+
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'
+        msg.classList.add('hidden')
+
+        // Upsert results
+        await supabase.from('tournament_results').upsert([
+          { position: 1, team_name: v1 },
+          { position: 2, team_name: v2 },
+          { position: 3, team_name: v3 },
+        ])
+
+        // Score all pools
+        const { error } = await supabase.rpc('score_tournament_all_pools')
+        btn.disabled = false; btn.textContent = 'Salvar e pontuar todos os bolões'
+        msg.textContent = error ? error.message : '✓ Pódio salvo e pontos calculados em todos os bolões.'
+        msg.style.color = error ? 'var(--flare)' : 'var(--pitch-deep)'
+        msg.classList.remove('hidden')
+      })
+    }
+
+    // ── 3ºs Colocados ─────────────────────────────────────────
+    async function loadThird() {
+      const [{ data: actualRows }, { data: qualified }] = await Promise.all([
+        supabase.from('group_standings_actual').select('group_name, team, position'),
+        supabase.from('qualified_3rd_places').select('group_name')
+      ])
+
+      const qualSet = new Set((qualified ?? []).map(r => r.group_name))
+      const groups = [...new Set((actualRows ?? []).map(r => r.group_name))].sort()
+      const third3rd = {}
+      for (const r of actualRows ?? []) {
+        if (r.position === 3) third3rd[r.group_name] = r.team
+      }
+
+      const list = document.getElementById('third-list')
+      if (!groups.length) {
+        list.innerHTML = `<div class="empty"><strong>Nenhum grupo concluído ainda</strong>Os 3ºs colocados aparecem aqui quando todos os jogos do grupo estiverem encerrados.</div>`
+        return
+      }
+
+      list.innerHTML = groups.map(g => `
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);cursor:pointer">
+          <input type="checkbox" id="q3-${escHtml(g)}" value="${escHtml(g)}" ${qualSet.has(g) ? 'checked' : ''}
+            style="width:16px;height:16px;cursor:pointer;accent-color:var(--pitch)">
+          <span>
+            <strong>Grupo ${escHtml(g)}</strong>
+            ${third3rd[g] ? ` — 3º: <span style="color:var(--ink)">${teamFlag(third3rd[g])}${escHtml(translateTeam(third3rd[g]))}</span>` : ' — grupo incompleto'}
+          </span>
+        </label>`).join('')
+
+      document.getElementById('btn-save-3rd').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-save-3rd')
+        const msg = document.getElementById('third-msg')
+        const checked = groups.filter(g => document.getElementById(`q3-${g}`)?.checked)
+
+        if (checked.length !== 8) {
+          msg.textContent = `Selecione exatamente 8 grupos (${checked.length} selecionados).`
+          msg.style.color = 'var(--flare)'; msg.classList.remove('hidden'); return
+        }
+
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'
+        msg.classList.add('hidden')
+
+        // Replace all qualified_3rd_places
+        await supabase.from('qualified_3rd_places').delete().neq('group_name', '')
+        const { error } = await supabase.from('qualified_3rd_places')
+          .insert(checked.map(g => ({ group_name: g })))
+
+        if (error) {
+          btn.disabled = false; btn.textContent = 'Salvar e pontuar melhores 3ºs'
+          msg.textContent = error.message; msg.style.color = 'var(--flare)'; msg.classList.remove('hidden'); return
+        }
+
+        // Score best 3rd for all pools
+        await supabase.rpc('score_best_3rd_all_pools')
+        btn.disabled = false; btn.textContent = 'Salvar e pontuar melhores 3ºs'
+        msg.textContent = '✓ Melhores 3ºs salvos e pontos calculados em todos os bolões.'
+        msg.style.color = 'var(--pitch-deep)'; msg.classList.remove('hidden')
+      })
+
+      document.getElementById('btn-score-groups').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-score-groups')
+        const msg = document.getElementById('third-msg')
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'
+        msg.classList.add('hidden')
+        const { error } = await supabase.rpc('rescore_all_classifications')
+        btn.disabled = false; btn.textContent = 'Pontuar classificações de grupos concluídos'
+        msg.textContent = error
+          ? `Erro: ${error.message}`
+          : '✓ Classificações pontuadas (grupos finalizados) em todos os bolões.'
+        msg.style.color = error ? 'var(--flare)' : 'var(--pitch-deep)'
+        msg.classList.remove('hidden')
+      })
+    }
+
+    // ── Participantes ─────────────────────────────────────────
+    let allParticipants = []
+
+    function flash(el, text, ok) {
+      el.textContent = text
+      el.style.color = ok ? 'var(--pitch-deep)' : 'var(--flare)'
+      el.classList.remove('hidden')
+    }
+
+    async function fetchParticipants() {
+      allParticipants = (await callAdmin('list_participants'))?.participants ?? []
+      allParticipants.sort((a, b) => (a.display_name ?? '').localeCompare(b.display_name ?? '', 'pt-BR'))
+      return allParticipants
+    }
+
+    async function loadParticipants() {
+      const list = document.getElementById('participants-list')
+      try { await fetchParticipants() }
+      catch (e) { list.innerHTML = `<div class="empty"><strong>Erro ao carregar</strong>${escHtml(e.message)}</div>`; return }
+      renderParticipants()
+    }
+
+    function renderParticipants() {
+      const list = document.getElementById('participants-list')
+      if (!allParticipants.length) {
+        list.innerHTML = `<div class="empty"><strong>Nenhum participante ainda</strong>Crie o primeiro no formulário acima.</div>`
+        return
+      }
+      list.innerHTML = allParticipants.map(p => `
+        <div class="pool-card" style="cursor:default;align-items:center" data-uid="${escHtml(p.id)}">
+          <div style="display:flex;align-items:center;gap:10px;min-width:0">
+            <span style="font-size:1.4rem">${escHtml(p.avatar || '⚽')}</span>
+            <span style="min-width:0">
+              <span class="display" style="font-weight:700;display:block">${escHtml(p.display_name)}${p.is_admin ? ' <span class="pool-card-badge">admin</span>' : ''}</span>
+              <span style="font-size:.78rem;color:var(--muted)">${escHtml(p.email ?? '')}</span>
+            </span>
+          </div>
+          <span style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn btn-ghost btn-sm" data-act="reset">Senha</button>
+            ${p.is_admin ? '' : '<button class="btn btn-danger btn-sm" data-act="del">Excluir</button>'}
+          </span>
+        </div>`).join('')
+    }
+
+    document.getElementById('participants-list').addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-act]')
+      if (!btn) return
+      const card = btn.closest('[data-uid]')
+      const uid  = card.dataset.uid
+      const p    = allParticipants.find(x => x.id === uid)
+      if (btn.dataset.act === 'reset') {
+        const pass = prompt(`Nova senha para "${p.display_name}" (mín. 6 caracteres):`)
+        if (!pass) return
+        if (pass.length < 6) { alert('Mínimo 6 caracteres.'); return }
+        btn.disabled = true
+        try { await callAdmin('reset_password', { user_id: uid, password: pass }); alert('✓ Senha alterada.') }
+        catch (err) { alert('Erro: ' + err.message) }
+        btn.disabled = false
+      } else if (btn.dataset.act === 'del') {
+        if (!confirm(`Excluir "${p.display_name}"? Apaga a conta, palpites e remove de todos os bolões. Irreversível.`)) return
+        btn.disabled = true
+        try {
+          await callAdmin('delete_participant', { user_id: uid })
+          allParticipants = allParticipants.filter(x => x.id !== uid)
+          renderParticipants()
+          poolsLoaded = false // membros podem ter mudado
+        } catch (err) { btn.disabled = false; alert('Erro: ' + err.message) }
+      }
+    })
+
+    document.getElementById('form-participant').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const btn = document.getElementById('btn-create-participant')
+      const msg = document.getElementById('np-msg')
+      const display_name = document.getElementById('np-name').value.trim()
+      const email = document.getElementById('np-email').value.trim()
+      const password = document.getElementById('np-pass').value
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; msg.classList.add('hidden')
+      try {
+        await callAdmin('create_participant', { display_name, email, password })
+        document.getElementById('form-participant').reset()
+        await fetchParticipants(); renderParticipants()
+        poolsLoaded = false // novo participante disponível para adicionar
+        flash(msg, `✓ ${display_name} criado. Senha: ${password}`, true)
+      } catch (err) { flash(msg, err.message, false) }
+      btn.disabled = false; btn.textContent = 'Criar participante'
+    })
+
+    // ── Bolões ────────────────────────────────────────────────
+    let adminPools = []
+
+    async function loadPoolsAdmin() {
+      const list = document.getElementById('pools-admin-list')
+      try {
+        if (!allParticipants.length) await fetchParticipants()
+        adminPools = (await callAdmin('list_pools'))?.pools ?? []
+      } catch (e) { list.innerHTML = `<div class="empty"><strong>Erro ao carregar</strong>${escHtml(e.message)}</div>`; return }
+      renderPoolsAdmin()
+    }
+
+    function renderPoolsAdmin() {
+      const list = document.getElementById('pools-admin-list')
+      if (!adminPools.length) {
+        list.innerHTML = `<div class="empty"><strong>Nenhum bolão ainda</strong>Crie o primeiro no formulário acima.</div>`
+        return
+      }
+      list.innerHTML = adminPools.map(pool => {
+        const memberIds = new Set((pool.members ?? []).map(m => m.user_id))
+        const available = allParticipants.filter(p => !memberIds.has(p.id))
+        const members = (pool.members ?? []).map(m => {
+          const p = allParticipants.find(x => x.id === m.user_id)
+          const name = p?.display_name ?? m.display_name ?? '—'
+          const av = p?.avatar ?? '⚽'
+          return `<span class="pool-card-badge" style="display:inline-flex;align-items:center;gap:6px;padding:4px 8px">
+            ${av} ${escHtml(name)}
+            <button data-act="remove" data-uid="${escHtml(m.user_id)}" title="Remover" style="border:0;background:none;cursor:pointer;color:var(--flare);font-weight:800">×</button>
+          </span>`
+        }).join(' ') || '<span style="font-size:.82rem;color:var(--muted)">Sem participantes ainda.</span>'
+        return `
+          <div class="card" data-pool="${escHtml(pool.id)}">
+            <strong style="font-family:var(--font-display);font-size:1.1rem">${escHtml(pool.name)}</strong>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center">${members}</div>
+            <div style="display:flex;gap:6px;margin-top:12px">
+              <select class="filter-select" data-role="add-select" style="flex:1;max-width:none">
+                <option value="">— Adicionar participante —</option>
+                ${available.map(p => `<option value="${escHtml(p.id)}">${escHtml(p.display_name)}</option>`).join('')}
+              </select>
+              <button class="btn btn-primary btn-sm" data-act="add">Adicionar</button>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm" data-act="ranking">📊 Ver ranking</button>
+              <button class="btn btn-ghost btn-sm" data-act="rules">⚙ Configurar pontuação</button>
+              <button class="btn btn-danger btn-sm" data-act="delete-pool">Excluir bolão</button>
+            </div>
+            <div id="ranking-panel-${escHtml(pool.id)}" class="hidden" style="margin-top:8px"></div>
+            <div id="rules-panel-${escHtml(pool.id)}" class="hidden" style="margin-top:6px"></div>
+          </div>`
+      }).join('')
+    }
+
+    document.getElementById('pools-admin-list').addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-act]')
+      if (!btn) return
+      const card = btn.closest('[data-pool]')
+      const poolId = card.dataset.pool
+      const pool = adminPools.find(p => p.id === poolId)
+      if (btn.dataset.act === 'add') {
+        const sel = card.querySelector('[data-role="add-select"]')
+        const uid = sel.value
+        if (!uid) return
+        btn.disabled = true
+        try {
+          await callAdmin('add_member', { pool_id: poolId, user_id: uid })
+          const p = allParticipants.find(x => x.id === uid)
+          pool.members = [...(pool.members ?? []), { user_id: uid, display_name: p?.display_name }]
+          renderPoolsAdmin()
+        } catch (err) { btn.disabled = false; alert('Erro: ' + err.message) }
+      } else if (btn.dataset.act === 'remove') {
+        const uid = btn.dataset.uid
+        if (!confirm('Remover este participante do bolão?')) return
+        try {
+          await callAdmin('remove_member', { pool_id: poolId, user_id: uid })
+          pool.members = (pool.members ?? []).filter(m => m.user_id !== uid)
+          renderPoolsAdmin()
+        } catch (err) { alert('Erro: ' + err.message) }
+      } else if (btn.dataset.act === 'ranking') {
+        const panel = document.getElementById(`ranking-panel-${poolId}`)
+        panel.classList.toggle('hidden')
+        if (!panel.classList.contains('hidden')) await loadPoolRanking(poolId, panel)
+      } else if (btn.dataset.act === 'rules') {
+        const panel = document.getElementById(`rules-panel-${poolId}`)
+        panel.classList.toggle('hidden')
+        if (!panel.classList.contains('hidden') && !panel.dataset.loaded) await openPoolRules(poolId)
+      } else if (btn.dataset.act === 'delete-pool') {
+        if (!confirm(`Excluir o bolão "${pool.name}"?\n\nApaga TODOS os palpites, pontuações, membros e configurações deste bolão. Esta ação é irreversível.`)) return
+        btn.disabled = true; btn.textContent = 'Excluindo…'
+        try {
+          await callAdmin('delete_pool', { pool_id: poolId })
+          adminPools = adminPools.filter(p => p.id !== poolId)
+          renderPoolsAdmin()
+        } catch (err) { btn.disabled = false; btn.textContent = 'Excluir bolão'; alert('Erro: ' + err.message) }
+      }
+    })
+
+    document.getElementById('form-pool').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const btn = document.getElementById('btn-create-pool')
+      const msg = document.getElementById('npool-msg')
+      const name = document.getElementById('npool-name').value.trim()
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; msg.classList.add('hidden')
+      try {
+        const res = await callAdmin('create_pool', { name })
+        document.getElementById('form-pool').reset()
+        adminPools = [...adminPools, { id: res.pool.id, name: res.pool.name, members: [] }]
+        renderPoolsAdmin()
+        // Abre as configurações de pontuação do novo bolão imediatamente.
+        const panel = document.getElementById(`rules-panel-${res.pool.id}`)
+        if (panel) {
+          panel.classList.remove('hidden')
+          await openPoolRules(res.pool.id)
+          document.querySelector(`[data-pool="${res.pool.id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+        flash(msg, `✓ Bolão "${name}" criado. Ajuste a pontuação abaixo.`, true)
+      } catch (err) { flash(msg, err.message, false) }
+      btn.disabled = false; btn.textContent = 'Criar bolão'
+    })
+
+    // ── Ranking por bolão ─────────────────────────────────────
+    async function loadPoolRanking(poolId, panel) {
+      panel.innerHTML = `<div class="empty" style="padding:12px"><strong>Carregando ranking…</strong></div>`
+      const { data, error } = await supabase.rpc('pool_ranking', { p: poolId })
+      if (error) {
+        panel.innerHTML = `<div class="empty" style="padding:12px;color:var(--flare)"><strong>Erro ao carregar</strong><br>${escHtml(error.message)}</div>`
+        return
+      }
+      if (!data?.length) {
+        panel.innerHTML = `<div class="empty" style="padding:12px"><strong>Sem participantes ainda</strong></div>`
+        return
+      }
+      // Só detalha quando o bolão pontua grupos/pódio (há bolão que pontua só jogos).
+      const detalha = data.some(r => r.group_points > 0 || r.podium_points > 0)
+      const parcela = (label, valor) =>
+        `<span class="${valor > 0 ? '' : 'zero'}">${label} <b>${valor}</b></span>`
+
+      const rows = data.map(r => `
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line)">
+          <span style="font-size:1.1rem;min-width:28px;text-align:center">${medalIcon(r.placement)}</span>
+          <span style="flex:1;font-size:.88rem;font-weight:600">${escHtml(r.display_name)}</span>
+          <span style="text-align:right">
+            <span style="font-family:var(--font-display);font-weight:800;font-size:.95rem;color:var(--pitch-deep)">${r.total_points}</span>
+            ${detalha ? `<span class="rank-breakdown">
+              ${parcela('jogos', r.match_points)}
+              ${parcela('grupos', r.group_points)}
+              ${parcela('pódio', r.podium_points)}
+            </span>` : ''}
+          </span>
+        </div>`).join('')
+      panel.innerHTML = `
+        <div style="border:1px solid var(--line);border-radius:var(--radius);overflow:hidden">
+          <div style="padding:8px 14px 6px;font-size:.72rem;font-weight:700;color:var(--muted);border-bottom:1px solid var(--line);display:flex;justify-content:space-between">
+            <span>JOGADOR</span><span>PONTOS</span>
+          </div>
+          ${rows}
+        </div>`
+    }
+
+    // ── Pontuação por bolão ───────────────────────────────────
+    const RULE_CATEGORIES = [
+      { id: 'match', title: 'Placar — jogos da fase de grupos', labels: MATCH_RULE_LABELS },
+      { id: 'ko',    title: 'Placar — jogos do mata-mata',      labels: KO_RULE_LABELS },
+      { id: 'cls',   title: 'Classificação dos grupos',          labels: CLS_RULE_LABELS },
+      { id: 'tourn', title: 'Pódio / campeão',                   labels: TOURN_RULE_LABELS },
+    ]
+    let RULE_DEFAULTS = null
+
+    function flashRules(el, text, ok) {
+      el.textContent = text
+      el.style.color = ok ? 'var(--pitch-deep)' : 'var(--flare)'
+      el.classList.remove('hidden')
+    }
+
+    async function openPoolRules(poolId) {
+      const panel = document.getElementById(`rules-panel-${poolId}`)
+      panel.innerHTML = `<div class="empty" style="padding:12px"><strong>Carregando regras…</strong></div>`
+      RULE_DEFAULTS ??= await getRules()           // valores-padrão (sem poolId)
+      const rules = await getRules(poolId)
+      panel.dataset.loaded = '1'
+
+      const section = (cat) => {
+        const keys = Object.keys(cat.labels)
+        const on = keys.some(k => (rules[k] ?? 0) > 0)
+        const inputs = keys.map(k => `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:3px 0">
+            <label for="r-${poolId}-${k}" style="font-size:.82rem;flex:1">${cat.labels[k]}</label>
+            <input id="r-${poolId}-${k}" class="rules-input cat-${cat.id}" type="number" min="0" max="999"
+              value="${rules[k] ?? 0}" ${on ? '' : 'disabled'} style="width:64px${on ? '' : ';opacity:.4'}">
+          </div>`).join('')
+        return `
+          <div class="card" style="padding:12px;margin-bottom:8px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;font-size:.88rem">
+              <input type="checkbox" class="cat-toggle" data-cat="${cat.id}" ${on ? 'checked' : ''}
+                style="width:16px;height:16px;accent-color:var(--pitch)">
+              ${cat.title}
+            </label>
+            <div data-cat-body="${cat.id}" style="margin-top:8px;${on ? '' : 'opacity:.5'}">${inputs}</div>
+          </div>`
+      }
+
+      panel.innerHTML = `
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="btn btn-ghost btn-sm" data-preset="groups">Preset: só fase de grupos</button>
+          <button class="btn btn-ghost btn-sm" data-preset="full">Preset: campeonato completo</button>
+        </div>
+        ${RULE_CATEGORIES.map(section).join('')}
+        <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+          <button class="btn btn-primary btn-sm" data-rules-save>Salvar pontuação</button>
+          <span class="muted" style="font-size:.76rem">Desmarcar uma categoria zera todos os seus critérios (não pontua).</span>
+        </div>
+        <p class="hidden" data-rules-msg style="font-size:.82rem;margin-top:8px"></p>`
+
+      // Liga/desliga inputs ao alternar a categoria
+      panel.querySelectorAll('.cat-toggle').forEach(tg => {
+        tg.addEventListener('change', () => {
+          const on = tg.checked
+          panel.querySelectorAll(`.cat-${tg.dataset.cat}`).forEach(inp => {
+            inp.disabled = !on; inp.style.opacity = on ? '' : '.4'
+          })
+          const body = panel.querySelector(`[data-cat-body="${tg.dataset.cat}"]`)
+          if (body) body.style.opacity = on ? '' : '.5'
+        })
+      })
+      // Presets
+      panel.querySelectorAll('[data-preset]').forEach(b => {
+        b.addEventListener('click', () => applyPreset(poolId, panel, b.dataset.preset))
+      })
+      // Salvar
+      panel.querySelector('[data-rules-save]').addEventListener('click', () => savePoolRules(poolId, panel))
+    }
+
+    function applyPreset(poolId, panel, preset) {
+      const onCats = preset === 'groups' ? ['match', 'cls'] : ['match', 'ko', 'cls', 'tourn']
+      for (const cat of RULE_CATEGORIES) {
+        const on = onCats.includes(cat.id)
+        const tg = panel.querySelector(`.cat-toggle[data-cat="${cat.id}"]`)
+        tg.checked = on
+        for (const k of Object.keys(cat.labels)) {
+          const inp = panel.querySelector(`#r-${poolId}-${k}`)
+          inp.value = on ? (RULE_DEFAULTS[k] ?? 0) : 0
+          inp.disabled = !on; inp.style.opacity = on ? '' : '.4'
+        }
+        const body = panel.querySelector(`[data-cat-body="${cat.id}"]`)
+        if (body) body.style.opacity = on ? '' : '.5'
+      }
+    }
+
+    async function savePoolRules(poolId, panel) {
+      const msg = panel.querySelector('[data-rules-msg]')
+      const btn = panel.querySelector('[data-rules-save]')
+      const updates = { updated_at: new Date().toISOString() }
+      for (const cat of RULE_CATEGORIES) {
+        const on = panel.querySelector(`.cat-toggle[data-cat="${cat.id}"]`).checked
+        for (const k of Object.keys(cat.labels)) {
+          if (!on) { updates[k] = 0; continue }
+          const v = parseInt(panel.querySelector(`#r-${poolId}-${k}`).value)
+          if (isNaN(v) || v < 0) { flashRules(msg, `Valor inválido em "${cat.labels[k]}".`, false); return }
+          updates[k] = v
+        }
+      }
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'
+      // Atualiza a linha do bolão; se ainda não existir, cria.
+      let { data, error } = await supabase
+        .from('pool_scoring_rules').update(updates).eq('pool_id', poolId).select('pool_id')
+      if (!error && (!data || !data.length)) {
+        const ins = await supabase.from('pool_scoring_rules').insert({ pool_id: poolId, ...updates })
+        error = ins.error
+      }
+      btn.disabled = false; btn.textContent = 'Salvar pontuação'
+      flashRules(msg, error ? error.message : '✓ Pontuação salva.', !error)
+    }
+
+    // ── Auditoria ─────────────────────────────────────────────
+    let auditGrid = null              // { members, matches, predictions, tournament_predictions }
+    let predByUM = {}                 // `${user_id}|${match_id}` -> prediction
+    let histByUM = {}                 // `${user_id}|${match_id}` -> [history rows] (placares)
+    let histTournByU = {}             // user_id -> [history rows] (pódio)
+    let auditNames = {}               // user_id -> display_name
+
+    const auditMsg = (text, ok) => {
+      const el = document.getElementById('audit-msg')
+      el.textContent = text
+      el.style.color = ok ? 'var(--pitch-deep)' : 'var(--flare)'
+      el.classList.toggle('hidden', !text)
+    }
+
+    async function loadAudit() {
+      const sel = document.getElementById('audit-pool-select')
+      try {
+        const pools = (await callAdmin('list_pools'))?.pools ?? []
+        pools.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+        sel.innerHTML = `<option value="">— Selecione um bolão —</option>` +
+          pools.map(p => `<option value="${escHtml(p.id)}">${escHtml(p.name)}</option>`).join('')
+      } catch (e) { auditMsg('Erro ao carregar bolões: ' + e.message, false); return }
+
+      sel.addEventListener('change', () => loadAuditPool(sel.value))
+      document.getElementById('audit-player-select')
+        .addEventListener('change', (e) => renderAuditView(e.target.value))
+    }
+
+    async function loadAuditPool(poolId) {
+      const content = document.getElementById('audit-content')
+      const playerSel = document.getElementById('audit-player-select')
+      if (!poolId) {
+        content.innerHTML = ''; playerSel.disabled = true
+        playerSel.innerHTML = '<option value="">Resumo de todos</option>'
+        return
+      }
+      content.innerHTML = `<div class="empty"><strong>Carregando…</strong></div>`
+      auditMsg('', true)
+      try {
+        const [grid, hist] = await Promise.all([
+          callAdmin('audit_grid', { pool_id: poolId }),
+          callAdmin('prediction_history', { pool_id: poolId }),
+        ])
+        auditGrid = grid
+        auditNames = hist.names ?? {}
+
+        // Índices de palpites atuais
+        predByUM = {}
+        for (const pr of grid.predictions ?? []) predByUM[`${pr.user_id}|${pr.match_id}`] = pr
+
+        // Índices de histórico
+        histByUM = {}; histTournByU = {}
+        for (const h of hist.history ?? []) {
+          if (h.table_name === 'tournament_predictions') {
+            (histTournByU[h.user_id] ??= []).push(h)
+          } else {
+            (histByUM[`${h.user_id}|${h.match_id}`] ??= []).push(h)
+          }
+        }
+      } catch (e) {
+        content.innerHTML = `<div class="empty"><strong>Erro ao carregar</strong>${escHtml(e.message)}</div>`
+        return
+      }
+
+      // Preenche o seletor de jogadores
+      playerSel.disabled = false
+      playerSel.innerHTML = `<option value="">Resumo de todos</option>` +
+        (auditGrid.members ?? []).map(m =>
+          `<option value="${escHtml(m.user_id)}">${escHtml(m.display_name)}</option>`).join('')
+      playerSel.value = ''
+      renderAuditView('')
+    }
+
+    // Só jogos da fase de grupos (o que os jogadores apostam hoje)
+    const groupMatches = () => (auditGrid?.matches ?? [])
+      .filter(m => m.phase === 'group')
+      .sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+
+    function playerStats(userId) {
+      const ms = groupMatches()
+      let feitos = 0, semPalpite = 0, pontos = 0, alteracoes = 0
+      for (const m of ms) {
+        const pred = predByUM[`${userId}|${m.id}`]
+        const closed = matchStatus(m) === 'closed'
+        if (pred) { feitos++; if (pred.points != null) pontos += pred.points }
+        else if (closed) semPalpite++
+        const h = histByUM[`${userId}|${m.id}`] ?? []
+        alteracoes += h.filter(x => x.operation === 'UPDATE').length
+      }
+      alteracoes += (histTournByU[userId] ?? []).filter(x => x.operation === 'UPDATE').length
+      return { feitos, semPalpite, pontos, alteracoes, totalJogos: ms.length }
+    }
+
+    function renderAuditView(userId) {
+      const content = document.getElementById('audit-content')
+      if (!auditGrid) { content.innerHTML = ''; return }
+      content.innerHTML = userId ? renderPlayerSheet(userId) : renderAuditSummary()
+    }
+
+    function renderAuditSummary() {
+      const members = auditGrid.members ?? []
+      if (!members.length) {
+        return `<div class="empty"><strong>Bolão sem participantes</strong>Adicione participantes na aba Bolões.</div>`
+      }
+      const rows = members.map(m => {
+        const s = playerStats(m.user_id)
+        const alerta = s.semPalpite > 0
+          ? `<span style="color:var(--flare);font-weight:700">${s.semPalpite}</span>` : '0'
+        return `<tr class="audit-row" data-uid="${escHtml(m.user_id)}" style="cursor:pointer;border-top:1px solid var(--line)">
+          <td style="padding:10px 8px">${escHtml(m.avatar || '⚽')} <strong>${escHtml(m.display_name)}</strong></td>
+          <td style="padding:10px 8px;text-align:center">${s.feitos}/${s.totalJogos}</td>
+          <td style="padding:10px 8px;text-align:center">${alerta}</td>
+          <td style="padding:10px 8px;text-align:center">${s.alteracoes}</td>
+          <td style="padding:10px 8px;text-align:center"><strong>${s.pontos}</strong></td>
+          <td style="padding:10px 8px;text-align:right;color:var(--pitch-deep);font-weight:700">ver →</td>
+        </tr>`
+      }).join('')
+      return `<div class="card">
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:.88rem">
+            <thead><tr style="text-align:left;color:var(--muted);font-size:.78rem">
+              <th style="padding:0 8px 8px">Jogador</th>
+              <th style="padding:0 8px 8px;text-align:center">Palpites</th>
+              <th style="padding:0 8px 8px;text-align:center">Sem palpite (encerrados)</th>
+              <th style="padding:0 8px 8px;text-align:center">Alterações</th>
+              <th style="padding:0 8px 8px;text-align:center">Pts (jogos)</th>
+              <th></th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <p class="muted" style="font-size:.78rem;margin-top:10px">
+          “Pts (jogos)” soma só os pontos de placares. Pontos de pódio, classificação
+          de grupos e melhores 3ºs entram no ranking à parte. Clique num jogador para ver a ficha completa.
+        </p>
+      </div>`
+    }
+
+    function podioStr(data) {
+      if (!data) return '—'
+      return [data.pred_1st, data.pred_2nd, data.pred_3rd]
+        .map(t => t ? teamFlag(t) + translateTeam(t) : '—').join(' · ')
+    }
+
+    function renderPlayerSheet(userId) {
+      const member = (auditGrid.members ?? []).find(m => m.user_id === userId)
+      const name = member?.display_name ?? '—'
+      const avatar = member?.avatar ?? '⚽'
+      const s = playerStats(userId)
+      const ms = groupMatches()
+
+      // Pódio
+      const tp = (auditGrid.tournament_predictions ?? []).find(t => t.user_id === userId)
+      const tournHist = histTournByU[userId] ?? []
+      const podioBlock = `
+        <div class="card mt-12">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div><strong>🏆 Palpite de pódio</strong><div style="margin-top:4px">${escHtml(podioStr(tp))}</div></div>
+            ${tournHist.length ? `<button class="btn btn-ghost btn-sm audit-hist-btn" data-htype="tourn" data-uid="${escHtml(userId)}">✎ ${tournHist.length} registro(s)</button>` : ''}
+          </div>
+          <div id="audit-hist-tourn-${escHtml(userId)}" class="hidden" style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"></div>
+        </div>`
+
+      // Tabela de jogos
+      const rows = ms.map(m => {
+        const key = `${userId}|${m.id}`
+        const pred = predByUM[key]
+        const st = matchStatus(m)
+        const closed = st === 'closed'
+        const oficial = (m.home_score != null && m.away_score != null) ? `${m.home_score}–${m.away_score}` : '—'
+        let palpite
+        if (pred) palpite = `${pred.home_score}–${pred.away_score}`
+        else if (closed) palpite = `<span style="color:var(--flare);font-weight:700">sem palpite</span>`
+        else palpite = `<span style="color:var(--muted)">—</span>`
+        const pts = pred && pred.points != null ? pred.points : (closed && pred ? '<span style="font-style:italic;color:var(--muted)">calc…</span>' : '—')
+        const hist = histByUM[key] ?? []
+        const histBtn = hist.length
+          ? `<button class="btn btn-ghost btn-sm audit-hist-btn" data-htype="match" data-key="${escHtml(key)}" style="padding:2px 8px">✎ ${hist.length}</button>`
+          : '<span style="color:var(--muted)">—</span>'
+        return `<tr style="border-top:1px solid var(--line)">
+            <td style="padding:8px">
+              <div style="font-weight:600">${teamFlag(m.home_team)}${escHtml(translateTeam(m.home_team))} × ${teamFlag(m.away_team)}${escHtml(translateTeam(m.away_team))}</div>
+              <div style="font-size:.74rem;color:var(--muted)">${escHtml(matchMetaLabel(m))} · ${fmtDate(m.match_date)} ${statusBadge(st)}</div>
+            </td>
+            <td style="padding:8px;text-align:center">${oficial}</td>
+            <td style="padding:8px;text-align:center;font-weight:600">${palpite}</td>
+            <td style="padding:8px;text-align:center">${pts}</td>
+            <td style="padding:8px;text-align:center">${histBtn}</td>
+          </tr>
+          <tr id="audit-hist-${escHtml(key)}" class="hidden"><td colspan="5" style="padding:0 8px 10px;background:var(--pitch-light)"></td></tr>`
+      }).join('')
+
+      return `
+        <div class="card">
+          <button class="btn btn-ghost btn-sm audit-back" style="margin-bottom:12px">← Voltar ao resumo</button>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:1.6rem">${escHtml(avatar)}</span>
+            <strong style="font-family:var(--font-display);font-size:1.2rem">${escHtml(name)}</strong>
+          </div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:.85rem;color:var(--muted)">
+            <span>Palpites: <strong style="color:var(--ink)">${s.feitos}/${s.totalJogos}</strong></span>
+            <span>Sem palpite (encerrados): <strong style="color:${s.semPalpite ? 'var(--flare)' : 'var(--ink)'}">${s.semPalpite}</strong></span>
+            <span>Alterações: <strong style="color:var(--ink)">${s.alteracoes}</strong></span>
+            <span>Pts (jogos): <strong style="color:var(--ink)">${s.pontos}</strong></span>
+          </div>
+        </div>
+        ${podioBlock}
+        <div class="card mt-12">
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:.86rem">
+              <thead><tr style="text-align:left;color:var(--muted);font-size:.76rem">
+                <th style="padding:0 8px 8px">Jogo</th>
+                <th style="padding:0 8px 8px;text-align:center">Oficial</th>
+                <th style="padding:0 8px 8px;text-align:center">Palpite</th>
+                <th style="padding:0 8px 8px;text-align:center">Pts</th>
+                <th style="padding:0 8px 8px;text-align:center">Hist.</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>`
+    }
+
+    function fmtPlacar(d) {
+      if (!d) return '—'
+      if ('home_score' in d) return `${d.home_score ?? '—'}–${d.away_score ?? '—'}`
+      return podioStr(d)
+    }
+    function actorName(by) {
+      if (!by || by === 'system') return 'sistema'
+      return auditNames[by] ?? 'desconhecido'
+    }
+    function renderTimeline(rows) {
+      // rows vêm mais recentes primeiro; mostro do mais antigo ao mais novo
+      return [...rows].reverse().map(h => {
+        const op = h.operation === 'INSERT' ? 'criou'
+                 : h.operation === 'DELETE' ? 'removeu' : 'alterou'
+        const change = h.operation === 'UPDATE'
+          ? `<strong>${fmtPlacar(h.old_data)}</strong> → <strong>${fmtPlacar(h.new_data)}</strong>`
+          : h.operation === 'INSERT'
+            ? `<strong>${fmtPlacar(h.new_data)}</strong>`
+            : `<span style="text-decoration:line-through">${fmtPlacar(h.old_data)}</span>`
+        return `<div style="font-size:.8rem;padding:4px 0">
+          <span style="color:var(--muted)">${fmtDateTime(h.changed_at)}</span> ·
+          ${op} ${change}
+          <span style="color:var(--muted)">— por ${escHtml(actorName(h.changed_by))}</span>
+        </div>`
+      }).join('')
+    }
+
+    document.getElementById('audit-content').addEventListener('click', (e) => {
+      const back = e.target.closest('.audit-back')
+      if (back) {
+        document.getElementById('audit-player-select').value = ''
+        renderAuditView(''); return
+      }
+      const row = e.target.closest('.audit-row')
+      if (row) {
+        const uid = row.dataset.uid
+        document.getElementById('audit-player-select').value = uid
+        renderAuditView(uid); return
+      }
+      const hb = e.target.closest('.audit-hist-btn')
+      if (hb) {
+        if (hb.dataset.htype === 'tourn') {
+          const uid = hb.dataset.uid
+          const box = document.getElementById(`audit-hist-tourn-${uid}`)
+          box.classList.toggle('hidden')
+          if (!box.dataset.filled) { box.innerHTML = renderTimeline(histTournByU[uid] ?? []); box.dataset.filled = '1' }
+        } else {
+          const key = hb.dataset.key
+          const tr = document.getElementById(`audit-hist-${key}`)
+          tr.classList.toggle('hidden')
+          const cell = tr.firstElementChild
+          if (!cell.dataset.filled) { cell.innerHTML = renderTimeline(histByUM[key] ?? []); cell.dataset.filled = '1' }
+        }
+      }
+    })
+
+    // ── Classificação (override de standings) ─────────────────
+    let stGroups = {}            // grupo -> [{team, pts, gd, gf}] na ordem atual
+    let stOverGroups = new Set() // grupos com override ativo
+    let stThirds = []            // [{group_name, team, pts, gd, gf, qualified}]
+    let stThirdsOver = false
+
+    function flashStMsg(el, text, ok) {
+      if (!el) return
+      el.textContent = text
+      el.style.color = ok ? 'var(--pitch-deep)' : 'var(--flare)'
+      el.classList.remove('hidden')
+    }
+
+    async function loadStandings() {
+      const wrap = document.getElementById('standings-content')
+      wrap.innerHTML = `<div class="empty"><strong>Carregando…</strong></div>`
+      const [{ data: actual, error: e1 }, { data: gOver }, { data: thirds }, { data: tOver }] = await Promise.all([
+        supabase.from('group_standings_actual').select('group_name, team, position, pts, gf, ga, gd'),
+        supabase.from('group_standings_override').select('group_name'),
+        supabase.from('third_place_standings').select('group_name, team, rank, pts, gd, gf, qualified'),
+        supabase.from('third_place_ranking_override').select('group_name'),
+      ])
+      if (e1) {
+        wrap.innerHTML = `<div class="empty"><strong>Não foi possível carregar</strong>
+          ${escHtml(e1.message)}<br><span style="font-size:.8rem">Rode o <code>group-standings-fifa.sql</code> no Supabase antes de usar esta aba.</span></div>`
+        return
+      }
+      stGroups = {}
+      for (const r of (actual ?? []).slice().sort((a, b) => a.position - b.position)) {
+        (stGroups[r.group_name] ??= []).push({ team: r.team, pts: r.pts, gd: r.gd, gf: r.gf })
+      }
+      stOverGroups = new Set((gOver ?? []).map(r => r.group_name))
+      stThirds = (thirds ?? []).slice().sort((a, b) => a.rank - b.rank)
+        .map(r => ({ group_name: r.group_name, team: r.team, pts: r.pts, gd: r.gd, gf: r.gf, qualified: r.qualified }))
+      stThirdsOver = (tOver ?? []).length > 0
+      renderStandings()
+    }
+
+    function stTeamRow(t, i, len, scope, group) {
+      const grpAttr = group ? ` data-group="${escHtml(group)}"` : ''
+      return `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:${i ? '1px solid var(--line)' : 'none'}">
+          <span style="width:26px;text-align:center;font-weight:800;color:var(--pitch-deep)">${i + 1}º</span>
+          <span style="flex:1;font-weight:600">${teamFlag(t.team)}${escHtml(translateTeam(t.team))}${scope === 'third' ? ` <span style="font-size:.74rem;color:var(--muted)">(Grupo ${escHtml(t.group_name)})</span>` : ''}</span>
+          ${scope === 'third' && t.qualified ? '<span class="pool-card-badge" style="background:var(--pitch-light);color:var(--pitch-deep)">classificado</span>' : ''}
+          <span style="font-size:.76rem;color:var(--muted)">${t.pts} pts · ${t.gd >= 0 ? '+' : ''}${t.gd} · ${t.gf} GP</span>
+          <span style="display:flex;gap:4px">
+            <button class="btn btn-ghost btn-sm" data-act="up" data-scope="${scope}"${grpAttr} data-idx="${i}" ${i === 0 ? 'disabled' : ''} style="padding:2px 8px">↑</button>
+            <button class="btn btn-ghost btn-sm" data-act="down" data-scope="${scope}"${grpAttr} data-idx="${i}" ${i === len - 1 ? 'disabled' : ''} style="padding:2px 8px">↓</button>
+          </span>
+        </div>`
+    }
+
+    function renderStandings() {
+      const wrap = document.getElementById('standings-content')
+      const groups = Object.keys(stGroups).sort()
+      if (!groups.length) {
+        wrap.innerHTML = `<div class="empty"><strong>Sem classificação ainda</strong>As posições aparecem conforme os jogos da fase de grupos são encerrados.</div>`
+        return
+      }
+      const badgeOver = '<span class="pool-card-badge" style="background:var(--flare);color:#fff">ajuste manual</span>'
+      const badgeAuto = '<span class="pool-card-badge">automático</span>'
+
+      const groupCards = groups.map(g => {
+        const teams = stGroups[g]
+        const over = stOverGroups.has(g)
+        const rows = teams.map((t, i) => stTeamRow(t, i, teams.length, 'group', g)).join('')
+        return `
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <strong style="font-family:var(--font-display);font-size:1.1rem">Grupo ${escHtml(g)}</strong>
+              ${over ? badgeOver : badgeAuto}
+            </div>
+            <div style="margin-top:6px">${rows}</div>
+            <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+              <button class="btn btn-primary btn-sm" data-act="save-group" data-group="${escHtml(g)}">Salvar ordem</button>
+              ${over ? `<button class="btn btn-ghost btn-sm" data-act="clear-group" data-group="${escHtml(g)}">Voltar ao automático</button>` : ''}
+            </div>
+            <p class="hidden" data-msg-group="${escHtml(g)}" style="font-size:.82rem;margin-top:8px"></p>
+          </div>`
+      }).join('')
+
+      const thirdsCard = stThirds.length ? `
+        <div class="card mt-12">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <strong style="font-family:var(--font-display);font-size:1.1rem">Ordem dos 3ºs colocados</strong>
+            ${stThirdsOver ? badgeOver : badgeAuto}
+          </div>
+          <div style="margin-top:6px">${stThirds.map((t, i) => stTeamRow(t, i, stThirds.length, 'third')).join('')}</div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" data-act="save-thirds">Salvar ordem dos 3ºs</button>
+            ${stThirdsOver ? '<button class="btn btn-ghost btn-sm" data-act="clear-thirds">Voltar ao automático</button>' : ''}
+          </div>
+          <p class="hidden" data-msg-thirds style="font-size:.82rem;margin-top:8px"></p>
+        </div>` : ''
+
+      wrap.innerHTML = `
+        <div class="card" style="background:#fffbea;border-color:#e6d88a;font-size:.82rem;color:#7a6000;padding:12px 16px">
+          As posições são calculadas automaticamente pelos critérios da FIFA (incluindo confronto
+          direto). Use esta tela só para corrigir manualmente o que o sistema não simula — fair play
+          ou sorteio. Reordene com ↑/↓ e clique em <strong>Salvar ordem</strong> para fixar; o
+          ajuste passa a valer também na pontuação. <strong>Voltar ao automático</strong> remove o override.
+        </div>
+        <div class="stack gap-12 mt-12">${groupCards}</div>
+        ${thirdsCard}`
+    }
+
+    document.getElementById('standings-content').addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-act]')
+      if (!btn) return
+      const act = btn.dataset.act
+
+      if (act === 'up' || act === 'down') {
+        const dir = act === 'up' ? -1 : 1
+        const idx = parseInt(btn.dataset.idx)
+        const arr = btn.dataset.scope === 'group' ? stGroups[btn.dataset.group] : stThirds
+        const j = idx + dir
+        if (j < 0 || j >= arr.length) return
+        ;[arr[idx], arr[j]] = [arr[j], arr[idx]]
+        renderStandings()
+        return
+      }
+
+      if (act === 'save-group') {
+        const g = btn.dataset.group
+        const msg = document.querySelector(`[data-msg-group="${g}"]`)
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'
+        const rows = stGroups[g].map((t, i) => ({ group_name: g, team: t.team, position: i + 1, updated_at: new Date().toISOString() }))
+        const { error } = await supabase.from('group_standings_override').upsert(rows, { onConflict: 'group_name,team' })
+        if (error) { btn.disabled = false; btn.textContent = 'Salvar ordem'; flashStMsg(msg, error.message, false) }
+        else { await loadStandings() }
+        return
+      }
+
+      if (act === 'clear-group') {
+        const g = btn.dataset.group
+        if (!confirm(`Voltar o Grupo ${g} ao cálculo automático? O ajuste manual será removido.`)) return
+        const { error } = await supabase.from('group_standings_override').delete().eq('group_name', g)
+        if (error) alert('Erro: ' + error.message); else await loadStandings()
+        return
+      }
+
+      if (act === 'save-thirds') {
+        const msg = document.querySelector('[data-msg-thirds]')
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'
+        const rows = stThirds.map((t, i) => ({ group_name: t.group_name, rank: i + 1, updated_at: new Date().toISOString() }))
+        const { error } = await supabase.from('third_place_ranking_override').upsert(rows, { onConflict: 'group_name' })
+        if (error) { btn.disabled = false; btn.textContent = 'Salvar ordem dos 3ºs'; flashStMsg(msg, error.message, false) }
+        else { await loadStandings() }
+        return
+      }
+
+      if (act === 'clear-thirds') {
+        if (!confirm('Voltar a ordem dos 3ºs ao cálculo automático? Os ajustes manuais serão removidos.')) return
+        const { error } = await supabase.from('third_place_ranking_override').delete().neq('group_name', '')
+        if (error) alert('Erro: ' + error.message); else await loadStandings()
+        return
+      }
+    })
+
+    // ── Exportar ──────────────────────────────────────────────
+    let exportData = null
+
+    // Excel pt-BR usa ';' como separador de lista; o BOM garante acentos corretos.
+    const CSV_SEP = ';'
+    function buildCsv(headers, rows) {
+      const esc = (v) => {
+        const s = v == null ? '' : String(v)
+        return /["\n\r;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+      }
+      return '﻿' + [headers, ...rows].map(r => r.map(esc).join(CSV_SEP)).join('\r\n')
+    }
+    function downloadFile(name, content, mime) {
+      const blob = new Blob([content], { type: `${mime};charset=utf-8` })
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = name
+      document.body.appendChild(a); a.click(); a.remove()
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+    }
+    const today = () => new Date().toISOString().slice(0, 10)
+    const byPtBr = (a, b) => String(a ?? '').localeCompare(String(b ?? ''), 'pt-BR')
+
+    async function loadExport() {
+      const msg = document.getElementById('export-msg')
+      try {
+        exportData = await callAdmin('export_data')
+      } catch (e) {
+        msg.textContent = 'Erro ao carregar dados: ' + e.message
+        msg.style.color = 'var(--flare)'; msg.classList.remove('hidden')
+      }
+    }
+
+    document.getElementById('tab-export').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-export]')
+      if (!btn) return
+      const msg = document.getElementById('export-msg')
+      if (!exportData) {
+        msg.textContent = 'Os dados ainda estão carregando. Tente de novo em instantes.'
+        msg.style.color = 'var(--flare)'; msg.classList.remove('hidden'); return
+      }
+      msg.classList.add('hidden')
+
+      const { profiles, pools, matches, predictions, group_standings } = exportData
+      const poolName  = Object.fromEntries(pools.map(p => [p.id, p.name]))
+      const prof      = Object.fromEntries(profiles.map(p => [p.id, p]))
+      const matchById = Object.fromEntries(matches.map(m => [m.id, m]))
+
+      switch (btn.dataset.export) {
+        case 'profiles-csv': {
+          const rows = profiles.slice()
+            .sort((a, b) => byPtBr(a.display_name, b.display_name))
+            .map(p => [p.id, p.display_name, p.email ?? '', p.avatar ?? '', p.is_admin ? 'sim' : 'não'])
+          downloadFile(`perfis_${today()}.csv`,
+            buildCsv(['ID', 'Apelido', 'E-mail', 'Avatar', 'Admin'], rows), 'text/csv')
+          break
+        }
+        case 'profiles-json':
+          downloadFile(`perfis_${today()}.json`, JSON.stringify(profiles, null, 2), 'application/json')
+          break
+
+        case 'bets-scores-csv': {
+          const rows = predictions.map(pr => {
+            const m = matchById[pr.match_id] ?? {}
+            const u = prof[pr.user_id] ?? {}
+            const jogo = m.home_team
+              ? `${translateTeam(m.home_team)} x ${translateTeam(m.away_team)}` : pr.match_id
+            const oficial = (m.home_score != null && m.away_score != null)
+              ? `${m.home_score}-${m.away_score}` : ''
+            return {
+              pool: poolName[pr.pool_id] ?? '', name: u.display_name ?? '', date: m.match_date ?? '',
+              cells: [
+                poolName[pr.pool_id] ?? pr.pool_id, u.display_name ?? '—', u.email ?? '',
+                m.phase === 'group' ? 'Grupos' : m.phase ? 'Mata-mata' : '',
+                m.group_name ?? '', jogo, oficial,
+                `${pr.home_score}-${pr.away_score}`, pr.points ?? '',
+              ],
+            }
+          }).sort((a, b) =>
+            byPtBr(a.pool, b.pool) || byPtBr(a.name, b.name) || byPtBr(a.date, b.date))
+          downloadFile(`apostas_placares_${today()}.csv`, buildCsv(
+            ['Bolão', 'Jogador', 'E-mail', 'Fase', 'Grupo', 'Jogo', 'Placar oficial', 'Placar apostado', 'Pontos'],
+            rows.map(r => r.cells)), 'text/csv')
+          break
+        }
+        case 'bets-groups-csv': {
+          const rows = group_standings.map(g => {
+            const u = prof[g.user_id] ?? {}
+            return {
+              pool: poolName[g.pool_id] ?? '', name: u.display_name ?? '',
+              group: g.group_name, pos: g.position,
+              cells: [
+                poolName[g.pool_id] ?? g.pool_id, u.display_name ?? '—', u.email ?? '',
+                g.group_name, g.position, translateTeam(g.team_name),
+              ],
+            }
+          }).sort((a, b) =>
+            byPtBr(a.pool, b.pool) || byPtBr(a.name, b.name) ||
+            byPtBr(a.group, b.group) || (a.pos - b.pos))
+          downloadFile(`apostas_grupos_${today()}.csv`, buildCsv(
+            ['Bolão', 'Jogador', 'E-mail', 'Grupo', 'Posição', 'Time apostado'],
+            rows.map(r => r.cells)), 'text/csv')
+          break
+        }
+        case 'bets-json':
+          downloadFile(`apostas_${today()}.json`, JSON.stringify(exportData, null, 2), 'application/json')
+          break
+      }
+    })
+
+    // ── Helpers compartilhados ────────────────────────────────
+    function loadScript(src) {
+      if (document.querySelector(`script[src="${src}"]`)) return Promise.resolve()
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script'); s.src = src; s.onload = resolve; s.onerror = reject
+        document.head.appendChild(s)
+      })
+    }
+
+    const EVOLUCAO_PALETTE = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f',
+                              '#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac']
+
+    function buildEvolucaoDataAdmin(allM, allP, members) {
+      const completed = (allM ?? [])
+        .filter(m => m.home_score != null && m.away_score != null)
+        .sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+      const predsByUser = {}
+      for (const p of (allP ?? [])) {
+        if (!predsByUser[p.user_id]) predsByUser[p.user_id] = {}
+        predsByUser[p.user_id][p.match_id] = p.points ?? 0
+      }
+      const labels = completed.map(m => `${translateTeam(m.home_team)} × ${translateTeam(m.away_team)}`)
+      const cumulativeByUser = {}
+      for (const mem of (members ?? [])) {
+        let acc = 0
+        cumulativeByUser[mem.user_id] = completed.map(m => {
+          acc += predsByUser[mem.user_id]?.[m.id] ?? 0
+          return acc
+        })
+      }
+      return { labels, cumulativeByUser, completed }
+    }
+
+    let adminEvolucaoChart = null
+
+    function renderEvolucaoAdmin(container, chartData, members) {
+      if (adminEvolucaoChart) { adminEvolucaoChart.destroy(); adminEvolucaoChart = null }
+      if (!chartData.labels.length) return
+
+      const N = chartData.labels.length
+      const wrap = document.createElement('div')
+      wrap.innerHTML = `
+        <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--line)">
+          <div style="font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:10px">📈 EVOLUÇÃO DA PONTUAÇÃO</div>
+          <div class="evolucao-mode-toggle" id="adm-evolucao-toggle">
+            <button class="active" data-mode="static">Estático</button>
+            <button data-mode="anim">Animado</button>
+          </div>
+          <div class="card mt-8" style="padding:12px">
+            <div class="evolucao-canvas-wrap"><canvas id="adm-evolucao-canvas"></canvas></div>
+          </div>
+          <div id="adm-evolucao-controls" class="evolucao-controls hidden">
+            <button class="btn btn-ghost btn-sm" id="adm-evolucao-play">▶ Reproduzir</button>
+            <button class="btn btn-ghost btn-sm" id="adm-evolucao-reset">↺ Reiniciar</button>
+            <span class="evolucao-step-label" id="adm-evolucao-step"></span>
+          </div>
+          <p class="muted mt-8" style="font-size:.75rem">Pontos de placar por partida. Classificação de grupos não incluída.</p>
+        </div>`
+      container.prepend(wrap)
+
+      const canvas = wrap.querySelector('#adm-evolucao-canvas')
+      const datasets = (members ?? []).map((mem, i) => ({
+        label: mem.display_name,
+        data: [...chartData.cumulativeByUser[mem.user_id]],
+        borderColor: EVOLUCAO_PALETTE[i % EVOLUCAO_PALETTE.length],
+        backgroundColor: EVOLUCAO_PALETTE[i % EVOLUCAO_PALETTE.length] + '22',
+        fill: false, tension: 0.3, borderWidth: 1.5, pointRadius: 2,
+      }))
+      adminEvolucaoChart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: { labels: chartData.labels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: { duration: 250 },
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            x: { ticks: { maxRotation: 45, font: { size: 9 } } },
+            y: { beginAtZero: true, title: { display: true, text: 'Pontos acumulados' } }
+          }
+        }
+      })
+
+      let animStep = N, animTimer = null
+      function showStep(n) {
+        adminEvolucaoChart.data.labels = chartData.labels.slice(0, n)
+        ;(members ?? []).forEach((mem, i) => {
+          adminEvolucaoChart.data.datasets[i].data = chartData.cumulativeByUser[mem.user_id].slice(0, n)
+        })
+        adminEvolucaoChart.update()
+        wrap.querySelector('#adm-evolucao-step').textContent = `Partida ${n} de ${N}`
+      }
+      wrap.querySelector('#adm-evolucao-play').addEventListener('click', () => {
+        const btn = wrap.querySelector('#adm-evolucao-play')
+        if (animTimer) { clearInterval(animTimer); animTimer = null; btn.textContent = '▶ Reproduzir'; return }
+        if (animStep >= N) animStep = 0
+        btn.textContent = '⏸ Pausar'
+        animTimer = setInterval(() => {
+          animStep++; showStep(animStep)
+          if (animStep >= N) { clearInterval(animTimer); animTimer = null; btn.textContent = '▶ Reproduzir' }
+        }, 600)
+      })
+      wrap.querySelector('#adm-evolucao-reset').addEventListener('click', () => {
+        clearInterval(animTimer); animTimer = null
+        animStep = 0; showStep(0)
+        wrap.querySelector('#adm-evolucao-play').textContent = '▶ Reproduzir'
+      })
+      wrap.querySelector('#adm-evolucao-toggle').addEventListener('click', e => {
+        const btn = e.target.closest('button[data-mode]')
+        if (!btn) return
+        wrap.querySelectorAll('#adm-evolucao-toggle button').forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+        const controls = wrap.querySelector('#adm-evolucao-controls')
+        if (btn.dataset.mode === 'anim') {
+          controls.classList.remove('hidden'); animStep = 0; showStep(0)
+        } else {
+          clearInterval(animTimer); animTimer = null; controls.classList.add('hidden'); showStep(N)
+        }
+      })
+    }
+
+    // ── Prêmios individuais (admin) ───────────────────────────
+    async function loadPremiosAdmin() {
+      const poolSel = document.getElementById('premios-pool-select')
+      try {
+        const pools = (await callAdmin('list_pools'))?.pools ?? []
+        pools.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+        poolSel.innerHTML = '<option value="">— Selecione um bolão —</option>' +
+          pools.map(p => `<option value="${escHtml(p.id)}">${escHtml(p.name)}</option>`).join('')
+      } catch (e) {
+        poolSel.insertAdjacentHTML('afterend', `<p style="color:var(--flare);font-size:.85rem;margin-top:8px">${escHtml(e.message)}</p>`)
+      }
+      poolSel.addEventListener('change', () => loadAdminPremiosPool(poolSel.value))
+      document.getElementById('premios-content').addEventListener('click', e => {
+        const btn = e.target.closest('.premios-expand-btn')
+        if (!btn) return
+        const card = btn.closest('.premios-card')
+        const isOpen = card.classList.toggle('premios-expanded')
+        btn.textContent = isOpen ? 'Ver menos ▴' : `Ver todos (${btn.dataset.count}) ▾`
+      })
+    }
+
+    async function loadAdminPremiosPool(poolId) {
+      const content = document.getElementById('premios-content')
+      if (adminEvolucaoChart) { adminEvolucaoChart.destroy(); adminEvolucaoChart = null }
+      if (!poolId) { content.innerHTML = ''; return }
+      content.innerHTML = '<div class="empty" style="padding:20px"><strong>Calculando prêmios…</strong></div>'
+      try {
+        const [grid, { data: ranking }] = await Promise.all([
+          callAdmin('audit_grid', { pool_id: poolId }),
+          supabase.rpc('pool_ranking', { p: poolId }),
+          loadScript('https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js')
+        ])
+        const { members, matches: allM, predictions: allP } = grid
+        const classMap = Object.fromEntries((ranking ?? []).map(r => [r.user_id, r.class_points ?? 0]))
+        const matchById = Object.fromEntries((allM ?? []).map(m => [m.id, m]))
+        const completed = (allM ?? []).filter(m => m.home_score != null && m.away_score != null)
+        const completedIds = new Set(completed.map(m => m.id))
+
+        const stats = {}
+        for (const mem of (members ?? [])) {
+          stats[mem.user_id] = { user_id: mem.user_id, display_name: mem.display_name,
+            exactScores: 0, correctResults: 0, correctDiff: 0, koPoints: 0, totalPlayed: 0, maxStreak: 0 }
+        }
+        const predsByUser = {}
+        for (const p of (allP ?? [])) {
+          if (!stats[p.user_id]) continue
+          if (!predsByUser[p.user_id]) predsByUser[p.user_id] = {}
+          predsByUser[p.user_id][p.match_id] = p
+          if (!completedIds.has(p.match_id)) continue
+          const m = matchById[p.match_id]; if (!m) continue
+          const s = stats[p.user_id]; s.totalPlayed++
+          const aD = m.home_score - m.away_score, pD = p.home_score - p.away_score
+          if (p.home_score === m.home_score && p.away_score === m.away_score) s.exactScores++
+          if (Math.sign(pD) === Math.sign(aD)) s.correctResults++
+          if (pD === aD) s.correctDiff++
+          if (m.phase && m.phase !== 'group') s.koPoints += (p.points ?? 0)
+        }
+        const sortedCompleted = [...completed].sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+        for (const uid of Object.keys(stats)) {
+          let cur = 0, best = 0
+          for (const m of sortedCompleted) {
+            const p = predsByUser[uid]?.[m.id]
+            if (!p) { cur = 0; continue }
+            const aD = m.home_score - m.away_score, pD = p.home_score - p.away_score
+            if (Math.sign(pD) === Math.sign(aD)) { cur++; if (cur > best) best = cur } else cur = 0
+          }
+          stats[uid].maxStreak = best
+        }
+        const rows = Object.values(stats).map(s => ({
+          ...s, classPoints: classMap[s.user_id] ?? 0,
+          pct: s.totalPlayed >= 5 ? Math.round(s.correctResults / s.totalPlayed * 100) : null
+        }))
+        const hasData = completed.length > 0
+        const hasKO = completed.some(m => m.phase && m.phase !== 'group')
+        const hasCls = Object.values(classMap).some(v => v > 0)
+        const n = completed.length
+        const sortBy = key => [...rows].sort((a, b) => b[key] - a[key] || a.display_name.localeCompare(b.display_name, 'pt-BR'))
+        const awards = [
+          { icon: '🎯', title: 'Rei/Rainha do Placar Exato', desc: 'Mais placares completos acertados',
+            empty: !hasData, sorted: sortBy('exactScores'), val: s => s.exactScores, suf: s => s.exactScores === 1 ? 'acerto' : 'acertos' },
+          { icon: '✅', title: 'Rei/Rainha do Resultado', desc: 'Mais resultados corretos (vitória / empate / derrota)',
+            empty: !hasData, sorted: sortBy('correctResults'), val: s => s.correctResults, suf: s => s.correctResults === 1 ? 'resultado' : 'resultados' },
+          { icon: '📐', title: 'Rei/Rainha do Saldo', desc: 'Mais acertos de diferença de gols',
+            empty: !hasData, sorted: sortBy('correctDiff'), val: s => s.correctDiff, suf: s => s.correctDiff === 1 ? 'acerto' : 'acertos' },
+          { icon: '⚡', title: 'Craque das Eliminatórias', desc: 'Mais pontos somados nas fases mata-mata',
+            empty: !hasKO, emptyMsg: 'A fase eliminatória ainda não começou.',
+            sorted: sortBy('koPoints'), val: s => s.koPoints, suf: () => 'pts' },
+          { icon: '📊', title: 'Mestre das Classificações', desc: 'Mais pontos nas previsões de classificação de grupos',
+            empty: !hasCls, emptyMsg: 'Classificações de grupos ainda não computadas.',
+            sorted: [...rows].sort((a, b) => b.classPoints - a.classPoints || a.display_name.localeCompare(b.display_name, 'pt-BR')),
+            val: s => s.classPoints, suf: () => 'pts' },
+          { icon: '💯', title: 'Melhor Aproveitamento', desc: 'Maior % de resultados corretos (mín. 5 jogos)',
+            empty: !hasData || rows.every(s => s.pct === null), emptyMsg: 'Ainda não há 5 jogos concluídos.',
+            sorted: [...rows].filter(s => s.pct !== null).sort((a, b) => b.pct - a.pct || a.display_name.localeCompare(b.display_name, 'pt-BR')),
+            val: s => s.pct, suf: () => '%' },
+          { icon: '🔥', title: 'Sequência Imparável', desc: 'Maior sequência consecutiva de resultados corretos',
+            empty: !hasData, sorted: sortBy('maxStreak'), val: s => s.maxStreak, suf: s => s.maxStreak === 1 ? 'seguido' : 'seguidos' },
+          { icon: '🏃', title: 'Apostador Dedicado', desc: 'Mais partidas apostadas das que já foram jogadas',
+            empty: !hasData, sorted: sortBy('totalPlayed'), val: s => s.totalPlayed, suf: () => `de ${n} jogos` },
+        ]
+        content.innerHTML = `<div class="premios-grid">${awards.map(a => renderPremioAdmin(a)).join('')}</div>`
+        const evolucaoData = buildEvolucaoDataAdmin(allM, allP, members)
+        renderEvolucaoAdmin(content, evolucaoData, members)
+      } catch (e) {
+        content.innerHTML = `<div class="empty" style="color:var(--flare);padding:16px">${escHtml(e.message)}</div>`
+      }
+    }
+
+    function renderPremioAdmin(a) {
+      const header = `<div class="premios-card-header">
+        <span class="premios-icon">${a.icon}</span>
+        <div><div class="premios-title">${escHtml(a.title)}</div><div class="premios-desc">${escHtml(a.desc)}</div></div>
+      </div>`
+      if (a.empty || !a.sorted.length) {
+        return `<div class="card premios-card">${header}
+          <p class="muted" style="font-size:.8rem;margin-top:12px">${escHtml(a.emptyMsg ?? 'Sem dados ainda.')}</p>
+        </div>`
+      }
+      const positions = []
+      let pos = 1
+      for (let i = 0; i < a.sorted.length; i++) {
+        positions.push(i > 0 && a.val(a.sorted[i]) === a.val(a.sorted[i - 1]) ? positions[i - 1] : pos)
+        pos = i + 2
+      }
+      const rankRows = a.sorted.map((s, i) => `
+        <div class="rank-row${i >= 3 ? ' premios-extra-row' : ''}">
+          <span class="rank-pos">${medalIcon(positions[i])}</span>
+          <span class="rank-name">${escHtml(s.display_name)}</span>
+          <span style="text-align:right">
+            <span class="rank-pts">${a.val(s)}</span>
+            <span style="display:block;font-size:.68rem;color:var(--muted)">${escHtml(a.suf(s))}</span>
+          </span>
+        </div>`).join('')
+      const expandBtn = a.sorted.length > 3
+        ? `<button class="premios-expand-btn" data-count="${a.sorted.length}">Ver todos (${a.sorted.length}) ▾</button>`
+        : ''
+      return `<div class="card premios-card" style="padding:0;overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--line)">${header}</div>
+        ${rankRows}${expandBtn}
+      </div>`
+    }
+
+    // ── Planilha de apostas (admin) ───────────────────────────
+    async function loadPlanilhaAdmin() {
+      const poolSel = document.getElementById('planilha-pool-select')
+      try {
+        const pools = (await callAdmin('list_pools'))?.pools ?? []
+        pools.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+        poolSel.innerHTML = '<option value="">— Selecione um bolão —</option>' +
+          pools.map(p => `<option value="${escHtml(p.id)}">${escHtml(p.name)}</option>`).join('')
+      } catch (e) {
+        poolSel.insertAdjacentHTML('afterend', `<p style="color:var(--flare);font-size:.85rem;margin-top:8px">${escHtml(e.message)}</p>`)
+      }
+      poolSel.addEventListener('change', () => loadAdminPlanilhaPool(poolSel.value))
+    }
+
+    async function loadAdminPlanilhaPool(poolId) {
+      const wrap = document.getElementById('planilha-admin-wrap')
+      const filterBar = document.getElementById('planilha-admin-filter-bar')
+      if (!poolId) {
+        wrap.innerHTML = ''
+        filterBar.classList.add('hidden')
+        return
+      }
+      wrap.innerHTML = '<div class="empty" style="padding:20px"><strong>Carregando…</strong></div>'
+      try {
+        const grid = await callAdmin('audit_grid', { pool_id: poolId })
+        renderAdminPlanilha(grid, wrap, filterBar)
+      } catch (e) {
+        wrap.innerHTML = `<div class="empty" style="color:var(--flare);padding:16px">${escHtml(e.message)}</div>`
+      }
+    }
+
+    function renderAdminPlanilha(grid, wrap, filterBar) {
+      const members = grid.members ?? []
+      const matches = (grid.matches ?? [])
+        .filter(m => m.phase === 'group')
+        .sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
+
+      if (!members.length || !matches.length) {
+        wrap.innerHTML = '<div class="empty" style="padding:20px"><strong>Sem dados ainda.</strong></div>'
+        filterBar.classList.add('hidden')
+        return
+      }
+
+      const predsIndex = {}
+      for (const pr of grid.predictions ?? []) {
+        if (!predsIndex[pr.match_id]) predsIndex[pr.match_id] = {}
+        predsIndex[pr.match_id][pr.user_id] = pr
+      }
+
+      const ptsByUser = {}
+      for (const pr of grid.predictions ?? [])
+        ptsByUser[pr.user_id] = (ptsByUser[pr.user_id] ?? 0) + (pr.points ?? 0)
+      const sortedMembers = [...members].sort((a, b) =>
+        (ptsByUser[b.user_id] ?? 0) - (ptsByUser[a.user_id] ?? 0) ||
+        a.display_name.localeCompare(b.display_name, 'pt-BR')
+      )
+
+      const memberFilterSel = document.getElementById('planilha-admin-member-filter')
+      memberFilterSel.innerHTML = '<option value="">Todos os membros</option>' +
+        sortedMembers.map(m =>
+          `<option value="${escHtml(m.user_id)}">${escHtml(m.display_name)} (${ptsByUser[m.user_id] ?? 0} pts)</option>`
+        ).join('')
+      filterBar.classList.remove('hidden')
+      memberFilterSel.onchange = () => {
+        const uid = memberFilterSel.value
+        wrap.querySelectorAll('[data-uid]').forEach(el =>
+          el.classList.toggle('col-hidden', uid !== '' && el.dataset.uid !== uid))
+        document.getElementById('planilha-admin-hint').classList.toggle('hidden', uid !== '')
+      }
+
+      const thMembers = sortedMembers.map(m =>
+        `<th data-uid="${escHtml(m.user_id)}" title="${escHtml(m.display_name)}">
+          <span style="font-size:.85rem">${escHtml(m.avatar)}</span><br>
+          ${escHtml(m.display_name.split(' ')[0])}
+          <span class="planilha-th-pts">${ptsByUser[m.user_id] ?? 0} pts</span>
+        </th>`).join('')
+
+      const groupKey = m => m.group_name ?? m.phase ?? '?'
+      const groupOrder = [...new Set(matches.map(groupKey))]
+        .sort((a, b) => {
+          const da = matches.find(m => groupKey(m) === a)?.match_date ?? ''
+          const db = matches.find(m => groupKey(m) === b)?.match_date ?? ''
+          return da.localeCompare(db)
+        })
+      let rows = ''
+      for (const grp of groupOrder) {
+        const grpMatches = matches.filter(m => groupKey(m) === grp)
+        const firstM = grpMatches[0]
+        const label = firstM?.phase === 'group' ? `Grupo ${escHtml(grp)}` : escHtml(koRoundLabel(grp))
+        rows += `<tr class="planilha-group-row"><td class="col-match">${label}</td>${sortedMembers.map(m => `<td data-uid="${escHtml(m.user_id)}"></td>`).join('')}</tr>`
+        for (const m of grpMatches) {
+          const matchPreds = predsIndex[m.id] ?? {}
+          const hasScore = m.home_score !== null && m.away_score !== null
+          const matchCell = `<span style="font-weight:600">${escHtml(translateTeam(m.home_team))} × ${escHtml(translateTeam(m.away_team))}</span>
+            <br><span style="font-size:.66rem;color:var(--muted)">${fmtDate(m.match_date)}</span>
+            ${hasScore ? `<br><span class="planilha-match-score">${m.home_score}–${m.away_score}</span>` : ''}`
+          const cells = sortedMembers.map(mem => {
+            const pr = matchPreds[mem.user_id]
+            if (!pr) return `<td data-uid="${escHtml(mem.user_id)}"><span class="planilha-none">—</span></td>`
+            const pts = pr.points != null ? `<span class="planilha-pts">+${pr.points} pts</span>` : ''
+            return `<td data-uid="${escHtml(mem.user_id)}">
+              <span class="planilha-pred">${pr.home_score}–${pr.away_score}</span>${pts}
+            </td>`
+          }).join('')
+          rows += `<tr><td class="col-match">${matchCell}</td>${cells}</tr>`
+        }
+      }
+
+      wrap.innerHTML = `<table class="planilha-table">
+        <thead><tr><th class="col-match">Partida</th>${thMembers}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Telão · Gincana Quiz</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/icons/favicon-32.png">
+  <link rel="stylesheet" href="../bolao/style.css">
+  <style>
+    body { background:#0f1115; color:#f4f4f0; }
+    .bd { max-width:1400px; margin:0 auto; padding:28px 32px; min-height:100vh;
+      display:grid; grid-template-columns:1.55fr .8fr; gap:28px; align-items:start; }
+    @media (max-width:900px){ .bd{ grid-template-columns:1fr; } }
+    .bd-main { }
+    .bd-meta { font-family:var(--font-mono,monospace); text-transform:uppercase; letter-spacing:.14em;
+      color:#6ea8ff; font-size:1.1rem; }
+    .bd-q { font-size:2.6rem; font-weight:700; line-height:1.2; margin:16px 0 24px; }
+    .bd-opts { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .bd-opt { display:flex; gap:16px; align-items:center; padding:20px 24px; border-radius:18px;
+      background:#191c23; border:2px solid #262a33; font-size:1.5rem; }
+    .bd-opt .k { font-family:var(--font-mono,monospace); font-weight:700; width:42px; height:42px; border-radius:50%;
+      background:#262a33; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .bd-opt.correct { background:#12351f; border-color:#1e9f50; }
+    .bd-opt.correct .k { background:#1e9f50; color:#fff; }
+    .bd-timer { height:16px; border-radius:10px; background:#262a33; overflow:hidden; margin:22px 0 8px; }
+    .bd-timerfill { height:100%; background:#1e9f50; transition:width .2s linear; }
+    .bd-timernum { text-align:center; font-family:var(--font-mono,monospace); font-size:1.4rem; color:#9aa2b1; }
+    .bd-wait { text-align:center; padding:90px 20px; }
+    .bd-wait .big { font-size:5rem; }
+    .bd-wait h1 { font-size:2.4rem; margin:14px 0; }
+    .bd-side h2 { font-size:1.1rem; text-transform:uppercase; letter-spacing:.08em; color:#9aa2b1; }
+    .bd-row { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:12px; font-size:1.3rem; }
+    .bd-row .pos { font-family:var(--font-mono,monospace); width:36px; color:#6b7280; }
+    .bd-row .nm { flex:1; font-weight:600; }
+    .bd-row .pt { font-family:var(--font-mono,monospace); font-weight:800; color:#6ea8ff; font-size:1.5rem; }
+    .bd-row.top { background:#191c23; }
+    .bd-row.elim { opacity:.4; }
+    .bd-count { font-size:1.3rem; color:#9aa2b1; margin-top:16px; text-align:center; }
+    .bd-answers { margin-top:22px; }
+    .bd-answers h3 { font-size:1.1rem; text-transform:uppercase; letter-spacing:.08em; color:#9aa2b1; }
+    .bd-answer-row { display:flex; align-items:center; gap:12px; padding:8px 14px; border-radius:10px;
+      background:#191c23; font-size:1.15rem; }
+    .bd-answer-row .nm { flex:1; font-weight:600; }
+    .bd-answer-row .k { font-family:var(--font-mono,monospace); font-weight:800; color:#6ea8ff; font-size:1.2rem; }
+    .bd-match { background:#191c23; border:1px solid #262a33; border-radius:12px; padding:8px 12px; margin-top:8px; font-size:1.1rem; }
+    .bd-match .w { color:#1e9f50; font-weight:700; }
+    .bd-podium { display:flex; align-items:flex-end; justify-content:center; gap:18px; margin-top:22px; flex-wrap:wrap; }
+    .bd-podium-slot { background:#191c23; border:2px solid #262a33; border-radius:16px 16px 0 0;
+      display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+      padding:16px 22px; width:190px; }
+    .bd-podium-slot .medal { font-size:2.6rem; }
+    .bd-podium-slot .nm { font-weight:700; font-size:1.2rem; margin-top:6px; text-align:center; }
+    .bd-podium-slot .pt { font-family:var(--font-mono,monospace); font-weight:800; color:#6ea8ff; font-size:1.4rem; margin-top:4px; }
+    .bd-podium-slot.p1 { min-height:220px; border-color:#f4b400; box-shadow:0 0 0 2px rgba(244,180,0,.25); }
+    .bd-podium-slot.p2 { min-height:175px; }
+    .bd-podium-slot.p3 { min-height:145px; }
+  </style>
+</head>
+<body>
+  <div id="board"><div class="bd-wait"><div class="big">⏳</div><h1>Carregando…</h1></div></div>
+
+  <script type="module">
+    import { supabase, requireAuthWithProfile, escHtml } from '../bolao/supabase.js'
+    const auth = await requireAuthWithProfile('login.html')
+    if (!auth) throw new Error('stop')
+
+    const board = document.getElementById('board')
+    let S = { game:null, state:null, scoreboard:[], matches:[], count:0, answers:[] }
+    let channel=null, timer=null, poll=null, statePoll=null
+    let localAnchor=null, localOpenQid=null, calibrating=false   // cronômetro local, imune ao relógio do sistema
+
+    const rpc=(f,a)=>supabase.rpc(f,a)
+    function ytEmbed(url){
+      try {
+        const u=new URL(url); let id=u.searchParams.get('v')
+        if(!id && u.hostname.includes('youtu.be')) id=u.pathname.slice(1)
+        const t=u.searchParams.get('t'); const start=t?('?start='+parseInt(t)):''
+        if(!id) return `<div style="margin-top:16px"><a href="${url}" target="_blank" style="color:#6ea8ff">▶ Abrir vídeo</a></div>`
+        return `<div style="margin-top:18px;max-width:640px"><iframe width="100%" height="360" src="https://www.youtube.com/embed/${id}${start}" frameborder="0" allow="accelerometer;autoplay;encrypted-media;gyroscope;picture-in-picture" allowfullscreen style="border-radius:12px"></iframe></div>`
+      } catch { return '' }
+    }
+    async function loadGame(){
+      const gameId = new URLSearchParams(location.search).get('game')
+      if (gameId) {
+        const { data } = await supabase.from('quiz_games').select('*').eq('id', gameId).maybeSingle()
+        S.game = data
+        return
+      }
+      // Sem ?game= na URL (link antigo/salvo): mantém o comportamento de antes.
+      const {data}=await supabase.from('quiz_games').select('*').order('created_at',{ascending:false}).limit(1).maybeSingle(); S.game=data
+    }
+    async function loadLive(){
+      if(!S.game) return
+      const [gm,st,sb,ms]=await Promise.all([
+        supabase.from('quiz_games').select('*').eq('id',S.game.id).maybeSingle(),
+        supabase.from('quiz_state').select('*').eq('game_id',S.game.id).maybeSingle(),
+        rpc('quiz_scoreboard',{p_game:S.game.id}),
+        supabase.from('quiz_matches').select('*').eq('game_id',S.game.id).order('round').order('slot'),
+      ])
+      if (gm.data) S.game = gm.data   // status pode mudar (ex.: encerrada) sem reload da página
+      S.state=st.data??null; S.scoreboard=sb.data??[]; S.matches=ms.data??[]
+      if (S.state && (S.state.question_status==='closed' || S.state.question_status==='revealed')) {
+        const { data: ans } = await rpc('quiz_current_answers', { p_game: S.game.id })
+        S.answers = ans ?? []
+      } else {
+        S.answers = []
+      }
+    }
+    function subscribe(){
+      if(channel) supabase.removeChannel(channel); if(!S.game) return
+      channel=supabase.channel('gq-board-'+S.game.id)
+        .on('postgres_changes',{event:'*',schema:'public',table:'quiz_state',filter:'game_id=eq.'+S.game.id},async()=>{await loadLive();render()})
+        .on('postgres_changes',{event:'*',schema:'public',table:'quiz_matches',filter:'game_id=eq.'+S.game.id},async()=>{await loadLive();render()})
+        .on('postgres_changes',{event:'*',schema:'public',table:'quiz_games',filter:'id=eq.'+S.game.id},async()=>{await loadLive();render()})
+        .subscribe()
+    }
+    // conta respostas recebidas (o telão é logado; se admin, lê; se não, mostra 0)
+    function startPoll(){ clearInterval(poll); poll=setInterval(async()=>{
+      if(!S.state||S.state.question_status!=='open'||!S.state.current_question_id){ return }
+      const {data}=await supabase.from('quiz_answers').select('team_id').eq('question_id',S.state.current_question_id)
+      S.count=data?.length??0; const el=document.getElementById('bd-count'); if(el) el.textContent=S.count
+    },1200) }
+    // Rede/realtime instável não pode travar o telão: reconfere o estado do jogo
+    // periodicamente, independente do Realtime, e só re-renderiza quando algo mudou.
+    function startStatePoll(){
+      clearInterval(statePoll)
+      let lastSig = null
+      statePoll = setInterval(async () => {
+        if (!S.game) return
+        await loadLive()
+        const sig = JSON.stringify([S.game?.status, S.state?.question_status, S.state?.current_question_id, S.state?.question_started_at, S.state?.media_shown])
+        if (sig !== lastSig) { lastSig = sig; render() }
+      }, 2000)
+    }
+
+    // Cronômetro local: em vez de comparar o relógio de PAREDE do aparelho (Date.now())
+    // com o horário do servidor — o que "nasce esgotado" se a data/hora do computador
+    // estiver desconfigurada —, pedimos ao servidor (RPC quiz_elapsed_ms) quanto tempo
+    // JÁ se passou (cálculo 100% no Postgres) uma única vez ao abrir a pergunta, e daí
+    // em diante contamos sozinhos com o relógio monotônico do navegador
+    // (performance.now()), imune a qualquer configuração errada de data/hora local.
+    async function ensureCalibrated(st){
+      if (localOpenQid === st.current_question_id || calibrating) return
+      calibrating = true
+      const nowLocal = performance.now()
+      const { data: elapsedMs } = await rpc('quiz_elapsed_ms', { p_game: S.game.id })
+      localOpenQid = st.current_question_id
+      localAnchor = nowLocal - (elapsedMs ?? 0)
+      calibrating = false
+    }
+    function remaining(){
+      const st=S.state
+      if(!st||st.question_status!=='open'||localOpenQid!==st.current_question_id||localAnchor==null) return null
+      const elapsed = performance.now() - localAnchor
+      return Math.max(0, st.question_seconds*1000 - elapsed)
+    }
+    function tick(){ const rem=remaining(); const bar=document.getElementById('bd-fill'),num=document.getElementById('bd-num')
+      if(rem==null||!bar) return; bar.style.width=Math.max(0,Math.min(100,rem/(S.state.question_seconds*1000)*100))+'%'
+      if(num) num.textContent=rem<=0?'tempo esgotado':Math.ceil(rem/1000)+'s' }
+    function startTimer(){ clearInterval(timer); timer=setInterval(tick,200); tick() }
+
+    function render(){
+      clearInterval(timer)
+      if(!S.game||S.game.status==='setup') return wait('🎯','Gincana Quiz','Aguardando o início…', true)
+      if(S.game.status==='finished') return finished()
+      const st=S.state
+      if(!st||!st.current_question_id||st.question_status==='idle') return wait('🎬','Prepare-se!','Aguardando a próxima pergunta', true)
+      question(st)
+    }
+    // URL absoluta (funciona mesmo escaneada de um celular fora deste servidor).
+    const JOIN_URL = 'https://gincanas.pirasnafisica.com.br/gincana/index.html'
+    function qrBlock(){
+      const qrImg = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=' + encodeURIComponent(JOIN_URL)
+      return `<div style="margin-top:26px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <img src="${qrImg}" width="220" height="220" alt="QR code de acesso" style="border-radius:14px;background:#fff;padding:10px">
+        <p style="color:#9aa2b1;font-size:1rem;margin:0">Aponte a câmera para entrar</p>
+        <p style="color:#6b7280;font-size:.85rem;margin:0">${JOIN_URL}</p>
+      </div>`
+    }
+    function wait(icon,title,sub,showQr){ board.innerHTML=`<div class="bd"><div class="bd-main"><div class="bd-wait">
+      <div class="big">${icon}</div><h1>${title}</h1><p style="color:#9aa2b1;font-size:1.3rem">${sub||''}</p>
+      ${showQr?qrBlock():''}
+      </div></div>
+      <div class="bd-side">${scoreboard()}</div></div>` }
+
+    function question(st){
+      const revealed=st.question_status==='revealed', ck=revealed?st.reveal_correct_key:null
+      const closed=st.question_status==='closed'
+      const meta=`Pergunta ${st.q_ord} · ${st.q_points} pontos${st.q_ord>=21?' · RODADA FINAL':''}${closed?' · tempo encerrado':''}`
+      const opts=(st.q_options||[]).map(o=>`<div class="bd-opt ${revealed&&o.key===ck?'correct':''}">
+        <span class="k">${o.key}</span><span>${escHtml(o.label)}</span></div>`).join('')
+      const timerH= st.question_status==='open'
+        ? `<div class="bd-timer"><div class="bd-timerfill" id="bd-fill" style="width:100%"></div></div><div class="bd-timernum" id="bd-num"></div>`
+        : (st.question_status==='shown'?`<div class="bd-timernum" style="margin-top:22px">Prepare-se…</div>`:'')
+      // O vídeo aparece assim que o apresentador manda mostrar (media_shown), mesmo antes
+      // de revelar a resposta certa; se for revelado sem ter passado por lá, mostra também.
+      const showVideo = (st.media_shown || revealed) && st.q_media
+      const answersBlock = (closed || revealed) ? answersGrid() : ''
+      board.innerHTML=`<div class="bd"><div class="bd-main">
+        <div class="bd-meta">${meta}</div>
+        <div class="bd-q">${escHtml(st.q_text||'')}</div>
+        ${timerH}
+        <div class="bd-opts">${opts}</div>
+        <div class="bd-count">Respostas recebidas: <strong id="bd-count">${S.count}</strong></div>
+        ${answersBlock}
+        ${showVideo ? ytEmbed(st.q_media) : ''}
+      </div><div class="bd-side">${scoreboard()}</div></div>`
+      if(st.question_status==='open') { ensureCalibrated(st); startTimer() }
+      else { localOpenQid = null; localAnchor = null }
+    }
+    function answersGrid(){
+      const rows = S.answers.map(a => `<div class="bd-answer-row">
+        <span>${escHtml(a.avatar||'👥')}</span>
+        <span class="nm">${escHtml(a.display_name)}</span>
+        <span class="k">${a.choice_key ? escHtml(a.choice_key) : '—'}</span></div>`).join('')
+      return `<div class="bd-answers"><h3>Respostas das equipes</h3>
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">${rows || '<p style="color:#6b7280">Nenhuma resposta.</p>'}</div></div>`
+    }
+    function scoreboard(){
+      const remaining=S.scoreboard.filter(s=>!s.eliminated).length
+      const elim=S.scoreboard.length-remaining
+      const rows=S.scoreboard.map((s,i)=>`<div class="bd-row ${i<3&&!s.eliminated?'top':''} ${s.eliminated?'elim':''}">
+        <span class="pos">${i+1}º</span><span>${escHtml(s.avatar||'👥')}</span>
+        <span class="nm">${escHtml(s.display_name)}${s.eliminated?' <span style="color:#e0503c;font-size:.85rem">✖</span>':''}</span><span class="pt">${s.total_points}</span></div>`).join('')
+      const sub = elim ? `<div style="color:#6b7280;font-size:.95rem;margin:4px 0 8px">${remaining} em jogo · ${elim} eliminada${elim>1?'s':''}</div>` : ''
+      return `<h2>Placar</h2>${sub}<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">${rows||'<p style="color:#6b7280">—</p>'}</div>`
+    }
+    function finished(){
+      const top=S.scoreboard.slice(0,3)
+      const medal=i=>i===0?'🥇':i===1?'🥈':'🥉'
+      const slot=(s,place)=>s?`<div class="bd-podium-slot p${place}">
+          <div class="medal">${medal(place-1)}</div>
+          <div class="nm">${escHtml(s.display_name)}</div>
+          <div class="pt">${s.total_points} pts</div>
+        </div>`:''
+      board.innerHTML=`<div class="bd"><div class="bd-main"><div class="bd-wait" style="padding:40px 20px 10px">
+        <div class="big">🏆</div><h1 style="font-size:2.6rem">${escHtml(top[0]?.display_name||'')}</h1>
+        <p style="color:#9aa2b1;font-size:1.4rem">Campeã da Gincana!</p></div>
+        <div class="bd-podium">${slot(top[1],2)}${slot(top[0],1)}${slot(top[2],3)}</div>
+      </div>
+        <div class="bd-side">${scoreboard()}</div></div>`
+    }
+
+    await loadGame(); await loadLive(); subscribe(); startPoll(); startStatePoll(); render()
+  </script>
+</body>
+</html>

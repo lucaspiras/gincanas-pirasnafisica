@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Classificações · Bolão Copa 2026</title>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TY56KM22X8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-TY56KM22X8');
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+    <div id="pool-nav-slot"></div>
+    <div id="loading" class="empty"><strong>Carregando…</strong></div>
+    <div id="content" class="hidden">
+
+      <div class="section-header">
+        <h2>Classificações previstas</h2>
+        <div class="pitch-rule"></div>
+      </div>
+      <p class="muted mt-8" style="font-size:.85rem">
+        Tabelas calculadas automaticamente a partir dos seus palpites de placar.
+        Atualizam a cada palpite salvo.
+      </p>
+
+      <div class="card mt-16" style="padding:10px 14px;font-size:.8rem;display:flex;gap:16px;flex-wrap:wrap">
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(14,159,80,.15);margin-right:5px"></span>Classifica (top 2)</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--gold);margin-right:5px"></span>Entre os 8 melhores 3ºs (avança)</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(240,165,0,.15);margin-right:5px"></span>3º fora dos 8 melhores</span>
+      </div>
+
+      <div style="margin-top:16px">
+        <select class="filter-select" id="sel-group" style="max-width:220px">
+          <option value="todos">Todos os grupos</option>
+        </select>
+      </div>
+
+      <div id="groups-container" class="stack gap-24 mt-16"></div>
+
+      <div class="mt-32 stack gap-8">
+        <a id="back-link" href="dashboard.html" class="btn btn-ghost" style="align-self:flex-start">
+          ← Voltar ao bolão
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import {
+      supabase, requireAuthWithProfile,
+      renderHeader, renderPoolNav, bindSignOut,
+      escHtml, translateTeam, teamFlag,
+      simulateGroupStandings, getRules
+    } from './supabase.js'
+
+    const poolId = new URLSearchParams(location.search).get('pool')
+    if (!poolId) { location.replace('dashboard.html'); }
+
+    const { user, profile } = await requireAuthWithProfile() ?? {}
+    if (!user) throw new Error('not reached')
+
+    document.getElementById('header-slot').innerHTML = renderHeader(profile, true)
+    bindSignOut()
+    document.getElementById('pool-nav-slot').innerHTML = renderPoolNav(poolId, 'grupos')
+    document.getElementById('back-link').href = `pool.html?id=${poolId}`
+
+    // Load everything in parallel
+    const [
+      { data: matches },
+      { data: preds },
+      { data: actualRows },
+      { data: q3Rows },
+      { data: clsScore }
+    ] = await Promise.all([
+      supabase.from('matches')
+        .select('id, match_date, home_team, away_team, home_score, away_score, group_name, status, match_number')
+        .eq('phase', 'group').order('match_date'),
+      supabase.from('predictions')
+        .select('match_id, home_score, away_score')
+        .eq('pool_id', poolId).eq('user_id', user.id),
+      supabase.from('group_standings_actual')
+        .select('group_name, team, position, pts, gf, ga, gd'),
+      supabase.from('qualified_3rd_places').select('group_name'),
+      supabase.from('classification_scores')
+        .select('classification_pts, best3rd_pts')
+        .eq('pool_id', poolId).eq('user_id', user.id).maybeSingle()
+    ])
+
+    const predsMap = {}
+    for (const p of preds ?? []) predsMap[p.match_id] = p
+
+    // Build group-keyed data
+    const groups = {}
+    for (const m of matches ?? []) {
+      const g = m.group_name ?? '?'
+      if (!groups[g]) groups[g] = { matches: [], actual: [] }
+      groups[g].matches.push(m)
+    }
+    for (const r of actualRows ?? []) {
+      if (!groups[r.group_name]) groups[r.group_name] = { matches: [], actual: [] }
+      groups[r.group_name].actual.push(r)
+    }
+    const qualifiedGroups = new Set((q3Rows ?? []).map(r => r.group_name))
+
+    // Filter select
+    const sortedGroupNames = Object.keys(groups).sort()
+    const sel = document.getElementById('sel-group')
+    sortedGroupNames.forEach(g => {
+      const o = document.createElement('option'); o.value = g; o.textContent = `Grupo ${g}`; sel.appendChild(o)
+    })
+    sel.addEventListener('change', () => renderGroups(sel.value))
+
+    document.getElementById('loading').classList.add('hidden')
+    document.getElementById('content').classList.remove('hidden')
+
+    // Calcular os 8 melhores 3ºs previstos
+    function computeBest3rdSet() {
+      const thirds = []
+      for (const g of sortedGroupNames) {
+        const gMatches = groups[g]?.matches ?? []
+        const standings = simulateGroupStandings(gMatches, predsMap)
+        if (standings.length >= 3) {
+          thirds.push({ team: standings[2].team, ...standings[2] })
+        }
+      }
+      thirds.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.team.localeCompare(b.team))
+      return new Set(thirds.slice(0, 8).map(t => t.team))
+    }
+
+    renderGroups('todos')
+
+    function renderGroups(filter) {
+      const container = document.getElementById('groups-container')
+      const toRender  = filter === 'todos' ? sortedGroupNames : [filter]
+      const best3rd   = computeBest3rdSet()
+
+      container.innerHTML = toRender.map(g => {
+        const { matches: gMatches, actual } = groups[g] ?? { matches: [], actual: [] }
+        const predicted  = simulateGroupStandings(gMatches, predsMap)
+        // Grupo encerrado = todos os jogos do grupo terminaram (a view real
+        // retorna os 4 times sempre, então não dá pra usar actual.length).
+        const isComplete = gMatches.length > 0 && gMatches.every(m => m.status === 'finished')
+        // Classificação real ao vivo: mostra a coluna assim que houver ao menos
+        // um jogo encerrado no grupo.
+        const hasReal    = gMatches.some(m => m.status === 'finished')
+
+        let clsBadge = ''
+        if (clsScore && (clsScore.classification_pts > 0 || clsScore.best3rd_pts > 0)) {
+          const total = (clsScore.classification_pts ?? 0) + (clsScore.best3rd_pts ?? 0)
+          clsBadge = `<span class="cls-pts-badge">+${total} pts de classificação ganhos</span>`
+        }
+
+        const missedPreds = gMatches.filter(m => !predsMap[m.id]).length
+        const noteHtml = missedPreds > 0
+          ? `<p style="font-size:.75rem;color:var(--muted);margin-top:6px">
+              ${missedPreds} partida${missedPreds > 1 ? 's' : ''} sem palpite
+             </p>`
+          : ''
+
+        return `
+          <div>
+            <div class="round-header">
+              <span class="round-label">Grupo ${escHtml(g)}</span>
+              <div class="round-line"></div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div class="standings-wrap">
+                <table class="standings-table">
+                  <thead><tr>
+                    <th class="left" colspan="2">Equipe</th>
+                    <th>J</th><th>V</th><th>E</th><th>D</th>
+                    <th>GP</th><th>GC</th><th>SG</th><th>PTS</th>
+                    ${hasReal ? '<th>Real</th>' : ''}
+                  </tr></thead>
+                  <tbody>
+                    ${predicted.map((s, i) => {
+                      const pos       = i + 1
+                      const isBest3rd = pos === 3 && best3rd.has(s.team)
+                      const rowCls    = pos <= 2 ? 'pos-qualify' : isBest3rd ? 'pos-best3rd' : pos === 3 ? 'pos-maybe' : ''
+                      const name      = translateTeam(s.team)
+                      const best3rdTag = isBest3rd ? `<span style="font-size:.62rem;font-weight:700;color:#9a6800;background:rgba(240,165,0,.2);padding:1px 5px;border-radius:3px;margin-left:5px;white-space:nowrap">→ avança</span>` : ''
+                      let realCell = ''
+                      if (hasReal) {
+                        const actualPos = actual.find(r => r.team === s.team)?.position ?? '?'
+                        const match = actualPos === pos
+                        realCell = `<td style="font-weight:700;color:${match ? 'var(--pitch-deep)' : 'var(--flare)'}">${actualPos}º</td>`
+                      }
+                      return `
+                        <tr class="${rowCls}">
+                          <td class="left" style="width:28px;padding-right:0">
+                            <span class="pos-num pos-num-${pos}">${pos}</span>
+                          </td>
+                          <td class="left">
+                            <span style="display:flex;align-items:center;flex-wrap:wrap">${teamFlag(s.team)}${escHtml(name)}${best3rdTag}</span>
+                          </td>
+                          <td>${s.played}</td>
+                          <td>${s.w}</td><td>${s.d}</td><td>${s.l}</td>
+                          <td>${s.gf}</td><td>${s.ga}</td>
+                          <td style="font-weight:${s.gd>=0?'700':'400'};color:${s.gd>0?'var(--pitch-deep)':s.gd<0?'var(--flare)':'inherit'}">${s.gd>0?'+':''}${s.gd}</td>
+                          <td style="font-family:var(--font-display);font-weight:800">${s.pts}</td>
+                          ${realCell}
+                        </tr>`
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            ${noteHtml}
+            ${isComplete && qualifiedGroups.has(g) ? `
+              <p style="font-size:.78rem;color:var(--gold);font-weight:600;margin-top:6px">
+                ★ 3º colocado avançou como melhor 3º
+              </p>` : ''}
+            ${clsBadge}
+          </div>`
+      }).join('')
+    }
+  </script>
+</body>
+</html>

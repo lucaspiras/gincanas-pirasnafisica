@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar · Gincana Quiz</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/icons/favicon-32.png">
+  <link rel="stylesheet" href="../bolao/style.css">
+</head>
+<body>
+  <main class="auth-page">
+    <div class="auth-brand">
+      <p class="eyebrow">Gincana · Copa 2026</p>
+      <h1>Quiz<br>ao vivo</h1>
+      <div class="pitch-rule"></div>
+      <p class="muted mt-12" id="subtitle">Entre com o e-mail e a senha da sua equipe.</p>
+    </div>
+
+    <form id="auth-form" class="auth-form">
+      <input
+        id="input-email"
+        class="input"
+        type="email"
+        inputmode="email"
+        autocomplete="email"
+        placeholder="seu@email.com"
+        required
+      >
+      <input
+        id="input-password"
+        class="input"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Senha"
+        minlength="6"
+        required
+      >
+      <button type="submit" class="btn btn-primary btn-full" id="btn-submit">
+        Entrar
+      </button>
+      <p id="error-msg" class="error-msg hidden"></p>
+    </form>
+
+    <p class="muted mt-16 center" style="font-size:.85rem">
+      Ainda não tem acesso? Fale com o apresentador.
+    </p>
+  </main>
+
+  <script type="module">
+    import { supabase } from '../bolao/supabase.js'
+
+    // Login próprio da gincana — não usa bolao/login.html nem requireAuth/requireAdmin,
+    // para não afetar o fluxo de login do bolão. Destino após autenticar:
+    // ?redirect=<path> se informado; senão, por papel (admin -> admin.html, equipe -> index.html).
+    function target(profile) {
+      const r = new URLSearchParams(location.search).get('redirect')
+      if (r) return decodeURIComponent(r)
+      return profile?.is_admin ? 'admin.html' : 'index.html'
+    }
+
+    async function goIfLogged() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle()
+      if (profile) location.replace(target(profile))
+    }
+    await goIfLogged()
+
+    const form   = document.getElementById('auth-form')
+    const btn    = document.getElementById('btn-submit')
+    const errMsg = document.getElementById('error-msg')
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const email    = document.getElementById('input-email').value.trim()
+      const password = document.getElementById('input-password').value
+      btn.disabled = true
+      btn.innerHTML = '<span class="spinner"></span>'
+      errMsg.classList.add('hidden')
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        btn.disabled = false
+        btn.textContent = 'Entrar'
+        errMsg.textContent = error.message.includes('Invalid')
+          ? 'E-mail ou senha incorretos.'
+          : error.message
+        errMsg.classList.remove('hidden')
+        return
+      }
+
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: profile } = await supabase
+        .from('profiles').select('id, is_admin').eq('id', user.id).maybeSingle()
+      if (profile) {
+        location.replace(target(profile))
+      } else {
+        // Conta sem perfil: acesso ainda não liberado pelo organizador.
+        await supabase.auth.signOut()
+        btn.disabled = false
+        btn.textContent = 'Entrar'
+        errMsg.textContent = 'Acesso ainda não liberado. Fale com o apresentador.'
+        errMsg.classList.remove('hidden')
+      }
+    })
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# Este repositório é PÚBLICO e leva só o que o site serve.
+# Rede de segurança: gabaritos, bancos de perguntas e segredos nunca entram aqui.
+perguntas*.json
+perguntas.html
+.env
+*.env
+node_modules/
+.DS_Store
+Thumbs.db
