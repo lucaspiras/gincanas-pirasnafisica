@@ -6,23 +6,24 @@
   <title>Gincanas · Admin</title>
   <meta name="robots" content="noindex">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
+  <script src="../js/theme.js"></script>
   <link rel="stylesheet" href="../comum/estilo.css">
 </head>
 <body>
   <div id="header-slot"></div>
 
   <main class="container-largo pt-24 pb-32">
-    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
-      <div class="section-header" style="margin-bottom:0"><h2>Gincanas</h2><div class="pitch-rule"></div></div>
+    <div class="topo-secao">
+      <div class="section-header compacto"><h2>Gincanas</h2><div class="pitch-rule"></div></div>
       <button id="btn-nova" class="btn btn-primary">+ Nova gincana</button>
     </div>
 
     <p class="aviso mt-16">
       Cada gincana é uma linha aqui e uma pasta no site (<code>/&lt;slug&gt;/</code>). Para criar a pasta, use o script
       <code>scripts\nova-gincana.ps1</code>; aqui você registra, define quem participa e acompanha. Ferramentas das gincanas antigas:
-      <a href="../bolao/admin.html" style="text-decoration:underline">admin do bolão</a> ·
-      <a href="../gincana/admin.html" style="text-decoration:underline">admin do quiz da Copa</a> ·
-      <a href="perfis.html" style="text-decoration:underline">perfis e grupos</a>.
+      <a href="../bolao/admin.html" class="sublinhado">admin do bolão</a> ·
+      <a href="../gincana/admin.html" class="sublinhado">admin do quiz da Copa</a> ·
+      <a href="perfis.html" class="sublinhado">perfis e grupos</a>.
     </p>
 
     <div id="loading" class="empty mt-16"><strong>Carregando…</strong></div>
@@ -83,11 +84,11 @@
         const datas = [e.starts_at && fmtData(e.starts_at), e.ends_at && fmtData(e.ends_at)].filter(Boolean).join(' a ')
         const badge = e.status === 'open' ? 'badge-open' : e.status === 'draft' ? 'badge-rascunho' : 'badge-closed'
         const entrar = rel(e.entry_path || `${e.slug}/index.html`)
-        return `<article class="card gcard">
-          <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+        return `<article class="card gcard" data-tipo="${escHtml(e.kind)}">
+          <div class="gcard-topo">
             <h3>${escHtml(e.name)}</h3><span class="badge ${badge}">${STATUS[e.status]}</span>
           </div>
-          <div class="meta">${escHtml(TIPO[e.kind] ?? e.kind)} · <code>${escHtml(e.slug)}</code>${datas ? ' · ' + escHtml(datas) : ''}</div>
+          <div class="meta">${escHtml(TIPO[e.kind] ?? e.kind)} · <code>${escHtml(e.slug)}</code>${datas ? ' · <span class="mono">' + escHtml(datas) + '</span>' : ''}</div>
           <div class="meta">${n} membro(s) cadastrado(s) nesta gincana</div>
           <div class="botoes">
             <button class="btn btn-primary btn-sm" data-membros="${e.id}">Membros</button>
@@ -125,7 +126,7 @@
           <div class="campo"><label>Página do botão "Entrar" (opcional)</label><input id="f-entrada" class="input" value="${escHtml(e?.entry_path ?? '')}" placeholder="padrão: slug/index.html"></div>
           <div class="campo"><label>Página de resultados (opcional)</label><input id="f-result" class="input" value="${escHtml(e?.results_path ?? '')}" placeholder="ex.: slug/placar.html"></div>
         </div>
-        <p class="muted mt-8" style="font-size:.82rem">Rascunho só aparece para administradores. Ao mudar o slug de uma gincana existente, renomeie também a pasta no site.</p>
+        <p class="muted mt-8 texto-p">Rascunho só aparece para administradores. Ao mudar o slug de uma gincana existente, renomeie também a pasta no site.</p>
         <p id="m-msg" class="aviso erro mt-12 hidden"></p>
         <div class="modal-rodape"><button class="btn btn-ghost" id="m-cancelar">Cancelar</button><button class="btn btn-primary" id="m-ok">${novo ? 'Criar' : 'Salvar'}</button></div>`, true)
       if (novo) $('f-nome').addEventListener('input', () => { if (!$('f-slug').dataset.mexido) $('f-slug').value = slugDe($('f-nome').value) })
@@ -154,22 +155,22 @@
       const lista = () => atuais().map(m => {
         const p = perfis.find(x => x.id === m.user_id)
         return `<tr><td>${escHtml(p?.avatar ?? '')} ${escHtml(p?.display_name ?? '(perfil removido)')}</td><td class="muted">${escHtml(p?.email ?? '')}</td>
-          <td><select class="input" data-papel="${m.user_id}" style="padding:4px 8px"><option value="participant" ${m.role === 'participant' ? 'selected' : ''}>Participante</option><option value="juror" ${m.role === 'juror' ? 'selected' : ''}>Jurado</option></select></td>
+          <td><select class="input input-mini" data-papel="${m.user_id}"><option value="participant" ${m.role === 'participant' ? 'selected' : ''}>Participante</option><option value="juror" ${m.role === 'juror' ? 'selected' : ''}>Jurado</option></select></td>
           <td class="acoes"><button class="btn btn-ghost btn-sm" data-tirar="${m.user_id}">Tirar</button></td></tr>`
-      }).join('') || '<tr><td colspan="4" class="center muted" style="padding:18px">Ninguém cadastrado diretamente.</td></tr>'
+      }).join('') || '<tr><td colspan="4" class="vazio-inline">Ninguém cadastrado diretamente.</td></tr>'
 
       abrirModal(`
         <h3>Membros de ${escHtml(e.name)}</h3>
         ${e.kind === 'bolao' || e.kind === 'quiz' ? '<p class="aviso alerta">Bolão e quiz da Copa guardam os participantes nas próprias tabelas (pool_members e quiz_teams); os membros abaixo se somam a eles.</p>' : ''}
         <div class="tabela-wrap mt-12"><table class="tabela"><thead><tr><th>Perfil</th><th>E-mail</th><th>Papel</th><th></th></tr></thead><tbody id="g-corpo">${lista()}</tbody></table></div>
 
-        <h3 class="mt-24" style="font-size:1rem">Adicionar</h3>
-        <p class="muted" style="font-size:.85rem">Marque grupos inteiros ou escolha perfis. A inclusão por grupo é uma foto do momento: mudar o grupo depois não altera quem já está na gincana.</p>
+        <h3 class="mt-24">Adicionar</h3>
+        <p class="muted texto-p">Marque grupos inteiros ou escolha perfis. A inclusão por grupo é uma foto do momento: mudar o grupo depois não altera quem já está na gincana.</p>
         <div class="campos mt-8">
-          <div class="campo"><label>Grupos</label><div class="lista-marcar" style="max-height:220px">${grupos.map(g => `<label><input type="checkbox" name="g-grupo" value="${g.id}"> ${escHtml(g.name)} <span class="muted">(${vinculosGrupo.filter(v => v.group_id === g.id).length})</span></label>`).join('') || '<p class="muted" style="padding:10px">Nenhum grupo criado.</p>'}</div></div>
-          <div class="campo"><label>Perfis</label><input id="g-busca" class="input" placeholder="Buscar…" style="margin-bottom:6px"><div class="lista-marcar" id="g-perfis" style="max-height:186px"></div></div>
+          <div class="campo"><label>Grupos</label><div class="lista-marcar baixa">${grupos.map(g => `<label><input type="checkbox" name="g-grupo" value="${g.id}"> ${escHtml(g.name)} <span class="muted">(${vinculosGrupo.filter(v => v.group_id === g.id).length})</span></label>`).join('') || '<p class="vazio-inline">Nenhum grupo criado.</p>'}</div></div>
+          <div class="campo"><label>Perfis</label><input id="g-busca" class="input mt-4" placeholder="Buscar…"><div class="lista-marcar baixa" id="g-perfis"></div></div>
         </div>
-        <div class="barra"><select id="g-papel" class="input" style="flex:0 0 auto;width:auto"><option value="participant">como participantes</option><option value="juror">como jurados</option></select>
+        <div class="barra"><select id="g-papel" class="input input-auto"><option value="participant">como participantes</option><option value="juror">como jurados</option></select>
           <span class="muted" id="g-resumo"></span></div>
         <p id="m-msg" class="aviso erro hidden"></p>
         <div class="modal-rodape"><button class="btn btn-ghost" id="m-cancelar">Fechar</button><button class="btn btn-primary" id="g-add">Adicionar selecionados</button></div>`, true)
@@ -177,7 +178,7 @@
       const desenharPerfis = () => {
         const q = $('g-busca').value.trim().toLowerCase(), ja = new Set(atuais().map(m => m.user_id))
         $('g-perfis').innerHTML = perfis.filter(p => p.active && !ja.has(p.id) && (!q || p.display_name.toLowerCase().includes(q) || (p.email ?? '').toLowerCase().includes(q)))
-          .map(p => `<label><input type="checkbox" name="g-perfil" value="${p.id}"> ${escHtml(p.avatar ?? '')} ${escHtml(p.display_name)}</label>`).join('') || '<p class="muted" style="padding:10px">Nenhum perfil disponível.</p>'
+          .map(p => `<label><input type="checkbox" name="g-perfil" value="${p.id}"> ${escHtml(p.avatar ?? '')} ${escHtml(p.display_name)}</label>`).join('') || '<p class="vazio-inline">Nenhum perfil disponível.</p>'
       }
       const escolhidos = () => {
         const ids = new Set([...document.querySelectorAll('#modal-slot input[name="g-perfil"]:checked')].map(i => i.value))
@@ -227,8 +228,8 @@
         <h3>Vínculos de ${escHtml(e.name)}</h3>
         <p class="muted">Quem já está em um bolão ou quiz vinculado vê esta gincana no painel, sem ser cadastrado de novo. Vincular não altera o bolão nem o quiz.</p>
         <div class="campos mt-12">
-          <div class="campo"><label>Bolões</label><div class="lista-marcar">${pools.map(p => `<label><input type="checkbox" name="v-pool" value="${p.id}" ${marca('pool', p.id)}> ${escHtml(p.name)}</label>`).join('') || '<p class="muted" style="padding:10px">Nenhum bolão.</p>'}</div></div>
-          <div class="campo"><label>Quizzes da Copa</label><div class="lista-marcar">${jogos.map(j => `<label><input type="checkbox" name="v-quiz" value="${j.id}" ${marca('quiz_game', j.id)}> ${escHtml(j.name)}</label>`).join('') || '<p class="muted" style="padding:10px">Nenhum quiz.</p>'}</div></div>
+          <div class="campo"><label>Bolões</label><div class="lista-marcar">${pools.map(p => `<label><input type="checkbox" name="v-pool" value="${p.id}" ${marca('pool', p.id)}> ${escHtml(p.name)}</label>`).join('') || '<p class="vazio-inline">Nenhum bolão.</p>'}</div></div>
+          <div class="campo"><label>Quizzes da Copa</label><div class="lista-marcar">${jogos.map(j => `<label><input type="checkbox" name="v-quiz" value="${j.id}" ${marca('quiz_game', j.id)}> ${escHtml(j.name)}</label>`).join('') || '<p class="vazio-inline">Nenhum quiz.</p>'}</div></div>
         </div>
         <p id="m-msg" class="aviso erro mt-12 hidden"></p>
         <div class="modal-rodape"><button class="btn btn-ghost" id="m-cancelar">Cancelar</button><button class="btn btn-primary" id="m-ok">Salvar vínculos</button></div>`, true)

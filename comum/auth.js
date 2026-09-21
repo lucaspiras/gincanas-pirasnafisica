@@ -1,4 +1,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+import { marcaSvg } from './marca.js'
+
+export { marcaSvg }
 
 const SUPABASE_URL      = 'https://zmbgprapzgvpnmbtrakp.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_Zh1Kq8RsRjK1OUiGsVTVkw_AhkMK275'
@@ -139,8 +142,14 @@ export function fmtData(iso) {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+// Curta, para caber em coluna de tabela sem quebrar linha.
+export function fmtDataCurta(iso) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+}
+
 export const AVATARS = [
-  '⚽','🏆','🥇','🎯','⭐','🔥','🌟','💪',
+  '🎯','🏆','🥇','⚽','⭐','🔥','🌟','💪',
   '🦁','🐯','🦅','🐉','🎪','⚡','🌎','🏅',
   '🎮','🎭','🤩','😎','🤙','🦊','🐺','🦄',
   '♟️','🎓','📚','🧪','🔭','🚀','🧲','💡',
@@ -156,7 +165,7 @@ export function renderCabecalho(profile, ativo = '') {
   return `
     <header class="header">
       <div class="header-inner">
-        <a href="${PAINEL_URL}" class="header-brand"><img class="header-logo" src="${doSite('bolao/logo_gincana_novo.png')}" alt="">Gincanas</a>
+        <a href="${PAINEL_URL}" class="header-brand">${marcaSvg(26)}Gincanas</a>
         <div class="header-right">
           ${link('painel', PAINEL_URL, 'Minhas gincanas')}
           ${admin}
@@ -164,6 +173,7 @@ export function renderCabecalho(profile, ativo = '') {
             <span class="header-avatar">${escHtml(profile.avatar || '⚽')}</span>
             <span class="header-name">${escHtml(profile.display_name)}</span>
           </a>
+          <button class="btn-tema" id="theme-toggle" type="button" title="Alternar tema" aria-label="Alternar tema">🌙</button>
           <button class="btn-signout" id="btn-signout">Sair</button>
         </div>
       </div>

@@ -9,8 +9,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="img/icons/favicon-16.png">
   <link rel="apple-touch-icon" href="img/icons/apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+  <script src="js/theme.js"></script>
+  <link rel="stylesheet" href="comum/estilo.css">
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-TY56KM22X8"></script>
   <script>
@@ -19,86 +19,14 @@
     gtag('js', new Date());
     gtag('config', 'G-TY56KM22X8');
   </script>
-  <script src="js/theme.js"></script>
-  <style>
-    :root {
-      color-scheme: light dark;
-      --papel: #faf6ec; --tinta: #15130d; --suave: #6c6553; --linha: #e6dfcd;
-      --cartao: #fffdf7; --destaque: #0a7d3f; --brilho: #0e9f50; --gema: #f0a500;
-      --fundo-hero: #0a3d20; --texto-hero: #f3eee0;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --papel: #14130f; --tinta: #f3eee0; --suave: #a8a08a; --linha: #2e2b22;
-        --cartao: #1c1a14; --destaque: #4ade80; --brilho: #4ade80; --fundo-hero: #0a2a17;
-      }
-    }
-    :root[data-theme="dark"] {
-      --papel: #14130f; --tinta: #f3eee0; --suave: #a8a08a; --linha: #2e2b22;
-      --cartao: #1c1a14; --destaque: #4ade80; --brilho: #4ade80; --fundo-hero: #0a2a17;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; background: var(--papel); color: var(--tinta);
-      font-family: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;
-    }
-    a { color: inherit; }
-    .topo { display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-            max-width: 1040px; margin: 0 auto; padding: 1.1rem 1.25rem; }
-    .voltar { color: var(--suave); text-decoration: none; font-size: .9rem; }
-    .voltar:hover { color: var(--destaque); }
-    .entrar-topo { padding: .45rem 1rem; border-radius: 999px; border: 1.5px solid var(--linha);
-                   text-decoration: none; font-weight: 600; font-size: .9rem; }
-    .entrar-topo:hover { border-color: var(--destaque); color: var(--destaque); }
-
-    .hero {
-      position: relative; overflow: hidden; color: var(--texto-hero);
-      background:
-        radial-gradient(60% 90% at 85% 10%, rgba(14,159,80,.55), transparent 60%),
-        radial-gradient(40% 60% at 5% 100%, rgba(240,165,0,.25), transparent 60%),
-        var(--fundo-hero);
-      border-radius: 28px; margin: .5rem auto 0; max-width: 1040px; padding: clamp(2.2rem, 6vw, 4.5rem) clamp(1.4rem, 5vw, 3.5rem);
-    }
-    .hero::after {
-      content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .18;
-      background-image: linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
-      background-size: 44px 44px;
-      -webkit-mask-image: radial-gradient(70% 90% at 80% 20%, #000, transparent 75%);
-              mask-image: radial-gradient(70% 90% at 80% 20%, #000, transparent 75%);
-    }
-    .hero > * { position: relative; z-index: 1; }
-    .selo { display: inline-flex; align-items: center; gap: .5rem; padding: .3rem .8rem; border-radius: 999px;
-            background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
-            font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-    h1 { font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-weight: 800;
-         font-size: clamp(2.4rem, 8vw, 4.4rem); line-height: 1.02; margin: 1rem 0 .9rem; letter-spacing: -.02em; }
-    h1 em { font-style: normal; color: var(--gema); }
-    .hero p { max-width: 54ch; margin: 0 0 1.6rem; font-size: 1.08rem; color: rgba(243,238,224,.88); }
-    .botoes { display: flex; flex-wrap: wrap; gap: .8rem; }
-    .botao { display: inline-flex; align-items: center; gap: .5rem; padding: .85rem 1.5rem; border-radius: 14px;
-             font-weight: 700; text-decoration: none; font-size: 1rem; }
-    .botao.principal { background: var(--gema); color: #1c1400; }
-    .botao.principal:hover { filter: brightness(1.08); }
-    .botao.sec { border: 1.5px solid rgba(255,255,255,.35); color: var(--texto-hero); }
-    .botao.sec:hover { background: rgba(255,255,255,.1); }
-
-    main { max-width: 1040px; margin: 0 auto; padding: 2.4rem 1.25rem 4rem; }
-    h2 { font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 1.5rem; margin: 0 0 1.1rem; }
-    .grade { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-    .item { padding: 1.3rem 1.3rem 1.4rem; background: var(--cartao); border: 1.5px solid var(--linha); border-radius: 16px; }
-    .item .icone { font-size: 1.7rem; line-height: 1; }
-    .item h3 { margin: .7rem 0 .3rem; font-size: 1.05rem; }
-    .item p { margin: 0; color: var(--suave); font-size: .93rem; }
-    .fechado { margin-top: 2.2rem; padding: 1.3rem 1.4rem; border-radius: 16px; border: 1.5px dashed var(--linha); color: var(--suave); font-size: .95rem; }
-    .fechado strong { color: var(--tinta); }
-    footer { max-width: 1040px; margin: 0 auto; padding: 0 1.25rem 2.5rem; color: var(--suave); font-size: .85rem; }
-  </style>
 </head>
 <body>
-  <div class="topo">
+  <div class="topo-home">
     <a class="voltar" href="https://pirasnafisica.com.br">← Piras na Física</a>
-    <a class="entrar-topo" href="entrar.html">Entrar</a>
+    <div class="acoes-topo">
+      <button class="pilula" id="theme-toggle" type="button" title="Alternar tema" aria-label="Alternar tema">🌙</button>
+      <a class="pilula" href="entrar.html">Entrar</a>
+    </div>
   </div>
 
   <section class="hero">
@@ -108,15 +36,15 @@
       Bolões, quizzes ao vivo e competições entre equipes. As gincanas são <strong>privadas</strong>:
       cada uma é organizada pelo administrador do site, e só entra quem recebeu uma conta dele.
     </p>
-    <div class="botoes">
+    <div class="botoes-hero">
       <a class="botao principal" href="entrar.html">Entrar na minha conta →</a>
       <a class="botao sec" href="https://pirasnafisica.com.br">Conhecer o site</a>
     </div>
   </section>
 
-  <main>
+  <main class="container-largo" style="padding-top:2.4rem;padding-bottom:4rem">
     <h2>Como funciona</h2>
-    <div class="grade">
+    <div class="grade-home mt-16">
       <div class="item">
         <div class="icone">🎟️</div>
         <h3>Acesso por convite</h3>
@@ -140,6 +68,6 @@
     </p>
   </main>
 
-  <footer>Piras na Física · gincanas.pirasnafisica.com.br</footer>
+  <footer class="rodape-home">Piras na Física · gincanas.pirasnafisica.com.br</footer>
 </body>
 </html>

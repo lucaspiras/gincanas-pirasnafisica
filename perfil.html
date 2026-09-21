@@ -6,6 +6,7 @@
   <title>Meu perfil · Gincanas</title>
   <meta name="robots" content="noindex">
   <link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
+  <script src="js/theme.js"></script>
   <link rel="stylesheet" href="comum/estilo.css">
 </head>
 <body>
@@ -15,16 +16,16 @@
     <div id="loading" class="empty"><strong>Carregando…</strong></div>
     <div id="content" class="hidden">
 
-      <div class="section-header" style="margin-bottom:0">
+      <div class="section-header compacto">
         <h2>Meu perfil</h2>
         <div class="pitch-rule"></div>
       </div>
 
-      <div style="display:flex;align-items:center;gap:16px;margin-top:20px">
-        <div id="current-avatar" style="font-size:3rem;line-height:1">⚽</div>
+      <div class="perfil-topo">
+        <div id="current-avatar" class="perfil-avatar">🎯</div>
         <div>
-          <div id="current-name" style="font-family:var(--font-display);font-size:1.4rem;font-weight:800"></div>
-          <div id="current-email" style="font-size:.85rem;color:var(--muted);margin-top:2px"></div>
+          <div id="current-name" class="perfil-nome"></div>
+          <div id="current-email" class="perfil-email"></div>
         </div>
       </div>
 
@@ -37,7 +38,7 @@
 
       <div class="card mt-12">
         <h3>Nome de exibição</h3>
-        <p class="muted mt-4" style="font-size:.82rem">É o nome que aparece nos placares e rankings (de 2 a 28 caracteres).</p>
+        <p class="muted mt-4 texto-p">É o nome que aparece nos placares e rankings (de 2 a 28 caracteres).</p>
         <div class="stack gap-8 mt-12">
           <input id="input-name" class="input" type="text" minlength="2" maxlength="28" placeholder="Seu nome de exibição">
         </div>
@@ -45,7 +46,7 @@
 
       <div class="mt-12">
         <button id="btn-save-profile" class="btn btn-primary" disabled>Salvar avatar e nome</button>
-        <p id="profile-msg" class="hidden mt-8" style="font-size:.85rem"></p>
+        <p id="profile-msg" class="hidden mt-8 texto-p"></p>
       </div>
 
       <div class="card mt-24">
@@ -55,7 +56,7 @@
           <input id="input-pw1" class="input" type="password" autocomplete="new-password" placeholder="Nova senha (mín. 6 caracteres)" minlength="6">
           <input id="input-pw2" class="input" type="password" autocomplete="new-password" placeholder="Confirmar nova senha">
           <button id="btn-save-pw" class="btn btn-primary btn-sm" style="align-self:flex-start">Trocar senha</button>
-          <p id="pw-msg" class="hidden" style="font-size:.85rem"></p>
+          <p id="pw-msg" class="hidden texto-p"></p>
         </div>
       </div>
 
@@ -73,7 +74,7 @@
     document.getElementById('header-slot').innerHTML = renderCabecalho(profile, '')
     bindSignOut()
 
-    let avatar = profile.avatar || '⚽'
+    let avatar = profile.avatar || '🎯'
     let nome   = profile.display_name
     const $ = (id) => document.getElementById(id)
 
@@ -87,10 +88,11 @@
     function mostrar(id, texto, erro) {
       const el = $(id)
       el.textContent = texto
-      el.style.color = erro ? 'var(--flare)' : 'var(--pitch-deep)'
       el.classList.remove('hidden')
+      el.classList.toggle('msg-erro', !!erro)
+      el.classList.toggle('msg-ok', !erro)
     }
-    const mudou = () => (avatar !== (profile.avatar || '⚽')) || ($('input-name').value.trim() !== profile.display_name)
+    const mudou = () => (avatar !== (profile.avatar || '🎯')) || ($('input-name').value.trim() !== profile.display_name)
 
     // ── Avatar e nome (RPC: só essas duas colunas, com validação no servidor) ──
     const grid = $('avatar-grid')

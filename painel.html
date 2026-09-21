@@ -6,6 +6,7 @@
   <title>Minhas gincanas · Gincanas</title>
   <meta name="robots" content="noindex">
   <link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
+  <script src="js/theme.js"></script>
   <link rel="stylesheet" href="comum/estilo.css">
 </head>
 <body>
@@ -68,11 +69,11 @@
                   : '<span class="badge badge-closed">Encerrada</span>'
       const entrar = rel(e.entry_path), res = rel(e.results_path)
       return `
-        <article class="card gcard">
-          <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+        <article class="card gcard" data-tipo="${escHtml(e.kind)}">
+          <div class="gcard-topo">
             <h3>${escHtml(e.name)}</h3>${badge}
           </div>
-          <div class="meta">${escHtml(TIPO[e.kind] ?? 'Gincana')}${datas ? ' · ' + escHtml(datas) : ''}${PAPEL[e.role] ? ' · ' + PAPEL[e.role] : ''}</div>
+          <div class="meta">${escHtml(TIPO[e.kind] ?? 'Gincana')}${datas ? ' · <span class="mono">' + escHtml(datas) + '</span>' : ''}${PAPEL[e.role] ? ' · ' + PAPEL[e.role] : ''}</div>
           <div class="botoes">
             ${entrar ? `<a class="btn btn-primary btn-sm" href="${escHtml(entrar)}">${e.status === 'closed' ? 'Ver' : 'Entrar'}</a>` : ''}
             ${res ? `<a class="btn btn-ghost btn-sm" href="${escHtml(res)}">Resultados</a>` : ''}
@@ -81,7 +82,7 @@
     }
 
     document.getElementById('lista').innerHTML = grupos.filter(([, l]) => l.length).map(([titulo, l]) => `
-      <h3 class="mt-24" style="font-family:var(--font-display)">${titulo}</h3>
+      <h3 class="mt-24">${titulo}</h3>
       <div class="grade-cartoes mt-12">${l.map(cartao).join('')}</div>`).join('')
   </script>
 </body>

@@ -6,12 +6,13 @@
   <title>Perfis e grupos · Admin das gincanas</title>
   <meta name="robots" content="noindex">
   <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
+  <script src="../js/theme.js"></script>
   <link rel="stylesheet" href="../comum/estilo.css">
 </head>
 <body>
   <div id="header-slot"></div>
 
-  <main class="container-largo pt-24 pb-32">
+  <main class="container-admin pt-24 pb-32">
     <div class="section-header"><h2>Perfis e grupos</h2><div class="pitch-rule"></div></div>
 
     <div class="tabs" id="tabs">
@@ -26,17 +27,17 @@
     <section id="aba-perfis" class="hidden">
       <div class="barra">
         <input id="busca" class="input" type="search" placeholder="Buscar por nome ou e-mail">
-        <select id="filtro-status" class="input" style="flex:0 0 auto;width:auto">
+        <select id="filtro-status" class="input input-auto">
           <option value="ativos">Só ativos</option><option value="todos">Todos</option><option value="inativos">Só desativados</option>
         </select>
         <button id="btn-novo" class="btn btn-primary btn-sm">+ Novo perfil</button>
         <button id="btn-lote" class="btn btn-ghost btn-sm">+ Vários de uma vez</button>
       </div>
-      <div class="chips" id="filtro-grupos" style="margin-bottom:12px"></div>
+      <div class="chips" id="filtro-grupos"></div>
 
-      <div class="barra" id="barra-sel" style="margin-top:0">
+      <div class="barra" id="barra-sel">
         <span class="muted" id="sel-info">Nenhum perfil selecionado</span>
-        <select id="sel-grupo" class="input" style="flex:0 0 auto;width:auto"></select>
+        <select id="sel-grupo" class="input input-auto"></select>
         <button id="btn-add-grupo" class="btn btn-ghost btn-sm" disabled>Adicionar ao grupo</button>
         <button id="btn-del-grupo" class="btn btn-ghost btn-sm" disabled>Tirar do grupo</button>
       </div>
@@ -45,7 +46,7 @@
         <table class="tabela">
           <thead><tr>
             <th class="sel"><input type="checkbox" id="sel-todos" title="Selecionar os da lista"></th>
-            <th>Perfil</th><th>E-mail</th><th>Grupos</th><th>Participações</th><th>Último acesso</th><th></th>
+            <th>Perfil</th><th>E-mail</th><th>Grupos</th><th title="bolões · quizzes · gincanas">Participações</th><th>Último acesso</th><th></th>
           </tr></thead>
           <tbody id="corpo"></tbody>
         </table>
@@ -58,7 +59,7 @@
       <p class="muted mt-12">Grupos servem só para você organizar e achar perfis (turmas, famílias, testes, xadrez…). Quem participa não os vê e eles não dão acesso a nada.</p>
       <div class="barra">
         <input id="grupo-nome" class="input" maxlength="40" placeholder="Nome do novo grupo">
-        <input id="grupo-cor" type="color" value="#0a7d3f" title="Cor" style="width:44px;height:42px;border:none;background:none">
+        <input id="grupo-cor" type="color" class="input-cor" value="#2f5bea" title="Cor">
         <button id="btn-novo-grupo" class="btn btn-primary btn-sm">Criar grupo</button>
       </div>
       <div id="lista-grupos"></div>
@@ -69,7 +70,7 @@
   <div id="toast" class="toast hidden"></div>
 
   <script type="module">
-    import { supabase, requireAdmin, callAdmin, renderCabecalho, bindSignOut, escHtml, fmtData, AVATARS, explicarErro } from '../comum/auth.js'
+    import { supabase, requireAdmin, callAdmin, renderCabecalho, bindSignOut, escHtml, fmtDataCurta, AVATARS, explicarErro } from '../comum/auth.js'
 
     const auth = await requireAdmin()
     if (!auth) throw new Error('not reached')
@@ -115,7 +116,7 @@
     }
 
     const gruposDe = (uid) => vinculos.filter(v => v.user_id === uid).map(v => grupos.find(g => g.id === v.group_id)).filter(Boolean)
-    const etiqueta = (g) => `<span class="chip" style="${g.color ? `background:${g.color}22;color:${g.color};border-color:${g.color}55` : ''}">${escHtml(g.name)}</span>`
+    const etiqueta = (g) => `<span class="chip"${g.color ? ` style="--chip-cor:${escHtml(g.color)}"` : ''}>${escHtml(g.name)}</span>`
 
     // ── Aba Perfis ──────────────────────────────────────────
     function visiveis() {
@@ -140,19 +141,19 @@
       $('corpo').innerHTML = lista.map(p => `
         <tr class="${p.active ? '' : 'inativo'}">
           <td class="sel"><input type="checkbox" data-sel="${p.id}" ${marcados.has(p.id) ? 'checked' : ''}></td>
-          <td><span style="font-size:1.3rem">${escHtml(p.avatar || '⚽')}</span> <strong>${escHtml(p.display_name)}</strong>
+          <td><span class="avatar-linha">${escHtml(p.avatar || '🎯')}</span> <strong>${escHtml(p.display_name)}</strong>
               ${p.is_admin ? '<span class="chip">admin</span>' : ''}${p.active ? '' : ' <span class="chip cinza">desativado</span>'}</td>
           <td>${escHtml(p.email ?? '—')}</td>
           <td><div class="chips">${gruposDe(p.id).map(etiqueta).join('') || '<span class="muted">—</span>'}</div></td>
-          <td class="muted">${p.counts.pools} bolão · ${p.counts.quizzes} quiz · ${p.counts.gincanas} gincana</td>
-          <td class="muted">${p.last_sign_in_at ? fmtData(p.last_sign_in_at) : 'nunca'}</td>
+          <td class="muted mono" title="${p.counts.pools} bolão(ões) · ${p.counts.quizzes} quiz(zes) · ${p.counts.gincanas} gincana(s)">${p.counts.pools}·${p.counts.quizzes}·${p.counts.gincanas}</td>
+          <td class="muted mono">${p.last_sign_in_at ? fmtDataCurta(p.last_sign_in_at) : 'nunca'}</td>
           <td class="acoes">
             <button class="btn btn-ghost btn-sm" data-editar="${p.id}">Editar</button>
             <button class="btn btn-ghost btn-sm" data-senha="${p.id}">Senha</button>
             <button class="btn btn-ghost btn-sm" data-ativo="${p.id}">${p.active ? 'Desativar' : 'Reativar'}</button>
             <button class="btn btn-danger btn-sm" data-excluir="${p.id}">Excluir</button>
           </td>
-        </tr>`).join('') || '<tr><td colspan="7" class="center muted" style="padding:24px">Nenhum perfil encontrado.</td></tr>'
+        </tr>`).join('') || '<tr><td colspan="7" class="vazio-inline">Nenhum perfil encontrado.</td></tr>'
       $('contagem').textContent = `${lista.length} de ${perfis.length} perfis`
       const n = marcados.size
       $('sel-info').textContent = n ? `${n} selecionado(s)` : 'Nenhum perfil selecionado'
@@ -203,7 +204,7 @@
       const g = document.getElementById('m-avatares'); if (!g) return
       g.addEventListener('click', e => { const o = e.target.closest('[data-av]'); if (!o) return; g.querySelectorAll('.avatar-opt').forEach(b => b.classList.remove('selected')); o.classList.add('selected') })
     }
-    const avatarEscolhido = () => document.querySelector('#m-avatares .selected')?.dataset.av ?? '⚽'
+    const avatarEscolhido = () => document.querySelector('#m-avatares .selected')?.dataset.av ?? '🎯'
 
     // Novo perfil
     $('btn-novo').addEventListener('click', () => {
@@ -212,9 +213,9 @@
         <div class="campos">
           <div class="campo"><label>Nome de exibição (2 a 28)</label><input id="m-nome" class="input" maxlength="28"></div>
           <div class="campo"><label>E-mail (é o login)</label><input id="m-email" class="input" type="email"></div>
-          <div class="campo"><label>Senha inicial</label><div style="display:flex;gap:6px"><input id="m-senha" class="input" value="${senhaAleatoria()}"><button type="button" class="btn btn-ghost btn-sm" id="m-gerar">Gerar</button></div></div>
+          <div class="campo"><label>Senha inicial</label><div class="campo-com-botao"><input id="m-senha" class="input" value="${senhaAleatoria()}"><button type="button" class="btn btn-ghost btn-sm" id="m-gerar">Gerar</button></div></div>
         </div>
-        <div class="campo mt-12"><label>Avatar</label>${seletorAvatar('⚽')}</div>
+        <div class="campo mt-12"><label>Avatar</label>${seletorAvatar('🎯')}</div>
         <div class="campos mt-12">
           <div class="campo"><label>Grupos</label>${checks('m-grupos', grupos)}</div>
           <div class="campo"><label>Já inscrever nestas gincanas</label>${checks('m-eventos', eventos)}</div>
@@ -291,7 +292,7 @@
         <p class="aviso alerta mt-8">Trocar o e-mail muda o login da pessoa: ela passa a entrar com o e-mail novo. Só o administrador pode fazer isso.</p>
         <div class="campo mt-12"><label>Avatar</label>${seletorAvatar(p.avatar || '⚽')}</div>
         <div class="campo mt-12"><label>Grupos</label>${checks('m-grupos', grupos, meus)}</div>
-        <label class="mt-12" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="m-admin" ${p.is_admin ? 'checked' : ''} ${p.id === auth.user.id ? 'disabled' : ''}> Administrador geral (acesso total ao sistema de gincanas)</label>
+        <label class="mt-12 label-check"><input type="checkbox" id="m-admin" ${p.is_admin ? 'checked' : ''} ${p.id === auth.user.id ? 'disabled' : ''}> Administrador geral (acesso total ao sistema de gincanas)</label>
         <p id="m-msg" class="aviso erro mt-12 hidden"></p>
         <div class="modal-rodape"><button class="btn btn-ghost" id="m-cancelar">Cancelar</button><button class="btn btn-primary" id="m-ok">Salvar</button></div>`, true)
       ligarAvatar()
@@ -317,7 +318,7 @@
     function senha(p) {
       abrirModal(`
         <h3>Nova senha para ${escHtml(p.display_name)}</h3>
-        <div class="campo"><label>Senha (mín. 6 caracteres)</label><div style="display:flex;gap:6px"><input id="m-senha" class="input" value="${senhaAleatoria()}"><button type="button" class="btn btn-ghost btn-sm" id="m-gerar">Gerar</button></div></div>
+        <div class="campo"><label>Senha (mín. 6 caracteres)</label><div class="campo-com-botao"><input id="m-senha" class="input" value="${senhaAleatoria()}"><button type="button" class="btn btn-ghost btn-sm" id="m-gerar">Gerar</button></div></div>
         <p id="m-msg" class="aviso erro mt-12 hidden"></p>
         <div class="modal-rodape"><button class="btn btn-ghost" id="m-cancelar">Cancelar</button><button class="btn btn-primary" id="m-ok">Redefinir</button></div>`)
       $('m-gerar').onclick = () => { $('m-senha').value = senhaAleatoria() }
@@ -361,8 +362,8 @@
       $('lista-grupos').innerHTML = grupos.map(g => {
         const membros = vinculos.filter(v => v.group_id === g.id).map(v => perfis.find(p => p.id === v.user_id)).filter(Boolean)
         return `<article class="card mt-12">
-          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
-            <h3>${etiqueta(g)} <span class="muted" style="font-size:.85rem">${membros.length} perfil(is)</span></h3>
+          <div class="topo-secao">
+            <h3>${etiqueta(g)} <span class="muted texto-p">${membros.length} perfil(is)</span></h3>
             <div><button class="btn btn-ghost btn-sm" data-g-ver="${g.id}">Filtrar perfis</button>
                  <button class="btn btn-ghost btn-sm" data-g-ren="${g.id}">Renomear / cor</button>
                  <button class="btn btn-danger btn-sm" data-g-del="${g.id}">Excluir grupo</button></div>

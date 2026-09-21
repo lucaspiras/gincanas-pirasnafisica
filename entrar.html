@@ -6,11 +6,13 @@
   <title>Entrar · Gincanas</title>
   <meta name="robots" content="noindex">
   <link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
+  <script src="js/theme.js"></script>
   <link rel="stylesheet" href="comum/estilo.css">
 </head>
 <body>
   <main class="auth-page">
     <div class="auth-brand">
+      <div class="marca-login" id="marca-slot"></div>
       <p class="eyebrow">Gincanas · Piras na Física</p>
       <h1>Entrar</h1>
       <div class="pitch-rule"></div>
@@ -24,14 +26,16 @@
       <p id="error-msg" class="error-msg hidden"></p>
     </form>
 
-    <p class="muted mt-16 center" style="font-size:.85rem">
+    <p class="muted mt-16 center texto-p">
       Não tem acesso? As gincanas são fechadas: fale com o organizador.<br>
-      <a href="index.html" style="text-decoration:underline">← Voltar</a>
+      <a href="index.html" class="sublinhado">← Voltar</a>
     </p>
   </main>
 
   <script type="module">
-    import { supabase, caminhoSeguro, doSite, PAINEL_URL, ENTRAR_URL } from './comum/auth.js'
+    import { supabase, caminhoSeguro, doSite, marcaSvg, PAINEL_URL, ENTRAR_URL } from './comum/auth.js'
+
+    document.getElementById('marca-slot').innerHTML = marcaSvg(34)
 
     // Depois de entrar: ?redirect=<caminho do próprio site>; senão o administrador vai
     // para o admin e os demais para o painel. O caminho é validado (nada de //host).
