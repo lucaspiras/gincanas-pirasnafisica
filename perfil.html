@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meu perfil · Gincanas</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
+  <link rel="stylesheet" href="comum/estilo.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+    <div id="loading" class="empty"><strong>Carregando…</strong></div>
+    <div id="content" class="hidden">
+
+      <div class="section-header" style="margin-bottom:0">
+        <h2>Meu perfil</h2>
+        <div class="pitch-rule"></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:16px;margin-top:20px">
+        <div id="current-avatar" style="font-size:3rem;line-height:1">⚽</div>
+        <div>
+          <div id="current-name" style="font-family:var(--font-display);font-size:1.4rem;font-weight:800"></div>
+          <div id="current-email" style="font-size:.85rem;color:var(--muted);margin-top:2px"></div>
+        </div>
+      </div>
+
+      <p class="aviso alerta mt-12">O e-mail é o seu login e só o administrador pode alterá-lo. Para mudar, fale com o organizador.</p>
+
+      <div class="card mt-24">
+        <h3>Avatar</h3>
+        <div class="avatar-grid mt-16" id="avatar-grid"></div>
+      </div>
+
+      <div class="card mt-12">
+        <h3>Nome de exibição</h3>
+        <p class="muted mt-4" style="font-size:.82rem">É o nome que aparece nos placares e rankings (de 2 a 28 caracteres).</p>
+        <div class="stack gap-8 mt-12">
+          <input id="input-name" class="input" type="text" minlength="2" maxlength="28" placeholder="Seu nome de exibição">
+        </div>
+      </div>
+
+      <div class="mt-12">
+        <button id="btn-save-profile" class="btn btn-primary" disabled>Salvar avatar e nome</button>
+        <p id="profile-msg" class="hidden mt-8" style="font-size:.85rem"></p>
+      </div>
+
+      <div class="card mt-24">
+        <h3>Trocar senha</h3>
+        <div class="stack gap-8 mt-12">
+          <input id="input-pw0" class="input" type="password" autocomplete="current-password" placeholder="Senha atual">
+          <input id="input-pw1" class="input" type="password" autocomplete="new-password" placeholder="Nova senha (mín. 6 caracteres)" minlength="6">
+          <input id="input-pw2" class="input" type="password" autocomplete="new-password" placeholder="Confirmar nova senha">
+          <button id="btn-save-pw" class="btn btn-primary btn-sm" style="align-self:flex-start">Trocar senha</button>
+          <p id="pw-msg" class="hidden" style="font-size:.85rem"></p>
+        </div>
+      </div>
+
+      <div class="mt-24"><a href="painel.html" class="btn btn-ghost">← Minhas gincanas</a></div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { supabase, requireAuthWithProfile, renderCabecalho, bindSignOut, escHtml, AVATARS, explicarErro } from './comum/auth.js'
+
+    const auth = await requireAuthWithProfile()
+    if (!auth) throw new Error('not reached')
+    const { user, profile } = auth
+
+    document.getElementById('header-slot').innerHTML = renderCabecalho(profile, '')
+    bindSignOut()
+
+    let avatar = profile.avatar || '⚽'
+    let nome   = profile.display_name
+    const $ = (id) => document.getElementById(id)
+
+    $('current-avatar').textContent = avatar
+    $('current-name').textContent   = nome
+    $('input-name').value           = nome
+    $('current-email').textContent  = user.email ?? ''
+    $('loading').classList.add('hidden')
+    $('content').classList.remove('hidden')
+
+    function mostrar(id, texto, erro) {
+      const el = $(id)
+      el.textContent = texto
+      el.style.color = erro ? 'var(--flare)' : 'var(--pitch-deep)'
+      el.classList.remove('hidden')
+    }
+    const mudou = () => (avatar !== (profile.avatar || '⚽')) || ($('input-name').value.trim() !== profile.display_name)
+
+    // ── Avatar e nome (RPC: só essas duas colunas, com validação no servidor) ──
+    const grid = $('avatar-grid')
+    grid.innerHTML = AVATARS.map(a => `<button type="button" class="avatar-opt${a === avatar ? ' selected' : ''}" data-avatar="${escHtml(a)}">${a}</button>`).join('')
+    grid.addEventListener('click', e => {
+      const opt = e.target.closest('.avatar-opt')
+      if (!opt) return
+      avatar = opt.dataset.avatar
+      grid.querySelectorAll('.avatar-opt').forEach(b => b.classList.remove('selected'))
+      opt.classList.add('selected')
+      $('current-avatar').textContent = avatar
+      $('btn-save-profile').disabled = !mudou()
+    })
+    $('input-name').addEventListener('input', () => { $('btn-save-profile').disabled = !mudou() })
+
+    $('btn-save-profile').addEventListener('click', async () => {
+      const btn = $('btn-save-profile')
+      const novo = $('input-name').value.trim()
+      if (novo.length < 2 || novo.length > 28) return mostrar('profile-msg', 'O nome deve ter de 2 a 28 caracteres.', true)
+      btn.disabled = true
+      const { error } = await supabase.rpc('gincana_update_my_profile', { p_name: novo, p_avatar: avatar })
+      if (error) { btn.disabled = false; return mostrar('profile-msg', explicarErro(error), true) }
+      profile.display_name = novo; profile.avatar = avatar
+      $('current-name').textContent = novo
+      $('header-slot').innerHTML = renderCabecalho(profile, ''); bindSignOut()
+      mostrar('profile-msg', '✓ Perfil atualizado!', false)
+    })
+
+    // ── Senha: pede a atual (reautentica) antes de trocar ──
+    $('btn-save-pw').addEventListener('click', async () => {
+      const pw0 = $('input-pw0').value, pw1 = $('input-pw1').value, pw2 = $('input-pw2').value
+      const btn = $('btn-save-pw')
+      if (!pw0)           return mostrar('pw-msg', 'Digite a senha atual.', true)
+      if (pw1.length < 6) return mostrar('pw-msg', 'A nova senha precisa de pelo menos 6 caracteres.', true)
+      if (pw1 !== pw2)    return mostrar('pw-msg', 'As senhas novas não coincidem.', true)
+      btn.disabled = true
+      const { error: e0 } = await supabase.auth.signInWithPassword({ email: user.email, password: pw0 })
+      if (e0) { btn.disabled = false; return mostrar('pw-msg', 'A senha atual está incorreta.', true) }
+      const { error } = await supabase.auth.updateUser({ password: pw1 })
+      btn.disabled = false
+      if (error) return mostrar('pw-msg', error.message, true)
+      $('input-pw0').value = $('input-pw1').value = $('input-pw2').value = ''
+      mostrar('pw-msg', '✓ Senha alterada com sucesso!', false)
+    })
+  </script>
+</body>
+</html>

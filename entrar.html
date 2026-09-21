@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar · Gincanas</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
+  <link rel="stylesheet" href="comum/estilo.css">
+</head>
+<body>
+  <main class="auth-page">
+    <div class="auth-brand">
+      <p class="eyebrow">Gincanas · Piras na Física</p>
+      <h1>Entrar</h1>
+      <div class="pitch-rule"></div>
+      <p class="muted mt-12">Use o e-mail e a senha que o organizador enviou.</p>
+    </div>
+
+    <form id="auth-form" class="auth-form">
+      <input id="input-email" class="input" type="email" inputmode="email" autocomplete="email" placeholder="seu@email.com" required>
+      <input id="input-password" class="input" type="password" autocomplete="current-password" placeholder="Senha" minlength="6" required>
+      <button type="submit" class="btn btn-primary btn-full" id="btn-submit">Entrar</button>
+      <p id="error-msg" class="error-msg hidden"></p>
+    </form>
+
+    <p class="muted mt-16 center" style="font-size:.85rem">
+      Não tem acesso? As gincanas são fechadas: fale com o organizador.<br>
+      <a href="index.html" style="text-decoration:underline">← Voltar</a>
+    </p>
+  </main>
+
+  <script type="module">
+    import { supabase, caminhoSeguro, doSite, PAINEL_URL, ENTRAR_URL } from './comum/auth.js'
+
+    // Depois de entrar: ?redirect=<caminho do próprio site>; senão o administrador vai
+    // para o admin e os demais para o painel. O caminho é validado (nada de //host).
+    function destino(profile) {
+      const r = caminhoSeguro(new URLSearchParams(location.search).get('redirect'))
+      if (r && !r.startsWith(ENTRAR_URL)) return r
+      return profile?.is_admin ? doSite('admin/index.html') : PAINEL_URL
+    }
+
+    const { data: { user: ja } } = await supabase.auth.getUser()
+    if (ja) {
+      const { data: p } = await supabase.from('profiles').select('id, is_admin').eq('id', ja.id).maybeSingle()
+      if (p) location.replace(destino(p))
+    }
+
+    const form   = document.getElementById('auth-form')
+    const btn    = document.getElementById('btn-submit')
+    const errMsg = document.getElementById('error-msg')
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const email    = document.getElementById('input-email').value.trim()
+      const password = document.getElementById('input-password').value
+      btn.disabled = true
+      btn.innerHTML = '<span class="spinner"></span>'
+      errMsg.classList.add('hidden')
+
+      const falha = (texto) => {
+        btn.disabled = false; btn.textContent = 'Entrar'
+        errMsg.textContent = texto; errMsg.classList.remove('hidden')
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        falha(error.message.includes('Invalid') ? 'E-mail ou senha incorretos.'
+            : error.message.toLowerCase().includes('banned') ? 'Esta conta está desativada. Fale com o organizador.'
+            : error.message)
+        return
+      }
+
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: profile } = await supabase.from('profiles').select('id, is_admin').eq('id', user.id).maybeSingle()
+      if (profile) {
+        location.replace(destino(profile))
+      } else {
+        // Conta sem perfil: acesso ainda não liberado pelo organizador.
+        await supabase.auth.signOut()
+        falha('Acesso ainda não liberado. Fale com o organizador.')
+      }
+    })
+  </script>
+</body>
+</html>

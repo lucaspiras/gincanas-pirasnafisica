@@ -1,71 +1,12 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+import {
+  supabase, getUser, requireAuth, getProfile, requireAuthWithProfile,
+  requireAdmin, signOut, callAdmin, escHtml, bindSignOut
+} from '../comum/auth.js'
 
-const SUPABASE_URL      = 'https://zmbgprapzgvpnmbtrakp.supabase.co'
-const SUPABASE_ANON_KEY = 'sb_publishable_Zh1Kq8RsRjK1OUiGsVTVkw_AhkMK275'
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-
-/* ── Auth helpers ──────────────────────────────────────────── */
-
-export async function getUser() {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
-}
-
-export async function requireAuth(redirectTo = 'login.html') {
-  const user = await getUser()
-  if (!user) { location.href = redirectTo; return null }
-  return user
-}
-
-export async function getProfile(userId) {
-  const { data } = await supabase
-    .from('profiles')
-    .select('id, display_name, is_admin, avatar')
-    .eq('id', userId)
-    .maybeSingle()
-  return data
-}
-
-export async function requireAuthWithProfile(redirectTo = 'login.html') {
-  const user = await requireAuth(redirectTo)
-  if (!user) return null
-  const profile = await getProfile(user.id)
-  // No novo modelo, a conta e o perfil são criados juntos pelo admin.
-  // Uma conta sem perfil é um estado anômalo: encerra a sessão e volta ao login.
-  if (!profile) { await supabase.auth.signOut(); location.href = 'login.html'; return null }
-  return { user, profile }
-}
-
-export async function requireAdmin() {
-  const result = await requireAuthWithProfile()
-  if (!result) return null
-  if (!result.profile.is_admin) { location.href = 'dashboard.html'; return null }
-  return result
-}
-
-export async function signOut() {
-  await supabase.auth.signOut()
-  location.href = 'login.html'
-}
-
-/* ── Painel admin (Edge Function) ──────────────────────────── */
-// Chama a Edge Function `admin`, que guarda a service_role no servidor e confere
-// is_admin do chamador. O JWT do usuário é anexado automaticamente pelo invoke.
-// Lança Error com mensagem amigável em caso de falha.
-export async function callAdmin(action, payload = {}) {
-  const { data, error } = await supabase.functions.invoke('admin', {
-    body: { action, ...payload }
-  })
-  if (error) {
-    // Erros HTTP (4xx/5xx) trazem o corpo em error.context
-    let msg = error.message
-    try { msg = (await error.context?.json())?.error ?? msg } catch {}
-    throw new Error(msg)
-  }
-  if (data?.error) throw new Error(data.error)
-  return data
-}
+// O cliente, o login e as funções de admin moraram aqui; agora vivem em comum/auth.js,
+// compartilhado por todo o sistema de gincanas. Reexportados para que as páginas do
+// bolão e da gincana da Copa continuem importando deste arquivo.
+export { supabase, getUser, requireAuth, getProfile, requireAuthWithProfile, requireAdmin, signOut, callAdmin, escHtml, bindSignOut }
 
 /* ── UI helpers ────────────────────────────────────────────── */
 
@@ -80,7 +21,7 @@ export function renderHeader(profile, showAdmin = false) {
         <a href="dashboard.html" class="header-brand"><img class="header-logo" src="logo_bolao_novo.png" alt="">Bolão</a>
         <div class="header-right">
           ${adminLink}
-          <a href="profile.html" class="header-user-link" title="Meu perfil">
+          <a href="/perfil.html" class="header-user-link" title="Meu perfil">
             <span class="header-avatar">${avatar}</span>
             <span class="header-name">${escHtml(profile.display_name)}</span>
           </a>
@@ -99,16 +40,6 @@ export function renderPoolNav(poolId, activePage) {
   return `<nav class="pool-nav">
     ${items.map(i => `<a href="${i.href}" class="pool-nav-item${i.id === activePage ? ' active' : ''}">${i.label}</a>`).join('')}
   </nav>`
-}
-
-export function bindSignOut() {
-  document.getElementById('btn-signout')?.addEventListener('click', signOut)
-}
-
-export function escHtml(str) {
-  return String(str ?? '')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;')
 }
 
 export function fmtDate(iso) {

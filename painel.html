@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minhas gincanas · Gincanas</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
+  <link rel="stylesheet" href="comum/estilo.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <main class="container-largo pt-24 pb-32">
+    <div class="section-header">
+      <h2>Minhas gincanas</h2>
+      <div class="pitch-rule"></div>
+    </div>
+    <p class="muted" id="sub">Aqui ficam as gincanas de que você participa e os resultados das que já terminaram.</p>
+
+    <div id="loading" class="empty mt-16"><strong>Carregando…</strong></div>
+    <div id="erro" class="aviso erro mt-16 hidden"></div>
+    <div id="vazio" class="empty mt-16 hidden">
+      <strong>Nenhuma gincana por enquanto</strong>
+      Você ainda não foi incluído em nenhuma gincana. Fale com o organizador para ser adicionado.
+    </div>
+
+    <div id="lista"></div>
+  </main>
+
+  <script type="module">
+    import { supabase, requireAuthWithProfile, renderCabecalho, bindSignOut, escHtml, fmtData, doSite, explicarErro } from './comum/auth.js'
+
+    const auth = await requireAuthWithProfile()
+    if (!auth) throw new Error('not reached')
+    const { profile } = auth
+    document.getElementById('header-slot').innerHTML = renderCabecalho(profile, 'painel')
+    bindSignOut()
+
+    const TIPO = { bolao: '⚽ Bolão', quiz: '🎯 Quiz ao vivo', placar: '🏆 Placar geral', misto: '🎪 Gincana' }
+    const PAPEL = { juror: 'Jurado', admin: 'Administrador' }
+
+    const { data, error } = await supabase.rpc('gincana_my_events')
+    document.getElementById('loading').classList.add('hidden')
+    if (error) {
+      const e = document.getElementById('erro')
+      e.textContent = 'Não foi possível carregar as suas gincanas. ' + explicarErro(error)
+      e.classList.remove('hidden')
+      throw error
+    }
+
+    const eventos = data ?? []
+    if (eventos.length === 0) document.getElementById('vazio').classList.remove('hidden')
+
+    const grupos = [
+      ['Em andamento', eventos.filter(e => e.status === 'open')],
+      ['Em preparação', eventos.filter(e => e.status === 'draft')],
+      ['Encerradas', eventos.filter(e => e.status === 'closed')],
+    ]
+
+    // Os caminhos vêm do banco e são relativos ao site; qualquer outra coisa é ignorada.
+    const rel = (p) => (p && !/^([a-z][a-z0-9+.-]*:|\/\/)/i.test(p)) ? doSite(p) : null
+
+    function cartao(e) {
+      const datas = [e.starts_at && fmtData(e.starts_at), e.ends_at && fmtData(e.ends_at)].filter(Boolean).join(' a ')
+      const badge = e.status === 'open' ? '<span class="badge badge-open">Aberta</span>'
+                  : e.status === 'draft' ? '<span class="badge badge-rascunho">Em preparação</span>'
+                  : '<span class="badge badge-closed">Encerrada</span>'
+      const entrar = rel(e.entry_path), res = rel(e.results_path)
+      return `
+        <article class="card gcard">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+            <h3>${escHtml(e.name)}</h3>${badge}
+          </div>
+          <div class="meta">${escHtml(TIPO[e.kind] ?? 'Gincana')}${datas ? ' · ' + escHtml(datas) : ''}${PAPEL[e.role] ? ' · ' + PAPEL[e.role] : ''}</div>
+          <div class="botoes">
+            ${entrar ? `<a class="btn btn-primary btn-sm" href="${escHtml(entrar)}">${e.status === 'closed' ? 'Ver' : 'Entrar'}</a>` : ''}
+            ${res ? `<a class="btn btn-ghost btn-sm" href="${escHtml(res)}">Resultados</a>` : ''}
+          </div>
+        </article>`
+    }
+
+    document.getElementById('lista').innerHTML = grupos.filter(([, l]) => l.length).map(([titulo, l]) => `
+      <h3 class="mt-24" style="font-family:var(--font-display)">${titulo}</h3>
+      <div class="grade-cartoes mt-12">${l.map(cartao).join('')}</div>`).join('')
+  </script>
+</body>
+</html>

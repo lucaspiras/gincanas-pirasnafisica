@@ -3,100 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Entrar · Bolão da Copa 2026</title>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TY56KM22X8"></script>
+  <title>Entrar · Gincanas</title>
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://gincanas.pirasnafisica.com.br/entrar.html">
+  <noscript><meta http-equiv="refresh" content="0; url=../entrar.html"></noscript>
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-TY56KM22X8');
+    // O login agora é único (entrar.html, na raiz do site). Esta página só encaminha,
+    // preservando o ?redirect= — que era relativo a esta pasta e vira caminho completo.
+    (function () {
+      var alvo = new URL('../entrar.html', location.href);
+      var r = new URLSearchParams(location.search).get('redirect');
+      if (r) {
+        try {
+          var u = new URL(r, location.href);
+          // Só aceita destino do próprio site (barra o //host e o https://outro).
+          if (u.origin === location.origin) alvo.searchParams.set('redirect', u.pathname + u.search);
+        } catch (e) {}
+      }
+      location.replace(alvo.href);
+    })();
   </script>
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="auth-page">
-    <div class="auth-brand">
-      <p class="eyebrow">Copa 2026</p>
-      <h1>Bolão<br>da galera</h1>
-      <div class="pitch-rule"></div>
-      <p class="muted mt-12" id="subtitle">Entre com o e-mail e a senha que o organizador te passou.</p>
-    </div>
-
-    <form id="auth-form" class="auth-form">
-      <input
-        id="input-email"
-        class="input"
-        type="email"
-        inputmode="email"
-        autocomplete="email"
-        placeholder="seu@email.com"
-        required
-      >
-      <input
-        id="input-password"
-        class="input"
-        type="password"
-        autocomplete="current-password"
-        placeholder="Senha"
-        minlength="6"
-        required
-      >
-      <button type="submit" class="btn btn-primary btn-full" id="btn-submit">
-        Entrar
-      </button>
-      <p id="error-msg" class="error-msg hidden"></p>
-    </form>
-
-    <p class="muted mt-16 center" style="font-size:.85rem">
-      Ainda não tem acesso? Fale com o organizador do bolão.
-    </p>
-  </main>
-
-  <script type="module">
-    import { supabase } from './supabase.js'
-
-    const { data: { user: u } } = await supabase.auth.getUser()
-    if (u) { location.replace('dashboard.html'); }
-
-    const form   = document.getElementById('auth-form')
-    const btn    = document.getElementById('btn-submit')
-    const errMsg = document.getElementById('error-msg')
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault()
-      const email    = document.getElementById('input-email').value.trim()
-      const password = document.getElementById('input-password').value
-      btn.disabled = true
-      btn.innerHTML = '<span class="spinner"></span>'
-      errMsg.classList.add('hidden')
-
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) {
-        btn.disabled = false
-        btn.textContent = 'Entrar'
-        errMsg.textContent = error.message.includes('Invalid')
-          ? 'E-mail ou senha incorretos.'
-          : error.message
-        errMsg.classList.remove('hidden')
-        return
-      }
-
-      const { data: { user } } = await supabase.auth.getUser()
-      const { data: profile } = await supabase
-        .from('profiles').select('id').eq('id', user.id).maybeSingle()
-      if (profile) {
-        location.replace('dashboard.html')
-      } else {
-        // Conta sem perfil: acesso ainda não liberado pelo organizador.
-        await supabase.auth.signOut()
-        btn.disabled = false
-        btn.textContent = 'Entrar'
-        errMsg.textContent = 'Acesso ainda não liberado. Fale com o organizador.'
-        errMsg.classList.remove('hidden')
-      }
-    })
-  </script>
+  <p><a href="../entrar.html">Ir para o login das gincanas</a></p>
 </body>
 </html>

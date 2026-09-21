@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perfis e grupos · Admin das gincanas</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
+  <link rel="stylesheet" href="../comum/estilo.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <main class="container-largo pt-24 pb-32">
+    <div class="section-header"><h2>Perfis e grupos</h2><div class="pitch-rule"></div></div>
+
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="perfis">Perfis</button>
+      <button class="tab" data-tab="grupos">Grupos</button>
+    </div>
+
+    <div id="loading" class="empty mt-16"><strong>Carregando…</strong></div>
+    <div id="erro" class="aviso erro mt-16 hidden"></div>
+
+    <!-- ── Perfis ─────────────────────────────────────────── -->
+    <section id="aba-perfis" class="hidden">
+      <div class="barra">
+        <input id="busca" class="input" type="search" placeholder="Buscar por nome ou e-mail">
+        <select id="filtro-status" class="input" style="flex:0 0 auto;width:auto">
+          <option value="ativos">Só ativos</option><option value="todos">Todos</option><option value="inativos">Só desativados</option>
+        </select>
+        <button id="btn-novo" class="btn btn-primary btn-sm">+ Novo perfil</button>
+        <button id="btn-lote" class="btn btn-ghost btn-sm">+ Vários de uma vez</button>
+      </div>
+      <div class="chips" id="filtro-grupos" style="margin-bottom:12px"></div>
+
+      <div class="barra" id="barra-sel" style="margin-top:0">
+        <span class="muted" id="sel-info">Nenhum perfil selecionado</span>
+        <select id="sel-grupo" class="input" style="flex:0 0 auto;width:auto"></select>
+        <button id="btn-add-grupo" class="btn btn-ghost btn-sm" disabled>Adicionar ao grupo</button>
+        <button id="btn-del-grupo" class="btn btn-ghost btn-sm" disabled>Tirar do grupo</button>
+      </div>
+
+      <div class="tabela-wrap">
+        <table class="tabela">
+          <thead><tr>
+            <th class="sel"><input type="checkbox" id="sel-todos" title="Selecionar os da lista"></th>
+            <th>Perfil</th><th>E-mail</th><th>Grupos</th><th>Participações</th><th>Último acesso</th><th></th>
+          </tr></thead>
+          <tbody id="corpo"></tbody>
+        </table>
+      </div>
+      <p class="muted mt-8" id="contagem"></p>
+    </section>
+
+    <!-- ── Grupos ─────────────────────────────────────────── -->
+    <section id="aba-grupos" class="hidden">
+      <p class="muted mt-12">Grupos servem só para você organizar e achar perfis (turmas, famílias, testes, xadrez…). Quem participa não os vê e eles não dão acesso a nada.</p>
+      <div class="barra">
+        <input id="grupo-nome" class="input" maxlength="40" placeholder="Nome do novo grupo">
+        <input id="grupo-cor" type="color" value="#0a7d3f" title="Cor" style="width:44px;height:42px;border:none;background:none">
+        <button id="btn-novo-grupo" class="btn btn-primary btn-sm">Criar grupo</button>
+      </div>
+      <div id="lista-grupos"></div>
+    </section>
+  </main>
+
+  <div id="modal-slot"></div>
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module">
+    import { supabase, requireAdmin, callAdmin, renderCabecalho, bindSignOut, escHtml, fmtData, AVATARS, explicarErro } from '../comum/auth.js'
+
+    const auth = await requireAdmin()
+    if (!auth) throw new Error('not reached')
+    document.getElementById('header-slot').innerHTML = renderCabecalho(auth.profile, 'perfis')
+    bindSignOut()
+    const $ = (id) => document.getElementById(id)
+
+    // ── Estado ──────────────────────────────────────────────
+    let perfis = [], grupos = [], vinculos = [], eventos = []   // vinculos: {group_id, user_id}
+    const marcados = new Set()
+    let filtroGrupo = null
+
+    function toast(t) { const el = $('toast'); el.textContent = t; el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 2600) }
+    function falha(e) { const el = $('erro'); el.textContent = explicarErro(e); el.classList.remove('hidden') }
+
+    // PostgREST devolve no máximo 1000 linhas por chamada; pagina até acabar.
+    async function todas(tabela, colunas) {
+      let out = []
+      for (let f = 0; ; f += 1000) {
+        const { data, error } = await supabase.from(tabela).select(colunas).range(f, f + 999)
+        if (error) throw error
+        out = out.concat(data ?? [])
+        if (!data || data.length < 1000) break
+      }
+      return out
+    }
+
+    async function carregar() {
+      try {
+        const [lp, g, v, ev] = await Promise.all([
+          callAdmin('list_participants'),
+          todas('gincana_groups', 'id, name, color, description'),
+          todas('gincana_group_members', 'group_id, user_id'),
+          todas('gincana_events', 'id, name, slug, status'),
+        ])
+        perfis = lp.participants ?? []
+        grupos = g.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+        vinculos = v
+        eventos = ev.filter(e => e.status !== 'closed').sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+      } catch (e) { $('loading').classList.add('hidden'); falha(e); throw e }
+      $('loading').classList.add('hidden')
+      desenhar()
+    }
+
+    const gruposDe = (uid) => vinculos.filter(v => v.user_id === uid).map(v => grupos.find(g => g.id === v.group_id)).filter(Boolean)
+    const etiqueta = (g) => `<span class="chip" style="${g.color ? `background:${g.color}22;color:${g.color};border-color:${g.color}55` : ''}">${escHtml(g.name)}</span>`
+
+    // ── Aba Perfis ──────────────────────────────────────────
+    function visiveis() {
+      const q = $('busca').value.trim().toLowerCase(), st = $('filtro-status').value
+      return perfis.filter(p => {
+        if (st === 'ativos' && !p.active) return false
+        if (st === 'inativos' && p.active) return false
+        if (filtroGrupo && !vinculos.some(v => v.group_id === filtroGrupo && v.user_id === p.id)) return false
+        return !q || (p.display_name ?? '').toLowerCase().includes(q) || (p.email ?? '').toLowerCase().includes(q)
+      })
+    }
+
+    function desenhar() {
+      // filtros por grupo e seletor de ação em massa
+      $('filtro-grupos').innerHTML = grupos.length
+        ? `<span class="chip filtro${filtroGrupo === null ? ' ativo' : ''}" data-g="">Todos</span>` +
+          grupos.map(g => `<span class="chip filtro${filtroGrupo === g.id ? ' ativo' : ''}" data-g="${g.id}">${escHtml(g.name)}</span>`).join('')
+        : '<span class="muted">Ainda não há grupos. Crie na aba Grupos.</span>'
+      $('sel-grupo').innerHTML = grupos.map(g => `<option value="${g.id}">${escHtml(g.name)}</option>`).join('')
+
+      const lista = visiveis()
+      $('corpo').innerHTML = lista.map(p => `
+        <tr class="${p.active ? '' : 'inativo'}">
+          <td class="sel"><input type="checkbox" data-sel="${p.id}" ${marcados.has(p.id) ? 'checked' : ''}></td>
+          <td><span style="font-size:1.3rem">${escHtml(p.avatar || '⚽')}</span> <strong>${escHtml(p.display_name)}</strong>
+              ${p.is_admin ? '<span class="chip">admin</span>' : ''}${p.active ? '' : ' <span class="chip cinza">desativado</span>'}</td>
+          <td>${escHtml(p.email ?? '—')}</td>
+          <td><div class="chips">${gruposDe(p.id).map(etiqueta).join('') || '<span class="muted">—</span>'}</div></td>
+          <td class="muted">${p.counts.pools} bolão · ${p.counts.quizzes} quiz · ${p.counts.gincanas} gincana</td>
+          <td class="muted">${p.last_sign_in_at ? fmtData(p.last_sign_in_at) : 'nunca'}</td>
+          <td class="acoes">
+            <button class="btn btn-ghost btn-sm" data-editar="${p.id}">Editar</button>
+            <button class="btn btn-ghost btn-sm" data-senha="${p.id}">Senha</button>
+            <button class="btn btn-ghost btn-sm" data-ativo="${p.id}">${p.active ? 'Desativar' : 'Reativar'}</button>
+            <button class="btn btn-danger btn-sm" data-excluir="${p.id}">Excluir</button>
+          </td>
+        </tr>`).join('') || '<tr><td colspan="7" class="center muted" style="padding:24px">Nenhum perfil encontrado.</td></tr>'
+      $('contagem').textContent = `${lista.length} de ${perfis.length} perfis`
+      const n = marcados.size
+      $('sel-info').textContent = n ? `${n} selecionado(s)` : 'Nenhum perfil selecionado'
+      $('btn-add-grupo').disabled = $('btn-del-grupo').disabled = !n || !grupos.length
+      desenharGrupos()
+    }
+
+    $('busca').addEventListener('input', desenhar)
+    $('filtro-status').addEventListener('change', desenhar)
+    $('filtro-grupos').addEventListener('click', e => { const c = e.target.closest('[data-g]'); if (!c) return; filtroGrupo = c.dataset.g || null; desenhar() })
+    $('sel-todos').addEventListener('change', e => { visiveis().forEach(p => e.target.checked ? marcados.add(p.id) : marcados.delete(p.id)); desenhar() })
+    $('corpo').addEventListener('change', e => { const c = e.target.closest('[data-sel]'); if (!c) return; c.checked ? marcados.add(c.dataset.sel) : marcados.delete(c.dataset.sel); desenhar() })
+
+    async function emMassa(adicionar) {
+      const gid = $('sel-grupo').value, ids = [...marcados]
+      if (!gid || !ids.length) return
+      try {
+        if (adicionar) {
+          const { error } = await supabase.from('gincana_group_members').upsert(ids.map(user_id => ({ group_id: gid, user_id })), { onConflict: 'group_id,user_id', ignoreDuplicates: true })
+          if (error) throw error
+        } else {
+          const { error } = await supabase.from('gincana_group_members').delete().eq('group_id', gid).in('user_id', ids)
+          if (error) throw error
+        }
+        vinculos = await todas('gincana_group_members', 'group_id, user_id')
+        toast(adicionar ? 'Adicionados ao grupo.' : 'Removidos do grupo.'); desenhar()
+      } catch (e) { falha(e) }
+    }
+    $('btn-add-grupo').addEventListener('click', () => emMassa(true))
+    $('btn-del-grupo').addEventListener('click', () => emMassa(false))
+
+    // ── Modais ──────────────────────────────────────────────
+    function abrirModal(html, larga = false) {
+      $('modal-slot').innerHTML = `<div class="modal-fundo"><div class="modal-caixa${larga ? ' larga' : ''}">${html}</div></div>`
+      $('modal-slot').querySelector('.modal-fundo').addEventListener('mousedown', e => { if (e.target.classList.contains('modal-fundo')) fecharModal() })
+    }
+    const fecharModal = () => { $('modal-slot').innerHTML = '' }
+    const checks = (nome, itens, marcado = []) => itens.length
+      ? `<div class="lista-marcar">${itens.map(i => `<label><input type="checkbox" name="${nome}" value="${i.id}" ${marcado.includes(i.id) ? 'checked' : ''}> ${escHtml(i.name)}</label>`).join('')}</div>`
+      : '<p class="muted">Nenhum disponível.</p>'
+    const valores = (nome) => [...document.querySelectorAll(`#modal-slot input[name="${nome}"]:checked`)].map(i => i.value)
+    const senhaAleatoria = () => Array.from(crypto.getRandomValues(new Uint8Array(10)), b => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join('')
+
+    function seletorAvatar(atual) {
+      return `<div class="avatar-grid" id="m-avatares">${AVATARS.map(a => `<button type="button" class="avatar-opt${a === atual ? ' selected' : ''}" data-av="${escHtml(a)}">${a}</button>`).join('')}</div>`
+    }
+    function ligarAvatar() {
+      const g = document.getElementById('m-avatares'); if (!g) return
+      g.addEventListener('click', e => { const o = e.target.closest('[data-av]'); if (!o) return; g.querySelectorAll('.avatar-opt').forEach(b => b.classList.remove('selected')); o.classList.add('selected') })
+    }
+    const avatarEscolhido = () => document.querySelector('#m-avatares .selected')?.dataset.av ?? '⚽'
+
+    // Novo perfil
+    $('btn-novo').addEventListener('click', () => {
+      abrirModal(`
+        <h3>Novo perfil</h3>
+        <div class="campos">
+          <div class="campo"><label>Nome de exibição (2 a 28)</label><input id="m-nome" class="input" maxlength="28"></div>
+          <div class="campo"><label>E-mail (é o login)</label><input id="m-email" class="input" type="email"></div>
+          <div class="campo"><label>Senha inicial</label><div style="display:flex;gap:6px"><input id="m-senha" class="input" value="${senhaAleatoria()}"><button type="button" class="btn btn-ghost btn-sm" id="m-gerar">Gerar</button></div></div>
+        </div>
+        <div class="campo mt-12"><label>Avatar</label>${seletorAvatar('⚽')}</div>
+        <div class="campos mt-12">
+          <div class="campo"><label>Grupos</label>${checks('m-grupos', grupos)}</div>
+          <div class="campo"><label>Já inscrever nestas gincanas</label>${checks('m-eventos', eventos)}</div>
+        </div>
+        <p id="m-msg" class="aviso erro mt-12 hidden"></p>
+        <div class="modal-rodape"><button class="btn btn-ghost" id="m-cancelar">Cancelar</button><button class="btn btn-primary" id="m-ok">Criar perfil</button></div>`, true)
+      ligarAvatar()
+      $('m-gerar').onclick = () => { $('m-senha').value = senhaAleatoria() }
+      $('m-cancelar').onclick = fecharModal
+      $('m-ok').onclick = async () => {
+        const btn = $('m-ok'); btn.disabled = true
+        try {
+          await callAdmin('create_participant', {
+            display_name: $('m-nome').value.trim(), email: $('m-email').value.trim(), password: $('m-senha').value,
+            avatar: avatarEscolhido(), group_ids: valores('m-grupos'), event_ids: valores('m-eventos'),
+          })
+          fecharModal(); toast('Perfil criado.'); await carregar()
+        } catch (e) { btn.disabled = false; const m = $('m-msg'); m.textContent = e.message; m.classList.remove('hidden') }
+      }
+    })
+
+    // Vários de uma vez
+    $('btn-lote').addEventListener('click', () => {
+      abrirModal(`
+        <h3>Criar vários perfis</h3>
+        <p class="muted">Uma linha por perfil, no formato <strong>nome;e-mail;senha</strong>. Se a senha ficar em branco, uma é gerada. Até 200 linhas.</p>
+        <textarea id="m-linhas" class="input mt-8" rows="8" placeholder="Equipe Alfa;alfa@exemplo.com;senha123&#10;Equipe Beta;beta@exemplo.com;"></textarea>
+        <div class="campos mt-12">
+          <div class="campo"><label>Grupos</label>${checks('m-grupos', grupos)}</div>
+          <div class="campo"><label>Já inscrever nestas gincanas</label>${checks('m-eventos', eventos)}</div>
+        </div>
+        <div id="m-res" class="mt-12"></div>
+        <div class="modal-rodape"><button class="btn btn-ghost" id="m-cancelar">Fechar</button><button class="btn btn-primary" id="m-ok">Criar perfis</button></div>`, true)
+      $('m-cancelar').onclick = fecharModal
+      $('m-ok').onclick = async () => {
+        const items = $('m-linhas').value.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+          const [display_name, email, senha] = l.split(';').map(s => s?.trim() ?? '')
+          return { display_name, email, password: senha || senhaAleatoria() }
+        })
+        if (!items.length) return
+        const btn = $('m-ok'); btn.disabled = true
+        try {
+          const r = await callAdmin('create_participants', { items, group_ids: valores('m-grupos'), event_ids: valores('m-eventos') })
+          const senhaDe = Object.fromEntries(items.map(i => [i.email.toLowerCase(), i.password]))
+          $('m-res').innerHTML = `<p class="aviso alerta">Anote as senhas agora: elas não podem ser lidas depois (só redefinidas).</p>
+            <div class="tabela-wrap mt-8"><table class="tabela"><thead><tr><th>E-mail</th><th>Senha</th><th>Resultado</th></tr></thead><tbody>${
+              r.results.map(x => `<tr><td>${escHtml(x.email ?? '')}</td><td>${x.ok ? escHtml(senhaDe[(x.email ?? '').toLowerCase()] ?? '') : ''}</td><td>${x.ok ? '✓ criado' : '✗ ' + escHtml(x.error)}</td></tr>`).join('')
+            }</tbody></table></div>`
+          await carregar()
+        } catch (e) { $('m-res').innerHTML = `<p class="aviso erro">${escHtml(e.message)}</p>` }
+        btn.disabled = false
+      }
+    })
+
+    // Ações por linha
+    $('corpo').addEventListener('click', async (e) => {
+      const b = e.target.closest('button'); if (!b) return
+      const id = b.dataset.editar || b.dataset.senha || b.dataset.ativo || b.dataset.excluir
+      const p = perfis.find(x => x.id === id); if (!p) return
+      if (b.dataset.editar) editar(p)
+      else if (b.dataset.senha) senha(p)
+      else if (b.dataset.ativo) alternarAtivo(p)
+      else if (b.dataset.excluir) excluir(p)
+    })
+
+    function editar(p) {
+      const meus = gruposDe(p.id).map(g => g.id)
+      abrirModal(`
+        <h3>Editar ${escHtml(p.display_name)}</h3>
+        <div class="campos">
+          <div class="campo"><label>Nome de exibição</label><input id="m-nome" class="input" maxlength="28" value="${escHtml(p.display_name)}"></div>
+          <div class="campo"><label>E-mail (login)</label><input id="m-email" class="input" type="email" value="${escHtml(p.email ?? '')}"></div>
+        </div>
+        <p class="aviso alerta mt-8">Trocar o e-mail muda o login da pessoa: ela passa a entrar com o e-mail novo. Só o administrador pode fazer isso.</p>
+        <div class="campo mt-12"><label>Avatar</label>${seletorAvatar(p.avatar || '⚽')}</div>
+        <div class="campo mt-12"><label>Grupos</label>${checks('m-grupos', grupos, meus)}</div>
+        <label class="mt-12" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="m-admin" ${p.is_admin ? 'checked' : ''} ${p.id === auth.user.id ? 'disabled' : ''}> Administrador geral (acesso total ao sistema de gincanas)</label>
+        <p id="m-msg" class="aviso erro mt-12 hidden"></p>
+        <div class="modal-rodape"><button class="btn btn-ghost" id="m-cancelar">Cancelar</button><button class="btn btn-primary" id="m-ok">Salvar</button></div>`, true)
+      ligarAvatar()
+      $('m-cancelar').onclick = fecharModal
+      $('m-ok').onclick = async () => {
+        const btn = $('m-ok'); btn.disabled = true
+        try {
+          const payload = { user_id: p.id, display_name: $('m-nome').value.trim(), avatar: avatarEscolhido() }
+          const email = $('m-email').value.trim()
+          if (email && email.toLowerCase() !== (p.email ?? '').toLowerCase()) payload.email = email
+          if (!$('m-admin').disabled) payload.is_admin = $('m-admin').checked
+          await callAdmin('update_participant', payload)
+          // grupos: só as diferenças
+          const novos = valores('m-grupos')
+          const add = novos.filter(x => !meus.includes(x)), del = meus.filter(x => !novos.includes(x))
+          if (add.length) { const { error } = await supabase.from('gincana_group_members').upsert(add.map(group_id => ({ group_id, user_id: p.id })), { onConflict: 'group_id,user_id', ignoreDuplicates: true }); if (error) throw error }
+          if (del.length) { const { error } = await supabase.from('gincana_group_members').delete().eq('user_id', p.id).in('group_id', del); if (error) throw error }
+          fecharModal(); toast('Perfil atualizado.'); await carregar()
+        } catch (er) { btn.disabled = false; const m = $('m-msg'); m.textContent = er.message; m.classList.remove('hidden') }
+      }
+    }
+
+    function senha(p) {
+      abrirModal(`
+        <h3>Nova senha para ${escHtml(p.display_name)}</h3>
+        <div class="campo"><label>Senha (mín. 6 caracteres)</label><div style="display:flex;gap:6px"><input id="m-senha" class="input" value="${senhaAleatoria()}"><button type="button" class="btn btn-ghost btn-sm" id="m-gerar">Gerar</button></div></div>
+        <p id="m-msg" class="aviso erro mt-12 hidden"></p>
+        <div class="modal-rodape"><button class="btn btn-ghost" id="m-cancelar">Cancelar</button><button class="btn btn-primary" id="m-ok">Redefinir</button></div>`)
+      $('m-gerar').onclick = () => { $('m-senha').value = senhaAleatoria() }
+      $('m-cancelar').onclick = fecharModal
+      $('m-ok').onclick = async () => {
+        const btn = $('m-ok'); btn.disabled = true
+        try { await callAdmin('reset_password', { user_id: p.id, password: $('m-senha').value }); fecharModal(); toast('Senha redefinida.') }
+        catch (e) { btn.disabled = false; const m = $('m-msg'); m.textContent = e.message; m.classList.remove('hidden') }
+      }
+    }
+
+    async function alternarAtivo(p) {
+      if (p.active && !confirm(`Desativar ${p.display_name}? A pessoa deixa de conseguir entrar, mas todo o histórico é mantido.`)) return
+      try { await callAdmin('set_participant_active', { user_id: p.id, active: !p.active }); toast(p.active ? 'Desativado.' : 'Reativado.'); await carregar() }
+      catch (e) { falha(e) }
+    }
+
+    async function excluir(p) {
+      let d
+      try { d = await callAdmin('participant_detail', { user_id: p.id }) } catch (e) { return falha(e) }
+      const temHistorico = d.pools.length || d.quizzes.length || d.gincanas.length || d.predictions || d.answers
+      abrirModal(`
+        <h3>Excluir ${escHtml(p.display_name)}?</h3>
+        <p>Isto apaga a conta e o perfil <strong>para sempre</strong>.${temHistorico ? '' : ' Esta pessoa não tem histórico.'}</p>
+        ${temHistorico ? `<div class="aviso erro mt-8">Também some o histórico: ${d.pools.length} bolão(ões) e ${d.predictions} palpite(s); ${d.quizzes.length} quiz(zes) e ${d.answers} resposta(s); ${d.gincanas.length} gincana(s).
+          <br>Para só impedir o acesso e manter o histórico, use <strong>Desativar</strong>.</div>` : ''}
+        <div class="campo mt-12"><label>Para confirmar, digite o e-mail: <strong>${escHtml(p.email ?? '')}</strong></label><input id="m-conf" class="input" autocomplete="off"></div>
+        <p id="m-msg" class="aviso erro mt-12 hidden"></p>
+        <div class="modal-rodape"><button class="btn btn-ghost" id="m-cancelar">Cancelar</button><button class="btn btn-danger" id="m-ok">Excluir definitivamente</button></div>`)
+      $('m-cancelar').onclick = fecharModal
+      $('m-ok').onclick = async () => {
+        if ($('m-conf').value.trim().toLowerCase() !== (p.email ?? '').toLowerCase()) { const m = $('m-msg'); m.textContent = 'O e-mail digitado não confere.'; m.classList.remove('hidden'); return }
+        const btn = $('m-ok'); btn.disabled = true
+        try { await callAdmin('delete_participant', { user_id: p.id }); marcados.delete(p.id); fecharModal(); toast('Perfil excluído.'); await carregar() }
+        catch (e) { btn.disabled = false; const m = $('m-msg'); m.textContent = e.message; m.classList.remove('hidden') }
+      }
+    }
+
+    // ── Aba Grupos ──────────────────────────────────────────
+    function desenharGrupos() {
+      $('lista-grupos').innerHTML = grupos.map(g => {
+        const membros = vinculos.filter(v => v.group_id === g.id).map(v => perfis.find(p => p.id === v.user_id)).filter(Boolean)
+        return `<article class="card mt-12">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+            <h3>${etiqueta(g)} <span class="muted" style="font-size:.85rem">${membros.length} perfil(is)</span></h3>
+            <div><button class="btn btn-ghost btn-sm" data-g-ver="${g.id}">Filtrar perfis</button>
+                 <button class="btn btn-ghost btn-sm" data-g-ren="${g.id}">Renomear / cor</button>
+                 <button class="btn btn-danger btn-sm" data-g-del="${g.id}">Excluir grupo</button></div>
+          </div>
+          <div class="chips mt-8">${membros.map(m => `<span class="chip cinza">${escHtml(m.avatar || '')} ${escHtml(m.display_name)}</span>`).join('') || '<span class="muted">Sem perfis. Adicione pela aba Perfis.</span>'}</div>
+        </article>`
+      }).join('') || '<div class="empty mt-16"><strong>Nenhum grupo ainda</strong>Crie o primeiro acima (por exemplo: Turma 301, Família, Testes, Xadrez).</div>'
+    }
+
+    $('btn-novo-grupo').addEventListener('click', async () => {
+      const name = $('grupo-nome').value.trim(); if (!name) return
+      const { error } = await supabase.from('gincana_groups').insert({ name, color: $('grupo-cor').value })
+      if (error) return falha(error.code === '23505' ? new Error('Já existe um grupo com esse nome.') : error)
+      $('grupo-nome').value = ''; toast('Grupo criado.'); await carregar()
+    })
+    $('lista-grupos').addEventListener('click', async (e) => {
+      const b = e.target.closest('button'); if (!b) return
+      if (b.dataset.gVer) { filtroGrupo = b.dataset.gVer; trocarAba('perfis'); desenhar() }
+      else if (b.dataset.gRen) {
+        const g = grupos.find(x => x.id === b.dataset.gRen)
+        abrirModal(`<h3>Renomear grupo</h3>
+          <div class="campos"><div class="campo"><label>Nome</label><input id="m-nome" class="input" maxlength="40" value="${escHtml(g.name)}"></div>
+          <div class="campo"><label>Cor</label><input id="m-cor" type="color" value="${g.color || '#0a7d3f'}"></div></div>
+          <p id="m-msg" class="aviso erro mt-12 hidden"></p>
+          <div class="modal-rodape"><button class="btn btn-ghost" id="m-cancelar">Cancelar</button><button class="btn btn-primary" id="m-ok">Salvar</button></div>`)
+        $('m-cancelar').onclick = fecharModal
+        $('m-ok').onclick = async () => {
+          const { error } = await supabase.from('gincana_groups').update({ name: $('m-nome').value.trim(), color: $('m-cor').value }).eq('id', g.id)
+          if (error) { const m = $('m-msg'); m.textContent = error.code === '23505' ? 'Já existe um grupo com esse nome.' : error.message; m.classList.remove('hidden'); return }
+          fecharModal(); await carregar()
+        }
+      } else if (b.dataset.gDel) {
+        const g = grupos.find(x => x.id === b.dataset.gDel)
+        if (!confirm(`Excluir o grupo "${g.name}"? Nenhum perfil é apagado, só a organização em grupo.`)) return
+        const { error } = await supabase.from('gincana_groups').delete().eq('id', g.id)
+        if (error) return falha(error)
+        if (filtroGrupo === g.id) filtroGrupo = null
+        toast('Grupo excluído.'); await carregar()
+      }
+    })
+
+    // ── Abas ────────────────────────────────────────────────
+    function trocarAba(nome) {
+      document.querySelectorAll('#tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === nome))
+      $('aba-perfis').classList.toggle('hidden', nome !== 'perfis')
+      $('aba-grupos').classList.toggle('hidden', nome !== 'grupos')
+    }
+    $('tabs').addEventListener('click', e => { const t = e.target.closest('.tab'); if (t) trocarAba(t.dataset.tab) })
+
+    await carregar()
+    trocarAba('perfis')
+  </script>
+</body>
+</html>
