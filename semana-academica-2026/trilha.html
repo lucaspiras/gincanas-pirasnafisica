@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Enigma · Semana Acadêmica 2026</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
+  <script src="../js/theme.js"></script>
+  <link rel="stylesheet" href="../comum/estilo.css">
+  <style>
+    .barra-prog { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+    .barra-prog > span { display: block; height: 100%; background: var(--acento-grad); transition: width .4s; }
+    .enigma-img { width: 100%; height: auto; border-radius: var(--raio); border: 1.5px solid var(--border); display: block; background: #0b1029; margin-bottom: 14px; }
+    /* O SVG entra embutido, e não dentro de <img>, porque alguns enigmas têm
+       área clicável no próprio desenho. Vai num shadow root para que o estilo
+       do desenho e o estilo do site não se misturem. */
+    .enigma-svg { width: 100%; border-radius: var(--raio); border: 1.5px solid var(--border); display: block; overflow: hidden; background: #0b1029; margin-bottom: 14px; }
+    .enunciado { font-size: 1.12rem; line-height: 1.55; }
+    .resposta-linha { display: flex; gap: 8px; flex-wrap: wrap; }
+    .resposta-linha .input { flex: 1 1 220px; }
+    .contador { font-variant-numeric: tabular-nums; }
+    /* Barra de administrador: um clique para chegar em qualquer enigma. */
+    .admin-barra { border: 1.5px dashed var(--alerta-border); background: var(--alerta-bg); border-radius: var(--raio); padding: 12px 14px; }
+    .admin-barra .rotulo { font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--alerta); }
+    .admin-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .admin-chips .chip { cursor: pointer; background: var(--surface); border-color: var(--border); color: var(--texto); }
+    .admin-chips .chip:hover { border-color: var(--azul); }
+    .admin-chips .chip.ativo { background: var(--azul); color: #fff; border-color: var(--azul); }
+    .gabarito dt { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); margin-top: 10px; }
+    .gabarito dd { margin: 2px 0 0; font-family: var(--font-mono); font-size: .92rem; }
+  </style>
+</head>
+<body data-tipo="misto">
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+    <div id="loading" class="empty"><strong>Carregando…</strong></div>
+
+    <div id="content" class="hidden">
+
+      <!-- Só para administrador -->
+      <div id="admin-barra" class="admin-barra hidden">
+        <span class="rotulo">Prévia de administrador</span>
+        <div class="admin-chips" id="admin-chips"></div>
+        <p class="muted texto-p mt-8" id="admin-nota">Clique num enigma para ver como a turma o recebe. Nada é gravado.</p>
+      </div>
+
+      <div class="topo-secao mt-16">
+        <div class="section-header compacto">
+          <h1 id="titulo">Enigma</h1>
+          <div class="pitch-rule"></div>
+        </div>
+        <span class="muted mono contador" id="progresso-txt"></span>
+      </div>
+      <div class="barra-prog mt-12" id="barra-wrap"><span id="barra" style="width:0%"></span></div>
+
+      <!-- Enunciado (serve para jogar e para a prévia) -->
+      <div id="cartao-enigma" class="card mt-24 hidden">
+        <div id="img-slot"></div>
+        <p class="enunciado" id="pergunta"></p>
+        <p class="muted mt-8 hidden" id="dica"></p>
+      </div>
+
+      <!-- Responder (só no modo turma) -->
+      <div id="form-resposta" class="card mt-12 hidden">
+        <div class="campo"><label for="resposta">Resposta da turma</label></div>
+        <div class="resposta-linha mt-4">
+          <input id="resposta" class="input" type="text" maxlength="120" placeholder="Escreva aqui"
+                 autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+          <button id="btn-responder" class="btn btn-primary">Responder</button>
+        </div>
+        <p class="muted mt-8 texto-p">Acento, maiúscula e pontuação não contam.</p>
+        <p id="msg" class="hidden mt-12"></p>
+      </div>
+
+      <!-- Gabarito (só na prévia de administrador) -->
+      <div id="gabarito" class="card mt-12 hidden">
+        <h3>Gabarito</h3>
+        <dl class="gabarito" id="gabarito-lista"></dl>
+      </div>
+
+      <!-- Acertou -->
+      <div id="acertou" class="card mt-24 hidden">
+        <h3>✓ Resposta certa</h3>
+        <p class="mt-8" id="revela"></p>
+        <p class="muted mt-8" id="ganhou"></p>
+        <div class="mt-16"><button class="btn btn-primary" id="btn-proximo">Próximo enigma →</button></div>
+      </div>
+
+      <div id="espera" class="empty mt-24 hidden"></div>
+      <div id="fim" class="card mt-24 hidden">
+        <h3>🏁 Trilha completa</h3>
+        <p class="mt-8">A sua turma resolveu todos os enigmas. Os pontos já estão no placar.</p>
+        <div class="mt-16"><a class="btn btn-primary btn-sm" href="placar.html">Ver o placar</a></div>
+      </div>
+
+      <div class="mt-24">
+        <a class="btn btn-ghost btn-sm" href="enigmas.html">← Como funciona</a>
+        <a class="btn btn-ghost btn-sm" href="index.html">Início da gincana</a>
+        <button class="btn btn-ghost btn-sm hidden" id="btn-modo-turma">Voltar ao modo turma</button>
+      </div>
+    </div>
+
+    <div id="semequipe" class="empty mt-16 hidden">
+      <strong>O seu acesso ainda não está ligado a uma turma</strong>
+      Fale com a organização para entrar na gincana.
+    </div>
+    <div id="erro" class="aviso erro mt-16 hidden"></div>
+  </main>
+
+  <script type="module">
+    import { supabase, requireAuthWithProfile, renderCabecalho, bindSignOut, escHtml,
+             slugDaPasta, PAINEL_URL, explicarErro } from '../comum/auth.js'
+
+    const SLUG = slugDaPasta()
+    const auth = await requireAuthWithProfile()
+    if (!auth) throw new Error('not reached')
+    document.getElementById('header-slot').innerHTML = renderCabecalho(auth.profile, '')
+    bindSignOut()
+
+    const { data: ok } = await supabase.rpc('gincana_is_member', { p_slug: SLUG })
+    // O administrador entra mesmo sem estar inscrito, para conferir a gincana antes de abrir.
+    if (!ok && !auth.profile.is_admin) { location.replace(PAINEL_URL); throw new Error('not member') }
+
+    const $ = (id) => document.getElementById(id)
+    const mostrar = (id, ver) => $(id).classList.toggle('hidden', !ver)
+    const falha = (e) => { $('erro').textContent = explicarErro(e); $('erro').classList.remove('hidden') }
+    const ehAdmin = !!auth.profile.is_admin
+
+    const { data: eq } = await supabase.rpc('gincana_minha_equipe', { p_slug: SLUG })
+    const equipe = (eq ?? [])[0]
+
+    $('loading').classList.add('hidden')
+    if (!equipe && !ehAdmin) { $('semequipe').classList.remove('hidden'); throw new Error('sem equipe') }
+    $('content').classList.remove('hidden')
+
+    let enigmaAtual = null      // o que a turma está jogando
+    let previa = null           // o que o administrador está espiando
+
+    const quandoAbre = (iso) => new Date(iso)
+      .toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+
+    // Um enunciado pode trazer um endereço. Escapa tudo e só então transforma
+    // o que sobrou em link, para o texto do enigma nunca virar HTML.
+    function comLinks(texto) {
+      return escHtml(String(texto ?? '')).replace(
+        /https?:\/\/[^\s<]+[^\s<.,;:)\]}"']/g,
+        (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`)
+    }
+
+    // Desenho do enigma. SVG entra embutido, para que link dentro do desenho funcione;
+    // qualquer outro formato continua em <img>. Se a busca falhar, cai no <img> também.
+    async function pintarMedia(url) {
+      const slot = $('img-slot')
+      slot.innerHTML = ''
+      if (!url) return
+      const comoImagem = () => {
+        slot.innerHTML = `<img class="enigma-img" src="${escHtml(url)}" alt="Imagem do enigma">`
+      }
+      if (!/\.svg(\?|$)/i.test(url)) return comoImagem()
+      try {
+        const r = await fetch(url, { cache: 'no-cache' })
+        if (!r.ok) throw new Error(String(r.status))
+        const texto = await r.text()
+        const i = texto.indexOf('<svg')
+        if (i < 0) throw new Error('sem <svg>')
+        const caixa = document.createElement('div')
+        caixa.className = 'enigma-svg'
+        slot.appendChild(caixa)
+        caixa.attachShadow({ mode: 'open' }).innerHTML =
+          '<style>svg{display:block;width:100%;height:auto}</style>' + texto.slice(i)
+      } catch { comoImagem() }
+    }
+
+    function pintarEnigma(e) {
+      $('titulo').textContent = e.titulo || `Enigma ${e.ord}`
+      $('pergunta').innerHTML = comLinks(e.pergunta)
+      pintarMedia(e.media_url)
+      if (e.dica) { $('dica').innerHTML = '💡 ' + comLinks(e.dica); mostrar('dica', true) } else mostrar('dica', false)
+      mostrar('cartao-enigma', true)
+    }
+
+    /* ── Modo turma ──────────────────────────────────────── */
+    async function carregar() {
+      previa = null
+      marcarChip(null)
+      mostrar('gabarito', false); mostrar('acertou', false); mostrar('barra-wrap', true)
+      const { data, error } = await supabase.rpc('gincana_enigma_atual', { p_slug: SLUG, p_trilha: 'dna' })
+      if (error) return falha(error)
+      if (data?.erro) return falha(new Error(data.erro))
+
+      const total = data.total ?? 0, feitos = data.resolvidos ?? 0
+      $('progresso-txt').textContent = `${feitos} de ${total}`
+      $('barra').style.width = total ? `${Math.round(feitos * 100 / total)}%` : '0%'
+
+      enigmaAtual = data.enigma
+      if (enigmaAtual) {
+        pintarEnigma(enigmaAtual)
+        $('resposta').value = ''
+        mostrar('msg', false); mostrar('form-resposta', true)
+        mostrar('espera', false); mostrar('fim', false)
+        $('resposta').focus()
+      } else if (data.abre_em) {
+        $('titulo').textContent = 'Aguarde'
+        $('espera').innerHTML = `<strong>O próximo enigma ainda não abriu</strong>Ele abre em ${escHtml(quandoAbre(data.abre_em))}.`
+        mostrar('cartao-enigma', false); mostrar('form-resposta', false)
+        mostrar('espera', true); mostrar('fim', false)
+      } else {
+        $('titulo').textContent = 'Trilha completa'
+        mostrar('cartao-enigma', false); mostrar('form-resposta', false)
+        mostrar('espera', false); mostrar('fim', true)
+      }
+    }
+
+    async function responder() {
+      const texto = $('resposta').value.trim()
+      if (!texto || !enigmaAtual) return
+      const btn = $('btn-responder'); btn.disabled = true
+      const { data, error } = await supabase.rpc('gincana_enigma_responder', { p_enigma: enigmaAtual.id, p_resposta: texto })
+      btn.disabled = false
+      if (error) { $('msg').textContent = error.message; $('msg').className = 'aviso alerta mt-12'; return }
+      if (data?.certo) {
+        $('revela').textContent = data.revela || 'Siga para o próximo.'
+        $('ganhou').textContent = Number(data.pontos) > 0 ? `+${Number(data.pontos)} pontos para a turma.` : ''
+        mostrar('cartao-enigma', false); mostrar('form-resposta', false); mostrar('acertou', true)
+      } else {
+        $('msg').textContent = `Não é essa. Restam ${data?.restantes ?? '?'} tentativas neste enigma.`
+        $('msg').className = 'aviso erro mt-12'
+        $('resposta').select()
+      }
+    }
+
+    /* ── Prévia de administrador ─────────────────────────────
+       O administrador lê gincana_enigmas direto (a policy de admin permite), então
+       não precisa de RPC nova. Nada é gravado: nem tentativa, nem resolvido. */
+    let todos = []
+
+    function marcarChip(id) {
+      document.querySelectorAll('#admin-chips .chip').forEach(c => c.classList.toggle('ativo', c.dataset.id === id))
+    }
+
+    function verPrevia(id) {
+      const e = todos.find(x => x.id === id)
+      if (!e) return
+      previa = e
+      marcarChip(id)
+      pintarEnigma(e)
+      mostrar('form-resposta', false); mostrar('acertou', false)
+      mostrar('espera', false); mostrar('fim', false); mostrar('barra-wrap', false)
+      $('progresso-txt').textContent = `prévia · ${e.ord} de ${todos.length}`
+      const linha = (rotulo, valor) => valor ? `<dt>${rotulo}</dt><dd>${escHtml(String(valor))}</dd>` : ''
+      $('gabarito-lista').innerHTML =
+        linha('Resposta (normalizada)', e.resposta_norm) +
+        linha('Também aceita', (e.respostas_alt ?? []).join(' · ')) +
+        linha('Pontos', e.pontos) +
+        linha('Abre em', e.abre_em ? quandoAbre(e.abre_em) : 'assim que a anterior for resolvida') +
+        linha('Ao acertar, revela', e.revela) +
+        linha('Imagem', e.media_url)
+      mostrar('gabarito', true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    async function montarBarraAdmin() {
+      const { data: eventos } = await supabase.rpc('gincana_my_events')
+      const ev = (eventos ?? []).find(x => x.slug === SLUG)
+      if (!ev) return
+      const { data, error } = await supabase
+        .from('gincana_enigmas')
+        .select('id, ord, titulo, pergunta, dica, revela, pontos, abre_em, media_url, resposta_norm, respostas_alt')
+        .eq('event_id', ev.event_id).eq('trilha', 'dna').order('ord')
+      if (error) return falha(error)
+      todos = data ?? []
+      $('admin-chips').innerHTML = todos.length
+        ? todos.map(e => `<span class="chip" data-id="${e.id}">${escHtml(e.titulo || 'Enigma ' + e.ord)}</span>`).join('')
+        : '<span class="muted texto-p">Nenhum enigma cadastrado ainda.</span>'
+      $('admin-chips').addEventListener('click', (ev2) => {
+        const c = ev2.target.closest('.chip[data-id]')
+        if (c) verPrevia(c.dataset.id)
+      })
+      if (!equipe) $('admin-nota').textContent =
+        'O seu login não está ligado a nenhuma turma, então aqui só há a prévia. Clique num enigma para vê-lo.'
+      mostrar('admin-barra', true)
+      mostrar('btn-modo-turma', !!equipe)
+    }
+
+    $('btn-responder').addEventListener('click', responder)
+    $('resposta').addEventListener('keydown', (e) => { if (e.key === 'Enter') responder() })
+    $('btn-proximo').addEventListener('click', carregar)
+    $('btn-modo-turma').addEventListener('click', carregar)
+
+    if (ehAdmin) await montarBarraAdmin()
+    if (equipe) await carregar()
+    else if (todos.length) verPrevia(todos[0].id)
+  </script>
+</body>
+</html>

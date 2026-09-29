@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 440" width="2080" height="880"
+     role="img" aria-labelledby="t6 d6">
+  <title id="t6">Uma borboleta, uma abelha e uma luva de boxe</title>
+  <desc id="d6">Três figuras somadas por sinais de mais: uma borboleta de asas alaranjadas, uma
+  abelha listrada e uma luva de boxe vermelha. No canto inferior direito, uma seta circular que
+  gira para trás.</desc>
+  <style><![CDATA[
+    svg {
+      --fundo:    #1a2350;
+      --moldura:  #2c3870;
+      --mais:     #7d8bb8;
+      --asa:      #f0803c;  --asa-e:  #cf6122;  --pinta: #ffd166;
+      --corpoB:   #2a2118;
+      --mel:      #f7c948;  --mel-e:  #d9a406;  --preto: #241a12;
+      --asaT:     #e8f1ff;
+      --luva:     #d93b3b;  --luva-e: #a82828;  --punho: #b32e2e;  --luva-c: #ef6a6a;
+      --cadarco:  #f5f1e6;
+      --seta:     #9fb0dd;
+    }
+    .fundo    { fill: url(#gradFundo6); }
+    .moldura  { fill: none; stroke: var(--moldura); stroke-width: 2; }
+    .mais     { fill: none; stroke: var(--mais); stroke-width: 9; stroke-linecap: round; }
+    .asa      { fill: var(--asa); }      .asaE   { fill: var(--asa-e); }
+    .pinta    { fill: var(--pinta); }
+    .corpoB   { fill: var(--corpoB); }
+    .antena   { fill: none; stroke: var(--corpoB); stroke-width: 4; stroke-linecap: round; }
+    .mel      { fill: var(--mel); }      .melE   { fill: var(--mel-e); }
+    .preto    { fill: var(--preto); }
+    .asaT     { fill: var(--asaT); opacity: .55; }
+    .pata     { fill: none; stroke: var(--preto); stroke-width: 5; stroke-linecap: round; }
+    .luva     { fill: var(--luva); }     .luvaE  { fill: var(--luva-e); }
+    .luvaC    { fill: var(--luva-c); }
+    .punho    { fill: var(--punho); }
+    .cadarco  { fill: none; stroke: var(--cadarco); stroke-width: 4; stroke-linecap: round; }
+    .vinco    { fill: none; stroke: var(--luva-e); stroke-width: 4; stroke-linecap: round; }
+    .seta     { fill: none; stroke: var(--seta); stroke-width: 7; stroke-linecap: round; }
+    .setaF    { fill: var(--seta); }
+  ]]></style>
+
+  <defs>
+    <linearGradient id="gradFundo6" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a2350"/>
+      <stop offset="1" stop-color="#131a3c"/>
+    </linearGradient>
+    <clipPath id="corpoAbelha">
+      <ellipse cx="12" cy="0" rx="62" ry="40"/>
+    </clipPath>
+  </defs>
+
+  <rect class="fundo" x="0" y="0" width="1040" height="440"/>
+  <rect class="moldura" x="14" y="14" width="1012" height="412" rx="18"/>
+
+  <!-- 1. Borboleta -->
+  <g transform="translate(230 212) scale(.92)">
+    <g>
+      <path class="asa"  d="M10 -30 C 58 -78, 124 -70, 130 -24 C 134 2, 100 16, 62 10 C 32 6, 14 -8, 10 -30 Z"/>
+      <path class="asaE" d="M130 -24 C 134 2, 100 16, 62 10 C 92 8, 118 -4, 130 -24 Z"/>
+      <path class="asa"  d="M12 8 C 56 8, 92 30, 88 60 C 84 84, 50 90, 28 72 C 14 60, 8 34, 12 8 Z"/>
+      <path class="asaE" d="M88 60 C 84 84, 50 90, 28 72 C 56 80, 80 74, 88 60 Z"/>
+      <circle class="pinta" cx="74" cy="-32" r="10"/>
+      <circle class="pinta" cx="46" cy="44" r="7"/>
+    </g>
+    <g transform="scale(-1 1)">
+      <path class="asa"  d="M10 -30 C 58 -78, 124 -70, 130 -24 C 134 2, 100 16, 62 10 C 32 6, 14 -8, 10 -30 Z"/>
+      <path class="asaE" d="M130 -24 C 134 2, 100 16, 62 10 C 92 8, 118 -4, 130 -24 Z"/>
+      <path class="asa"  d="M12 8 C 56 8, 92 30, 88 60 C 84 84, 50 90, 28 72 C 14 60, 8 34, 12 8 Z"/>
+      <path class="asaE" d="M88 60 C 84 84, 50 90, 28 72 C 56 80, 80 74, 88 60 Z"/>
+      <circle class="pinta" cx="74" cy="-32" r="10"/>
+      <circle class="pinta" cx="46" cy="44" r="7"/>
+    </g>
+    <ellipse class="corpoB" cx="0" cy="10" rx="9" ry="46"/>
+    <circle  class="corpoB" cx="0" cy="-42" r="10"/>
+    <path class="antena" d="M-5 -50 C -16 -68, -28 -76, -38 -78"/>
+    <path class="antena" d="M5 -50 C 16 -68, 28 -76, 38 -78"/>
+    <circle class="corpoB" cx="-40" cy="-79" r="4"/>
+    <circle class="corpoB" cx="40" cy="-79" r="4"/>
+  </g>
+
+  <g class="mais" transform="translate(390 212)"><path d="M-15 0 h30 M0 -15 v30"/></g>
+
+  <!-- 2. Abelha -->
+  <g transform="translate(520 212) scale(.92)">
+    <path class="asaT" d="M-10 -40 C 24 -78, 70 -76, 64 -50 C 60 -30, 18 -24, -10 -40 Z"/>
+    <path class="asaT" d="M-16 -38 C -44 -74, -86 -70, -78 -46 C -72 -28, -38 -22, -16 -38 Z"/>
+    <path class="pata" d="M-24 38 l-8 22"/>
+    <path class="pata" d="M6 42 l0 22"/>
+    <path class="pata" d="M36 38 l10 20"/>
+    <ellipse class="mel" cx="12" cy="0" rx="62" ry="40"/>
+    <g clip-path="url(#corpoAbelha)">
+      <path class="preto" d="M-14 -44 l20 0 l-12 88 l-20 0 z"/>
+      <path class="preto" d="M18 -44 l20 0 l-12 88 l-20 0 z"/>
+      <path class="preto" d="M50 -44 l20 0 l-12 88 l-20 0 z"/>
+    </g>
+    <path class="melE" d="M12 40 C 46 40, 70 24, 74 2 C 74 26, 48 40, 12 40 Z"/>
+    <path class="preto" d="M74 -8 l28 8 l-28 8 z"/>
+    <circle class="preto" cx="-56" cy="-4" r="26"/>
+    <circle class="asaT" cx="-64" cy="-12" r="7" opacity=".9"/>
+    <circle class="asaT" cx="-48" cy="-14" r="5" opacity=".9"/>
+    <path class="antena" d="M-64 -26 C -72 -44, -82 -50, -90 -52" stroke="#241a12"/>
+    <path class="antena" d="M-50 -28 C -54 -46, -62 -54, -70 -58" stroke="#241a12"/>
+  </g>
+
+  <g class="mais" transform="translate(660 212)"><path d="M-15 0 h30 M0 -15 v30"/></g>
+
+  <!-- 3. Luva -->
+  <g transform="translate(840 190)">
+    <rect class="punho" x="-52" y="48" width="104" height="54" rx="14"/>
+    <path class="luva" d="M-52 0 C -98 -4, -112 24, -92 42 C -74 58, -46 50, -45 28 Z"/>
+    <path class="luva" d="M-58 0 C -62 -88, 62 -88, 58 0 C 56 36, 32 56, 0 56 C -32 56, -56 36, -58 0 Z"/>
+    <path class="luvaC" d="M-44 -14 C -48 -52, -20 -62, -4 -58 C -22 -48, -34 -36, -37 -12 Z" opacity=".7"/>
+    <path class="vinco" d="M-53 4 C -46 20, -38 28, -27 33"/>
+    <path class="vinco" d="M-34 -54 C -12 -66, 12 -66, 34 -54"/>
+    <path class="vinco" d="M-44 -26 C -18 -40, 18 -40, 44 -26"/>
+    <g class="cadarco">
+      <path d="M0 52 v44"/>
+      <path d="M-24 62 L24 76"/>
+      <path d="M-24 76 L24 62"/>
+      <path d="M-26 90 L26 90"/>
+    </g>
+  </g>
+
+  <!-- O sinal, no canto -->
+  <g>
+    <path class="seta" d="M950 344 A26 26 0 1 0 970 388"/>
+    <path class="setaF" d="M950 332 L934 344 L950 356 Z"/>
+  </g>
+</svg>

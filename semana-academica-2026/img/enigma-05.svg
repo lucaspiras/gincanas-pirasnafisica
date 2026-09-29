@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 560" width="2080" height="1120"
+     role="img" aria-labelledby="t5 d5">
+  <title id="t5">Um casal ao sol e o mesmo casal na chuva</title>
+  <desc id="d5">Duas cenas lado a lado, separadas por uma linha tracejada. À esquerda, sob um sol
+  forte, um casal de mãos dadas com um brilho em volta dos dois. À direita, sob chuva pesada, o
+  mesmo casal junto, abrigado por um guarda-chuva preto que um deles segura.</desc>
+  <style><![CDATA[
+    svg {
+      --ceu-a1:  #ffcf74;  --ceu-a2: #fff1d2;
+      --sol:     #fff5b8;  --sol-r:  #ffd978;
+      --chao-a:  #e9c98c;  --chao-a2:#d9b370;
+      --ceu-b1:  #16203a;  --ceu-b2: #0c1220;
+      --chao-b:  #182133;  --chao-b2:#101828;
+      --chuva:   #8fa6c9;
+      --poca:    #24324a;
+      --divisor: #b9a06a;
+      --pele1:   #e0b184;  --pele1e: #c2926a;
+      --pele2:   #a9713f;  --pele2e: #8a5a30;
+      --cabelo1: #2f2118;  --cabelo2: #3b2a1c;
+      --roupa1:  #e2664a;  --roupa1e:#bf5039;
+      --roupa2:  #5b84cf;  --roupa2e:#48699f;
+      --guarda:  #1d2027;  --guarda-e:#2c313b;  --haste: #aab4c2;
+    }
+    .ceuA    { fill: url(#gradCeuA5); }
+    .ceuB    { fill: url(#gradCeuB5); }
+    .sol     { fill: var(--sol); }
+    .raio    { fill: none; stroke: var(--sol-r); stroke-width: 7; stroke-linecap: round; }
+    .chaoA   { fill: var(--chao-a); }   .chaoA2 { fill: var(--chao-a2); }
+    .chaoB   { fill: var(--chao-b); }   .chaoB2 { fill: var(--chao-b2); }
+    .chuva   { fill: none; stroke: var(--chuva); stroke-width: 2.4; stroke-linecap: round; }
+    .poca    { fill: var(--poca); }
+    .divisor { fill: none; stroke: var(--divisor); stroke-width: 2.5; stroke-dasharray: 9 11; opacity: .75; }
+    .brilho  { fill: url(#gradBrilho5); }
+    .faisca  { fill: var(--sol-r); }
+    .pele1   { fill: var(--pele1); }    .pele1e { fill: var(--pele1e); }
+    .pele2   { fill: var(--pele2); }    .pele2e { fill: var(--pele2e); }
+    .cabelo1 { fill: var(--cabelo1); }  .cabelo2 { fill: var(--cabelo2); }
+    .roupa1  { fill: var(--roupa1); }   .roupa1e { fill: var(--roupa1e); }
+    .roupa2  { fill: var(--roupa2); }   .roupa2e { fill: var(--roupa2e); }
+    .bracoP1 { fill: none; stroke: var(--pele1); stroke-width: 11; stroke-linecap: round; }
+    .bracoP2 { fill: none; stroke: var(--pele2); stroke-width: 11; stroke-linecap: round; }
+    .pernaR1 { fill: none; stroke: var(--roupa1e); stroke-width: 13; stroke-linecap: round; }
+    .pernaR2 { fill: none; stroke: var(--roupa2e); stroke-width: 13; stroke-linecap: round; }
+    .lona    { fill: var(--guarda); }   .lonaE  { fill: var(--guarda-e); }
+    .haste   { fill: none; stroke: var(--haste); stroke-width: 5; stroke-linecap: round; }
+    .ponta   { fill: var(--haste); }
+  ]]></style>
+
+  <defs>
+    <linearGradient id="gradCeuA5" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffcf74"/><stop offset="1" stop-color="#fff1d2"/>
+    </linearGradient>
+    <linearGradient id="gradCeuB5" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16203a"/><stop offset="1" stop-color="#0c1220"/>
+    </linearGradient>
+    <radialGradient id="gradBrilho5" cx=".5" cy=".5" r=".5">
+      <stop offset="0"   stop-color="#fff6c8" stop-opacity=".85"/>
+      <stop offset=".55" stop-color="#ffe79a" stop-opacity=".35"/>
+      <stop offset="1"   stop-color="#ffe79a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ══ Esquerda: o sol ══ -->
+  <rect class="ceuA" x="0" y="0" width="520" height="432"/>
+  <rect class="chaoA" x="0" y="432" width="520" height="128"/>
+  <path class="chaoA2" d="M0 432 h520 v16 c-140 10, -300 -6, -520 4 Z"/>
+  <g>
+    <g class="raio">
+      <path d="M96 24 V4 M96 174 v20 M22 99 H2 M172 99 h20"/>
+      <path d="M45 48 L31 34 M148 150 l14 14 M45 150 L31 164 M148 48 l14 -14"/>
+    </g>
+    <circle class="sol" cx="96" cy="99" r="50"/>
+  </g>
+
+  <ellipse class="brilho" cx="300" cy="340" rx="180" ry="150"/>
+  <g class="faisca" opacity=".9">
+    <path d="M168 232 l5 13 l13 5 l-13 5 l-5 13 l-5 -13 l-13 -5 l13 -5 z"/>
+    <path d="M430 262 l4 11 l11 4 l-11 4 l-4 11 l-4 -11 l-11 -4 l11 -4 z"/>
+    <path d="M392 176 l3 9 l9 3 l-9 3 l-3 9 l-3 -9 l-9 -3 l9 -3 z"/>
+    <path d="M214 400 l3 9 l9 3 l-9 3 l-3 9 l-3 -9 l-9 -3 l9 -3 z"/>
+  </g>
+
+  <!-- casal ao sol, de mãos dadas -->
+  <g>
+    <path class="bracoP1" d="M262 350 L300 372"/>
+    <path class="bracoP2" d="M340 350 L302 372"/>
+
+    <g transform="translate(244 470)">
+      <path class="pernaR1" d="M-9 -78 L-15 -8"/>
+      <path class="pernaR1" d="M9 -78 L16 -8"/>
+      <path class="pele1e" d="M-26 -8 h22 v10 h-26 q-2 -7 4 -10 z"/>
+      <path class="pele1e" d="M6 -8 h22 q4 3 4 10 h-26 z"/>
+      <path class="roupa1" d="M-22 -148 C -10 -156, 10 -156, 22 -148 L 19 -74 C 6 -68, -6 -68, -19 -74 Z"/>
+      <path class="roupa1e" d="M8 -153 C 15 -151, 20 -150, 22 -148 L 19 -74 C 14 -71, 10 -70, 6 -69 Z"/>
+      <path class="bracoP1" d="M-20 -142 C -30 -122, -32 -104, -30 -90"/>
+      <circle class="pele1" cx="-30" cy="-86" r="6.5"/>
+      <rect class="pele1" x="-7" y="-168" width="14" height="16" rx="4"/>
+      <circle class="pele1" cx="0" cy="-182" r="18"/>
+      <path class="cabelo1" d="M-19 -184 C -21 -206, -7 -214, 5 -212 C 19 -209, 22 -196, 20 -182
+                               C 17 -192, 8 -197, -2 -196 C -10 -195, -15 -190, -19 -184 Z"/>
+      <path class="cabelo1" d="M-19 -184 C -25 -172, -25 -158, -21 -152 L -12 -157 C -16 -165, -18 -176, -15 -184 Z"/>
+      <path class="cabelo1" d="M18 -184 C 24 -172, 24 -158, 20 -152 L 11 -157 C 15 -165, 17 -176, 14 -184 Z"/>
+    </g>
+
+    <g transform="translate(358 470)">
+      <path class="pernaR2" d="M-9 -78 L-16 -8"/>
+      <path class="pernaR2" d="M9 -78 L15 -8"/>
+      <path class="pele2e" d="M-28 -8 h22 q4 3 4 10 h-26 z"/>
+      <path class="pele2e" d="M4 -8 h22 q4 3 4 10 h-26 z"/>
+      <path class="roupa2" d="M-23 -152 C -10 -160, 10 -160, 23 -152 L 20 -74 C 6 -68, -6 -68, -20 -74 Z"/>
+      <path class="roupa2e" d="M9 -157 C 16 -155, 21 -154, 23 -152 L 20 -74 C 15 -71, 11 -70, 7 -69 Z"/>
+      <path class="bracoP2" d="M21 -146 C 31 -126, 33 -108, 31 -94"/>
+      <circle class="pele2" cx="31" cy="-90" r="6.5"/>
+      <rect class="pele2" x="-7" y="-172" width="14" height="16" rx="4"/>
+      <circle class="pele2" cx="0" cy="-188" r="18"/>
+      <path class="cabelo2" d="M-19 -190 C -21 -212, -6 -220, 6 -217 C 20 -214, 22 -201, 20 -188
+                               C 16 -198, 7 -203, -3 -201 C -11 -200, -15 -195, -19 -190 Z"/>
+    </g>
+  </g>
+
+  <!-- ══ Direita: a chuva ══ -->
+  <rect class="ceuB" x="520" y="0" width="520" height="432"/>
+  <rect class="chaoB" x="520" y="432" width="520" height="128"/>
+  <path class="chaoB2" d="M520 432 h520 v16 c-140 10, -300 -6, -520 4 Z"/>
+  <g class="chuva" opacity=".55">
+    <path d="M556 30 l-13 38 M604 92 l-13 38 M652 22 l-13 38 M700 108 l-13 38 M748 44 l-13 38"/>
+    <path d="M796 120 l-13 38 M844 30 l-13 38 M892 96 l-13 38 M940 36 l-13 38 M988 112 l-13 38"/>
+    <path d="M540 190 l-13 38 M596 250 l-13 38 M648 196 l-13 38 M914 208 l-13 38 M966 262 l-13 38"/>
+    <path d="M556 330 l-13 38 M604 392 l-13 38 M940 340 l-13 38 M992 396 l-13 38 M868 300 l-13 38"/>
+  </g>
+  <g class="poca">
+    <ellipse cx="620" cy="520" rx="52" ry="9"/>
+    <ellipse cx="940" cy="496" rx="38" ry="7"/>
+    <ellipse cx="790" cy="540" rx="70" ry="10"/>
+  </g>
+
+  <!-- casal na chuva, sob o guarda-chuva preto -->
+  <g>
+    <g transform="translate(766 470)">
+      <path class="pernaR1" d="M-9 -78 L-15 -8"/>
+      <path class="pernaR1" d="M9 -78 L16 -8"/>
+      <path class="pele1e" d="M-26 -8 h22 v10 h-26 q-2 -7 4 -10 z"/>
+      <path class="pele1e" d="M6 -8 h22 q4 3 4 10 h-26 z"/>
+      <path class="roupa1" d="M-22 -148 C -10 -156, 10 -156, 22 -148 L 19 -74 C 6 -68, -6 -68, -19 -74 Z"/>
+      <path class="roupa1e" d="M8 -153 C 15 -151, 20 -150, 22 -148 L 19 -74 C 14 -71, 10 -70, 6 -69 Z"/>
+      <path class="bracoP1" d="M-20 -142 C -30 -124, -31 -108, -29 -96"/>
+      <circle class="pele1" cx="-29" cy="-92" r="6.5"/>
+      <rect class="pele1" x="-7" y="-168" width="14" height="16" rx="4"/>
+      <circle class="pele1" cx="0" cy="-182" r="18"/>
+      <path class="cabelo1" d="M-19 -184 C -21 -206, -7 -214, 5 -212 C 19 -209, 22 -196, 20 -182
+                               C 17 -192, 8 -197, -2 -196 C -10 -195, -15 -190, -19 -184 Z"/>
+      <path class="cabelo1" d="M-19 -184 C -25 -172, -25 -158, -21 -152 L -12 -157 C -16 -165, -18 -176, -15 -184 Z"/>
+      <path class="cabelo1" d="M18 -184 C 24 -172, 24 -158, 20 -152 L 11 -157 C 15 -165, 17 -176, 14 -184 Z"/>
+    </g>
+
+    <g transform="translate(830 470)">
+      <path class="pernaR2" d="M-9 -78 L-16 -8"/>
+      <path class="pernaR2" d="M9 -78 L15 -8"/>
+      <path class="pele2e" d="M-28 -8 h22 q4 3 4 10 h-26 z"/>
+      <path class="pele2e" d="M4 -8 h22 q4 3 4 10 h-26 z"/>
+      <path class="roupa2" d="M-23 -152 C -10 -160, 10 -160, 23 -152 L 20 -74 C 6 -68, -6 -68, -20 -74 Z"/>
+      <path class="roupa2e" d="M9 -157 C 16 -155, 21 -154, 23 -152 L 20 -74 C 15 -71, 11 -70, 7 -69 Z"/>
+      <rect class="pele2" x="-7" y="-172" width="14" height="16" rx="4"/>
+      <circle class="pele2" cx="0" cy="-188" r="18"/>
+      <path class="cabelo2" d="M-19 -190 C -21 -212, -6 -220, 6 -217 C 20 -214, 22 -201, 20 -188
+                               C 16 -198, 7 -203, -3 -201 C -11 -200, -15 -195, -19 -190 Z"/>
+      <!-- o braço que segura, desenhado depois da haste -->
+    </g>
+
+    <!-- o guarda-chuva preto -->
+    <g transform="translate(798 250)">
+      <path class="haste" d="M0 -96 V152"/>
+      <path class="lona" d="M-122 0 A122 108 0 0 1 122 0
+                            Q 91 22 61 0 Q 30 22 0 0 Q -30 22 -61 0 Q -91 22 -122 0 Z"/>
+      <path class="lonaE" d="M0 -107 A122 108 0 0 1 122 0 Q 91 22 61 0 L 0 0 Z" opacity=".7"/>
+      <path class="ponta" d="M-3 -116 h6 v22 h-6 z"/>
+      <circle class="ponta" cx="0" cy="-121" r="5"/>
+    </g>
+    <path class="bracoP2" d="M851 326 C 836 338, 814 350, 802 358"/>
+    <circle class="pele2" cx="800" cy="358" r="7.5"/>
+  </g>
+
+  <!-- a linha entre as duas cenas -->
+  <path class="divisor" d="M520 36 V524"/>
+</svg>

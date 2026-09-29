@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Semana Acadêmica 2026 · Gincanas</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
+  <script src="../js/theme.js"></script>
+  <link rel="stylesheet" href="../comum/estilo.css">
+</head>
+<body data-tipo="misto">
+  <div id="header-slot"></div>
+
+  <main class="container-largo pt-24 pb-32">
+    <div id="loading" class="empty"><strong>Carregando…</strong></div>
+
+    <div id="content" class="hidden">
+      <div class="section-header">
+        <h1>Semana Acadêmica 2026</h1>
+        <div class="pitch-rule"></div>
+      </div>
+      <p class="muted" id="sub">21 a 23 de outubro · disputa entre as turmas</p>
+
+      <div class="grade-cartoes mt-24">
+        <article class="card gcard" data-tipo="misto">
+          <div class="gcard-topo"><h3>🧩 Trilha de enigmas</h3><span class="badge badge-open">300 pts</span></div>
+          <div class="meta">Quinze enigmas em corrente, nos três dias</div>
+          <div class="botoes">
+            <a class="btn btn-primary btn-sm" href="enigmas.html">Abrir</a>
+          </div>
+        </article>
+
+        <article class="card gcard" data-tipo="placar">
+          <div class="gcard-topo"><h3>📸 Gincana de fotos</h3><span class="badge badge-open">400 pts</span></div>
+          <div class="meta">Vinte itens revelados por enigma</div>
+          <div class="botoes">
+            <button class="btn btn-ghost btn-sm" disabled>Em breve</button>
+          </div>
+        </article>
+
+        <article class="card gcard" data-tipo="quiz">
+          <div class="gcard-topo"><h3>🎯 Quiz final</h3><span class="badge badge-open">300 pts</span></div>
+          <div class="meta">Dia 23, ao vivo, sobre a semana</div>
+          <div class="botoes">
+            <button class="btn btn-ghost btn-sm" disabled>Em breve</button>
+          </div>
+        </article>
+      </div>
+
+      <div class="mt-24">
+        <a class="btn btn-ghost btn-sm" href="placar.html">Placar</a>
+        <a class="btn btn-ghost btn-sm" href="regulamento.html">Regulamento</a>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { supabase, requireAuthWithProfile, renderCabecalho, bindSignOut,
+             slugDaPasta, PAINEL_URL } from '../comum/auth.js'
+
+    const SLUG = slugDaPasta()
+    const auth = await requireAuthWithProfile()
+    if (!auth) throw new Error('not reached')
+    document.getElementById('header-slot').innerHTML = renderCabecalho(auth.profile, '')
+    bindSignOut()
+
+    const { data: ok } = await supabase.rpc('gincana_is_member', { p_slug: SLUG })
+    // O administrador entra mesmo sem estar inscrito, para conferir a gincana antes de abrir.
+    if (!ok && !auth.profile.is_admin) { location.replace(PAINEL_URL); throw new Error('not member') }
+
+    const { data: eq } = await supabase.rpc('gincana_minha_equipe', { p_slug: SLUG })
+    const equipe = (eq ?? [])[0]
+    if (equipe) document.getElementById('sub').textContent =
+      `21 a 23 de outubro · Turma ${equipe.team_name}`
+
+    document.getElementById('loading').classList.add('hidden')
+    document.getElementById('content').classList.remove('hidden')
+  </script>
+</body>
+</html>

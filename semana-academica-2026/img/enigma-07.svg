@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 640" width="1800" height="1280"
+     role="img" aria-labelledby="t7 d7">
+  <title id="t7">Um iceberg</title>
+  <desc id="d7">Acima da linha da água aparece uma ponta branca pequena. Abaixo dela, muito maior,
+  o bloco submerso ocupa quase toda a parte de baixo da imagem. Ao longe, na superfície, um barco
+  pequeno.</desc>
+  <style><![CDATA[
+    svg {
+      --ceu-topo:  #9dc4dd;
+      --ceu-base:  #e6f1f7;
+      --mar-topo:  #2b7ea6;
+      --gelo:      #f6fafc;
+      --gelo-s:    #d9e8f1;
+      --gelo-b:    #bcd6e4;
+      --gelo-a:    #9ec6dc;
+      --gelo-as:   #7fadc7;
+      --gelo-ab:   #6a9cb8;
+      --linha:     #ffffff;
+      --barco:     #21384a;
+      --moldura:   #3a627d;
+    }
+    .ceu      { fill: url(#gradCeu7); }
+    .mar      { fill: url(#gradMar7); }
+    .gelo     { fill: var(--gelo); }
+    .geloS    { fill: var(--gelo-s); }
+    .geloB    { fill: var(--gelo-b); }
+    .geloA    { fill: var(--gelo-a); }
+    .geloAS   { fill: var(--gelo-as); }
+    .geloAB   { fill: var(--gelo-ab); }
+    .linha    { fill: none; stroke: var(--linha); stroke-width: 3; stroke-linecap: round; opacity: .75; }
+    .barco    { fill: var(--barco); }
+    .bolha    { fill: #ffffff; opacity: .28; }
+    .submerso { cursor: pointer; }
+    .moldura  { fill: none; stroke: var(--moldura); stroke-width: 2; }
+  ]]></style>
+
+  <defs>
+    <linearGradient id="gradCeu7" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9dc4dd"/>
+      <stop offset="1" stop-color="#e6f1f7"/>
+    </linearGradient>
+    <linearGradient id="gradMar7" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   stop-color="#2b7ea6"/>
+      <stop offset=".55" stop-color="#11486a"/>
+      <stop offset="1"   stop-color="#05223a"/>
+    </linearGradient>
+  </defs>
+
+  <rect class="ceu" x="0" y="0" width="900" height="252"/>
+  <rect class="mar" x="0" y="252" width="900" height="388"/>
+
+  <!-- ══ Abaixo da linha: o bloco inteiro ══ -->
+  <g>
+    <a class="submerso" href="9f3c2a.html" target="_blank" rel="noopener noreferrer">
+      <path class="geloA" d="M296 252 L 234 328 L 262 418 L 210 456 L 302 522
+                             L 348 592 L 452 612 L 546 570 L 622 590 L 666 498
+                             L 704 428 L 668 344 L 702 294 L 616 252 Z"/>
+      <path class="geloAS" d="M616 252 L 702 294 L 668 344 L 704 428 L 666 498 L 622 590 L 546 570
+                              L 592 498 L 628 396 L 616 320 Z"/>
+      <path class="geloAB" d="M452 612 L 348 592 L 302 522 L 210 456 L 262 418 L 234 328
+                              L 278 402 L 330 486 L 386 552 Z"/>
+      <g class="geloAS" opacity=".5">
+        <path d="M418 268 L494 276 L458 402 L392 358 Z"/>
+        <path d="M298 334 L364 312 L340 432 L286 392 Z"/>
+        <path d="M470 436 L560 404 L522 530 L452 522 Z"/>
+      </g>
+    </a>
+    <g class="bolha">
+      <circle cx="712" cy="330" r="7"/>
+      <circle cx="736" cy="286" r="4.5"/>
+      <circle cx="724" cy="378" r="3.5"/>
+      <circle cx="206" cy="404" r="6"/>
+      <circle cx="188" cy="356" r="4"/>
+    </g>
+  </g>
+
+  <!-- ══ A linha da água ══ -->
+  <path class="linha" d="M0 252 H900"/>
+  <path class="linha" d="M64 244 q16 -7 32 0 q16 7 32 0" opacity=".45"/>
+  <path class="linha" d="M596 246 q16 -7 32 0 q16 7 32 0" opacity=".45"/>
+  <path class="linha" d="M760 260 q16 -7 32 0 q16 7 32 0" opacity=".3"/>
+
+  <!-- ══ Acima da linha: a ponta ══ -->
+  <g>
+    <path class="gelo" d="M396 252 L442 168 L470 196 L500 156 L546 252 Z"/>
+    <path class="geloS" d="M500 156 L546 252 L470 252 L482 196 Z"/>
+    <path class="geloB" d="M442 168 L470 196 L452 252 L420 252 Z" opacity=".7"/>
+  </g>
+
+  <!-- ══ O barco, ao longe ══ -->
+  <g class="barco">
+    <path d="M756 250 h46 l-8 12 h-30 z"/>
+    <rect x="777" y="222" width="3" height="28"/>
+    <path d="M780 224 l18 18 h-18 z"/>
+  </g>
+
+  <rect class="moldura" x="8" y="8" width="884" height="624" rx="14"/>
+</svg>

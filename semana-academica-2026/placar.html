@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Placar · Semana Acadêmica 2026</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
+  <script src="../js/theme.js"></script>
+  <link rel="stylesheet" href="../comum/estilo.css">
+</head>
+<body>
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+    <div class="section-header"><h2>Placar</h2><div class="pitch-rule"></div></div>
+    <div id="loading" class="empty"><strong>Carregando…</strong></div>
+    <p id="aviso" class="aviso erro hidden"></p>
+    <div id="tabela" class="tabela-wrap hidden">
+      <table class="tabela"><thead id="cabeca"></thead><tbody id="corpo"></tbody></table>
+    </div>
+    <p class="muted mt-12" id="rodape"></p>
+    <div class="mt-16"><a class="btn btn-ghost btn-sm" href="index.html">← Voltar</a></div>
+  </main>
+
+  <script type="module">
+    import { supabase, requireAuthWithProfile, renderCabecalho, bindSignOut, escHtml, slugDaPasta, PAINEL_URL } from '../comum/auth.js'
+
+    const SLUG = slugDaPasta()
+    const auth = await requireAuthWithProfile()
+    if (!auth) throw new Error('not reached')
+    document.getElementById('header-slot').innerHTML = renderCabecalho(auth.profile, '')
+    bindSignOut()
+
+    const { data: ok } = await supabase.rpc('gincana_is_member', { p_slug: SLUG })
+    // O administrador entra mesmo sem estar inscrito, para conferir a gincana antes de abrir.
+    if (!ok && !auth.profile.is_admin) { location.replace(PAINEL_URL); throw new Error('not member') }
+
+    const { data: lista } = await supabase.rpc('gincana_my_events')
+    const evento = (lista ?? []).find(e => e.slug === SLUG)
+    if (!evento) { location.replace(PAINEL_URL); throw new Error('not found') }
+
+    const $ = (id) => document.getElementById(id)
+    async function atualizar() {
+      // gincana_public_scoreboard devolve { event, teams:[{name, emoji, total, detail:[{name, points, max}]}] }
+      const { data, error } = await supabase.rpc('gincana_public_scoreboard', { p_event: evento.event_id })
+      $('loading').classList.add('hidden')
+      if (error || !data?.event) {
+        $('aviso').textContent = error ? error.message : 'O placar ainda não está disponível (a gincana precisa estar aberta ou encerrada).'
+        $('aviso').classList.remove('hidden'); return
+      }
+      $('aviso').classList.add('hidden')
+      const equipes = data.teams ?? []
+      const atividades = equipes[0]?.detail ?? []
+      $('cabeca').innerHTML = `<tr><th>#</th><th>Equipe</th>${atividades.map(a => `<th>${escHtml(a.name)}</th>`).join('')}<th>Total</th></tr>`
+      $('corpo').innerHTML = equipes.map((t, i) => `<tr>
+        <td>${i + 1}</td><td><strong>${escHtml(t.emoji ?? '')} ${escHtml(t.name)}</strong></td>
+        ${(t.detail ?? []).map(d => `<td>${Number(d.points)}</td>`).join('')}<td><strong>${Number(t.total)}</strong></td></tr>`).join('')
+      $('tabela').classList.remove('hidden')
+      $('rodape').textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR')
+    }
+    await atualizar()
+    setInterval(atualizar, 5000)
+  </script>
+</body>
+</html>

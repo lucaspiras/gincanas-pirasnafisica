@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trilha de enigmas · Semana Acadêmica 2026</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
+  <script src="../js/theme.js"></script>
+  <link rel="stylesheet" href="../comum/estilo.css">
+</head>
+<body data-tipo="misto">
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+    <div id="loading" class="empty"><strong>Carregando…</strong></div>
+
+    <div id="content" class="hidden">
+      <div class="section-header">
+        <h1>Trilha de enigmas</h1>
+        <div class="pitch-rule"></div>
+      </div>
+      <p class="muted" id="sub"></p>
+
+      <div class="card mt-24">
+        <h3>Como funciona</h3>
+        <p class="mt-8">
+          São quinze enigmas em corrente. A resposta de um abre o próximo, e a sua turma só enxerga
+          aquele em que está. Não dá para pular nem para espiar adiante.
+        </p>
+        <ul class="mt-12" style="margin-left:20px">
+          <li>A resposta <strong>não precisa de acento nem de maiúscula</strong>. Pontuação e espaço também não contam.</li>
+          <li>Entre uma tentativa e outra, espere <strong>cinco segundos</strong>.</li>
+          <li>Cada enigma aceita até <strong>50 tentativas</strong> da turma. A página mostra quantas restam.</li>
+          <li>Alguns enigmas <strong>só abrem no dia marcado</strong>, porque dependem de algo que acontece na semana.</li>
+          <li>Todos da turma usam o mesmo acesso, então o progresso é um só, e qualquer um pode responder.</li>
+        </ul>
+      </div>
+
+      <div class="card mt-12">
+        <h3>Antes de começar</h3>
+        <p class="mt-8">
+          Os enigmas não são explícitos. Alguns pedem para olhar com atenção, outros pedem para procurar
+          algo no campus, e há os que dependem de conversar com alguém. Tentar várias vezes faz parte.
+        </p>
+        <p class="mt-8">
+          Uma palavra sobre inteligência artificial: a resposta quase nunca está no enunciado, e sim em
+          algo que só existe aqui, naquele dia, ou com alguma pessoa. Usar IA não é proibido, e também
+          não resolve a trilha.
+        </p>
+      </div>
+
+      <div id="progresso" class="aviso mt-16 hidden"></div>
+
+      <div class="mt-24">
+        <a class="btn btn-primary btn-lg" id="btn-comecar" href="trilha.html">Começar a trilha →</a>
+        <a class="btn btn-ghost" href="index.html">← Voltar</a>
+      </div>
+      <p class="muted texto-p mt-12 hidden" id="nota-admin">
+        Você é administrador: ali dentro há uma barra para abrir qualquer enigma, com o gabarito.
+      </p>
+    </div>
+
+    <div id="semequipe" class="empty mt-16 hidden">
+      <strong>O seu acesso ainda não está ligado a uma turma</strong>
+      Fale com a organização para entrar na gincana.
+    </div>
+  </main>
+
+  <script type="module">
+    import { supabase, requireAuthWithProfile, renderCabecalho, bindSignOut, escHtml,
+             slugDaPasta, PAINEL_URL, explicarErro } from '../comum/auth.js'
+
+    const SLUG = slugDaPasta()
+    const auth = await requireAuthWithProfile()
+    if (!auth) throw new Error('not reached')
+    document.getElementById('header-slot').innerHTML = renderCabecalho(auth.profile, '')
+    bindSignOut()
+
+    const { data: ok } = await supabase.rpc('gincana_is_member', { p_slug: SLUG })
+    // O administrador entra mesmo sem estar inscrito, para conferir a gincana antes de abrir.
+    if (!ok && !auth.profile.is_admin) { location.replace(PAINEL_URL); throw new Error('not member') }
+
+    const $ = (id) => document.getElementById(id)
+    const { data: eq } = await supabase.rpc('gincana_minha_equipe', { p_slug: SLUG })
+    const equipe = (eq ?? [])[0]
+
+    const ehAdmin = !!auth.profile.is_admin
+    $('loading').classList.add('hidden')
+
+    if (!equipe && !ehAdmin) {
+      $('semequipe').classList.remove('hidden')
+    } else if (!equipe) {
+      // Administrador sem turma: entra direto na prévia, sem beco sem saída.
+      $('content').classList.remove('hidden')
+      $('sub').textContent = 'Prévia de administrador'
+      $('btn-comecar').textContent = 'Ver os enigmas →'
+      $('nota-admin').classList.remove('hidden')
+    } else {
+      $('content').classList.remove('hidden')
+      $('sub').textContent = `Turma ${equipe.team_name}`
+      if (ehAdmin) $('nota-admin').classList.remove('hidden')
+
+      const { data: estado, error } = await supabase.rpc('gincana_enigma_atual', { p_slug: SLUG, p_trilha: 'dna' })
+      if (error) {
+        $('progresso').textContent = explicarErro(error)
+        $('progresso').classList.add('erro')
+        $('progresso').classList.remove('hidden')
+      } else if (estado && estado.resolvidos > 0) {
+        $('progresso').textContent = `A sua turma já resolveu ${estado.resolvidos} de ${estado.total}.`
+        $('progresso').classList.remove('hidden')
+        $('btn-comecar').textContent = 'Continuar a trilha →'
+      }
+    }
+  </script>
+</body>
+</html>

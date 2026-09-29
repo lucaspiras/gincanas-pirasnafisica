@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 560" width="2080" height="1120"
+     role="img" aria-labelledby="t4 d4">
+  <title id="t4">Quatro pessoas atravessando uma faixa de pedestres</title>
+  <desc id="d4">Quatro pessoas atravessam uma rua sobre a faixa de pedestres, em fila, da esquerda
+  para a direita. A primeira usa terno branco, a segunda terno escuro, a terceira terno claro e
+  está descalça, e a quarta usa camisa e calça jeans. À esquerda, estacionado na calçada do outro
+  lado, um facho de luz vindo de cima ilumina um fusca claro; a placa dele existe, mas está em
+  branco, pequena demais para ser lida.</desc>
+  <style><![CDATA[
+    svg {
+      --ceu:      #d6e4ef;  --ceu-b:   #eef4f8;
+      --predio:   #b7c0ca;  --predio-e:#98a3ae;  --janela: #dfe7ee;
+      --arvore:   #4a7a52;  --tronco:  #6b5136;
+      --calcada:  #d9d6cd;  --meiofio: #c2beb2;
+      --asfalto:  #74797e;  --asfalto-e:#63686d;
+      --faixa:    #f2f1ec;
+      --carro:    #f2f2ee;  --carro-e: #d3d3ce;  --vidro: #9fb6c4;
+      --pneu:     #2c2e32;  --aro:     #c9cbcf;
+      --placa:    #e6d472;  --placa-b: #8d8046;
+      --pele:     #e3b78f;  --pele-e:  #c9986d;
+      --t1:       #f6f6f2;  --t1e:     #dcdcd6;
+      --t2:       #2b2e34;  --t2e:     #1d1f24;
+      --t3:       #9db0c6;  --t3e:     #8296ae;
+      --t4:       #4a6f96;  --t4e:     #3b5a7c;
+      --cabelo:   #33231a;  --cabelo2: #21160f;
+      --cigarro:  #f7f5ee;
+    }
+    .ceu     { fill: url(#gradCeu4); }
+    .predio  { fill: var(--predio); }  .predioE { fill: var(--predio-e); }
+    .janela  { fill: var(--janela); }
+    .arvore  { fill: var(--arvore); }  .tronco  { fill: var(--tronco); }
+    .calcada { fill: var(--calcada); } .meiofio { fill: var(--meiofio); }
+    .asfalto { fill: var(--asfalto); }
+    .faixa   { fill: var(--faixa); }
+    .carro   { fill: var(--carro); }   .carroE  { fill: var(--carro-e); }
+    .vidro   { fill: var(--vidro); }
+    .pneu    { fill: var(--pneu); }    .aro     { fill: var(--aro); }
+    .placa   { fill: var(--placa); stroke: var(--placa-b); stroke-width: 1.5; }
+    .pele    { fill: var(--pele); }    .peleE   { fill: var(--pele-e); }
+    .cabelo  { fill: var(--cabelo); }  .cabelo2 { fill: var(--cabelo2); }
+    .cigarro { fill: var(--cigarro); }
+    .t1  { fill: var(--t1); }  .t1e { fill: var(--t1e); }
+    .t2  { fill: var(--t2); }  .t2e { fill: var(--t2e); }
+    .t3  { fill: var(--t3); }  .t3e { fill: var(--t3e); }
+    .t4  { fill: var(--t4); }  .t4e { fill: var(--t4e); }
+    .p1  { fill: none; stroke: var(--t1);  stroke-width: 14; stroke-linecap: round; }
+    .p2  { fill: none; stroke: var(--t2);  stroke-width: 14; stroke-linecap: round; }
+    .p3  { fill: none; stroke: var(--t3);  stroke-width: 14; stroke-linecap: round; }
+    .p4  { fill: none; stroke: var(--t4);  stroke-width: 14; stroke-linecap: round; }
+    .b1  { fill: none; stroke: var(--t1);  stroke-width: 11; stroke-linecap: round; }
+    .b2  { fill: none; stroke: var(--t2);  stroke-width: 11; stroke-linecap: round; }
+    .b3  { fill: none; stroke: var(--t3);  stroke-width: 11; stroke-linecap: round; }
+    .b4  { fill: none; stroke: var(--t4);  stroke-width: 11; stroke-linecap: round; }
+    .sapato { fill: #23252a; }
+    .sombra { fill: #000; opacity: .14; }
+  ]]></style>
+
+  <defs>
+    <linearGradient id="gradCeu4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d6e4ef"/>
+      <stop offset="1" stop-color="#eef4f8"/>
+    </linearGradient>
+    <linearGradient id="gradFeixe4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   stop-color="#fff6cf" stop-opacity=".62"/>
+      <stop offset=".62" stop-color="#fff6cf" stop-opacity=".30"/>
+      <stop offset="1"   stop-color="#fff6cf" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="gradFoco4" cx=".5" cy=".5" r=".5">
+      <stop offset="0"   stop-color="#fff3bf" stop-opacity=".70"/>
+      <stop offset=".52" stop-color="#fff3bf" stop-opacity=".26"/>
+      <stop offset="1"   stop-color="#fff3bf" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect class="ceu" x="0" y="0" width="1040" height="200"/>
+
+  <!-- fundo: prédio e árvores -->
+  <rect class="predio" x="330" y="34" width="330" height="152"/>
+  <rect class="predioE" x="330" y="34" width="18" height="152"/>
+  <g class="janela">
+    <rect x="368" y="58" width="34" height="40" rx="3"/>
+    <rect x="424" y="58" width="34" height="40" rx="3"/>
+    <rect x="480" y="58" width="34" height="40" rx="3"/>
+    <rect x="536" y="58" width="34" height="40" rx="3"/>
+    <rect x="592" y="58" width="34" height="40" rx="3"/>
+    <rect x="368" y="116" width="34" height="40" rx="3"/>
+    <rect x="424" y="116" width="34" height="40" rx="3"/>
+    <rect x="480" y="116" width="34" height="40" rx="3"/>
+    <rect x="536" y="116" width="34" height="40" rx="3"/>
+    <rect x="592" y="116" width="34" height="40" rx="3"/>
+  </g>
+  <g>
+    <rect class="tronco" x="740" y="120" width="13" height="66"/>
+    <circle class="arvore" cx="746" cy="104" r="46"/>
+    <rect class="tronco" x="862" y="132" width="11" height="54"/>
+    <circle class="arvore" cx="867" cy="118" r="38"/>
+  </g>
+
+  <!-- calçada do outro lado -->
+  <rect class="calcada" x="0" y="186" width="1040" height="62"/>
+  <rect class="meiofio" x="0" y="242" width="1040" height="8"/>
+
+  <!-- a luz que cai sobre o carro: o facho vem por trás, para o carro
+       continuar nítido, e só um véu fino passa por cima dele -->
+  <g>
+    <path fill="url(#gradFeixe4)" d="M144 0 H210 L292 244 H60 Z"/>
+    <ellipse fill="url(#gradFoco4)" cx="176" cy="206" rx="146" ry="98"/>
+  </g>
+
+  <!-- o fusca, estacionado -->
+  <g transform="translate(176 198)">
+    <ellipse class="sombra" cx="0" cy="44" rx="112" ry="9"/>
+    <path class="carro" d="M-108 30 C -110 6, -98 -2, -80 -6
+                           C -66 -30, -40 -44, -6 -44 C 30 -44, 56 -30, 70 -6
+                           C 92 -2, 106 6, 106 30 Z"/>
+    <path class="carroE" d="M40 -38 C 56 -28, 66 -16, 70 -6 C 92 -2, 106 6, 106 30 L 62 30
+                            C 70 6, 62 -20, 40 -38 Z"/>
+    <path class="vidro" d="M-56 -10 C -46 -30, -26 -38, -6 -38 C 16 -38, 36 -30, 46 -10 Z"/>
+    <path class="carro" d="M-4 -38 v28"/>
+    <circle class="pneu" cx="-62" cy="28" r="20"/>
+    <circle class="aro"  cx="-62" cy="28" r="8"/>
+    <circle class="pneu" cx="58" cy="28" r="20"/>
+    <circle class="aro"  cx="58" cy="28" r="8"/>
+    <!-- a placa existe, mas é pequena demais para ser lida -->
+    <rect class="placa" x="-104" y="12" width="34" height="12" rx="2"/>
+  </g>
+  <ellipse fill="url(#gradFoco4)" cx="176" cy="200" rx="122" ry="72" opacity=".45"/>
+
+  <!-- asfalto e faixa -->
+  <rect class="asfalto" x="0" y="250" width="1040" height="310"/>
+  <g class="faixa">
+    <path d="M124 252 L156 252 L90 560 L30 560 Z"/>
+    <path d="M224 252 L256 252 L218 560 L158 560 Z"/>
+    <path d="M324 252 L356 252 L346 560 L286 560 Z"/>
+    <path d="M424 252 L456 252 L474 560 L414 560 Z"/>
+    <path d="M524 252 L556 252 L602 560 L542 560 Z"/>
+    <path d="M624 252 L656 252 L730 560 L670 560 Z"/>
+    <path d="M724 252 L756 252 L858 560 L798 560 Z"/>
+    <path d="M824 252 L856 252 L986 560 L926 560 Z"/>
+  </g>
+
+  <!-- 1. terno branco -->
+  <g transform="translate(318 486)">
+    <ellipse class="sombra" cx="0" cy="2" rx="34" ry="6"/>
+    <path class="p1" d="M-2 -90 L-24 -12"/>
+    <path class="sapato" d="M-34 -14 h26 q5 0 5 6 v6 h-33 q-2 -8 2 -12 z"/>
+    <path class="p1" d="M2 -90 L24 -14"/>
+    <path class="sapato" d="M12 -16 h28 q5 0 5 6 v6 h-33 z"/>
+    <path class="t1" d="M-13 -152 C -6 -159, 8 -159, 15 -151 L 13 -88 C 4 -83, -6 -84, -13 -88 Z"/>
+    <path class="t1e" d="M6 -157 C 11 -156, 14 -154, 15 -151 L 13 -88 C 10 -86, 7 -85, 4 -84 Z"/>
+    <path class="b1" d="M7 -146 C 15 -128, 15 -112, 11 -98"/>
+    <circle class="pele" cx="11" cy="-94" r="7"/>
+    <rect class="pele" x="-5" y="-170" width="13" height="16" rx="4"/>
+    <path class="pele" d="M0 -199 C 10 -199, 18 -191, 18 -181 L 22 -179 C 24 -178, 24 -174, 21 -173
+                          L 18 -172 C 16 -166, 8 -163, 0 -164 C -10 -165, -17 -172, -17 -182
+                          C -17 -192, -10 -199, 0 -199 Z"/>
+    <path class="cabelo" d="M-17 -182 C -18 -201, -6 -209, 4 -207 C 14 -205, 18 -195, 18 -183
+                            C 15 -192, 8 -197, 0 -196 C -8 -195, -14 -189, -17 -182 Z"/>
+    <path class="cabelo" d="M-17 -182 C -23 -171, -23 -158, -20 -153 L -11 -159 C -15 -166, -17 -175, -14 -182 Z"/>
+    <path class="cabelo" d="M3 -167 C 11 -168, 17 -172, 19 -176 C 19 -164, 11 -156, 1 -158 Z"/>
+  </g>
+
+  <!-- 2. terno escuro -->
+  <g transform="translate(458 490)">
+    <ellipse class="sombra" cx="0" cy="2" rx="34" ry="6"/>
+    <path class="p2" d="M-2 -90 L-24 -12"/>
+    <path class="sapato" d="M-34 -14 h26 q5 0 5 6 v6 h-33 q-2 -8 2 -12 z"/>
+    <path class="p2" d="M2 -90 L24 -14"/>
+    <path class="sapato" d="M12 -16 h28 q5 0 5 6 v6 h-33 z"/>
+    <path class="t2" d="M-13 -152 C -6 -159, 8 -159, 15 -151 L 13 -88 C 4 -83, -6 -84, -13 -88 Z"/>
+    <path class="t2e" d="M6 -157 C 11 -156, 14 -154, 15 -151 L 13 -88 C 10 -86, 7 -85, 4 -84 Z"/>
+    <path class="b2" d="M7 -146 C 15 -128, 15 -112, 11 -98"/>
+    <circle class="pele" cx="11" cy="-94" r="7"/>
+    <rect class="pele" x="-5" y="-170" width="13" height="16" rx="4"/>
+    <path class="pele" d="M0 -199 C 10 -199, 18 -191, 18 -181 L 22 -179 C 24 -178, 24 -174, 21 -173
+                          L 18 -172 C 16 -166, 8 -163, 0 -164 C -10 -165, -17 -172, -17 -182
+                          C -17 -192, -10 -199, 0 -199 Z"/>
+    <path class="cabelo2" d="M-17 -182 C -18 -201, -6 -209, 4 -207 C 14 -205, 18 -195, 18 -183
+                            C 15 -192, 8 -197, 0 -196 C -8 -195, -14 -189, -17 -182 Z"/>
+    <path class="cabelo2" d="M-17 -182 C -21 -174, -21 -167, -19 -163 L -12 -166 C -15 -171, -16 -176, -14 -182 Z"/>
+  </g>
+
+  <!-- 3. terno claro, descalço, fora do passo, com cigarro -->
+  <g transform="translate(600 494)">
+    <ellipse class="sombra" cx="0" cy="2" rx="34" ry="6"/>
+    <path class="p3" d="M2 -90 L24 -12"/>
+    <path class="peleE" d="M-34 -14 h26 q5 0 5 6 v6 h-33 q-2 -8 2 -12 z"/>
+    <path class="p3" d="M-2 -90 L-24 -14"/>
+    <path class="peleE" d="M12 -16 h28 q5 0 5 6 v6 h-33 z"/>
+    <path class="t3" d="M-13 -152 C -6 -159, 8 -159, 15 -151 L 13 -88 C 4 -83, -6 -84, -13 -88 Z"/>
+    <path class="t3e" d="M6 -157 C 11 -156, 14 -154, 15 -151 L 13 -88 C 10 -86, 7 -85, 4 -84 Z"/>
+    <path class="b3" d="M7 -146 C 15 -128, 15 -112, 11 -98"/>
+    <circle class="pele" cx="11" cy="-94" r="7"/>
+    <rect class="cigarro" x="13" y="-108" width="4" height="15" rx="1.5" transform="rotate(12 15 -100)"/>
+    <rect class="pele" x="-5" y="-170" width="13" height="16" rx="4"/>
+    <path class="pele" d="M0 -199 C 10 -199, 18 -191, 18 -181 L 22 -179 C 24 -178, 24 -174, 21 -173
+                          L 18 -172 C 16 -166, 8 -163, 0 -164 C -10 -165, -17 -172, -17 -182
+                          C -17 -192, -10 -199, 0 -199 Z"/>
+    <path class="cabelo" d="M-17 -182 C -18 -201, -6 -209, 4 -207 C 14 -205, 18 -195, 18 -183
+                            C 15 -192, 8 -197, 0 -196 C -8 -195, -14 -189, -17 -182 Z"/>
+    <path class="cabelo" d="M-17 -182 C -23 -171, -23 -158, -20 -153 L -11 -159 C -15 -166, -17 -175, -14 -182 Z"/>
+  </g>
+
+  <!-- 4. camisa e calça jeans -->
+  <g transform="translate(744 498)">
+    <ellipse class="sombra" cx="0" cy="2" rx="34" ry="6"/>
+    <path class="p4" d="M-2 -90 L-24 -12"/>
+    <path class="sapato" d="M-34 -14 h26 q5 0 5 6 v6 h-33 q-2 -8 2 -12 z"/>
+    <path class="p4" d="M2 -90 L24 -14"/>
+    <path class="sapato" d="M12 -16 h28 q5 0 5 6 v6 h-33 z"/>
+    <path class="t4" d="M-13 -152 C -6 -159, 8 -159, 15 -151 L 13 -88 C 4 -83, -6 -84, -13 -88 Z"/>
+    <path class="t4e" d="M6 -157 C 11 -156, 14 -154, 15 -151 L 13 -88 C 10 -86, 7 -85, 4 -84 Z"/>
+    <path class="b4" d="M7 -146 C 15 -128, 15 -112, 11 -98"/>
+    <circle class="pele" cx="11" cy="-94" r="7"/>
+    <rect class="pele" x="-5" y="-170" width="13" height="16" rx="4"/>
+    <path class="pele" d="M0 -199 C 10 -199, 18 -191, 18 -181 L 22 -179 C 24 -178, 24 -174, 21 -173
+                          L 18 -172 C 16 -166, 8 -163, 0 -164 C -10 -165, -17 -172, -17 -182
+                          C -17 -192, -10 -199, 0 -199 Z"/>
+    <path class="cabelo" d="M-17 -182 C -18 -201, -6 -209, 4 -207 C 14 -205, 18 -195, 18 -183
+                            C 15 -192, 8 -197, 0 -196 C -8 -195, -14 -189, -17 -182 Z"/>
+    <path class="cabelo" d="M-17 -182 C -23 -171, -23 -158, -20 -153 L -11 -159 C -15 -166, -17 -175, -14 -182 Z"/>
+    <path class="cabelo" d="M3 -167 C 11 -168, 17 -172, 19 -176 C 19 -164, 11 -156, 1 -158 Z"/>
+    <path class="cabelo" d="M3 -197 C 12 -195, 18 -190, 19 -182 C 14 -187, 7 -189, 0 -188 Z"/>
+  </g>
+</svg>

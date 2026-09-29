@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1020 700" width="2040" height="1400"
+     role="img" aria-labelledby="t1 d1">
+  <title id="t1">Uma figura sentada segurando um crânio</title>
+  <desc id="d1">Sob um sol amarelo de raios curtos, uma figura de pé enorme, tronco arredondado e
+  cabeça muito pequena está sentada no chão verde, com um joelho erguido bem alto e o pé estendido
+  para a direita. O braço, fino e comprido, apoia o cotovelo no joelho e ergue um crânio, para onde
+  a figura olha. No pescoço ela usa uma gola de folhos. À direita, uma planta espinhosa com flores no
+  topo, e flores espalhadas pela grama. No canto inferior direito há um sinal em forma de vê.</desc>
+  <style><![CDATA[
+    svg {
+      --ceu-topo:  #13538f;
+      --ceu-base:  #5cabda;
+      --chao:      #4a8a3a;
+      --chao-e:    #37692b;
+      --chao-c:    #5ea247;
+      --corpo:     #c9814a;
+      --corpo-e:   #a6632f;
+      --corpo-c:   #dfa36d;
+      --unha:      #efd3b2;
+      --sol:       #f5c634;
+      --sol-e:     #e2a417;
+      --cacto:     #2f6e3c;
+      --cacto-e:   #24572f;
+      --espinho:   #a8dc8c;
+      --flor:      #d8467c;
+      --flor-c:    #ef7ba5;
+      --osso:      #f1ece0;
+      --osso-e:    #cec6b2;
+      --cova:      #33302a;
+      --moldura:   #0f4276;
+      --sinal:     #bcd9ee;
+      --petala:    #f4f0e4;
+      --caule:     #2e5e24;
+    }
+    .ceu      { fill: url(#gradCeu1); }
+    .chao     { fill: var(--chao); }
+    .chaoE    { fill: var(--chao-e); }
+    .chaoC    { fill: var(--chao-c); }
+    .sol      { fill: var(--sol); }
+    .solE     { fill: var(--sol-e); }
+    .raio     { fill: none; stroke: var(--sol); stroke-width: 7; stroke-linecap: round; }
+    .cacto    { fill: var(--cacto); }
+    .cactoE   { fill: var(--cacto-e); }
+    .espinho  { fill: none; stroke: var(--espinho); stroke-width: 4; stroke-linecap: round; }
+    .flor     { fill: var(--flor); }
+    .florC    { fill: var(--flor-c); }
+    .petala   { fill: var(--petala); }
+    .miolo    { fill: var(--sol); }
+    .caule    { fill: none; stroke: var(--caule); stroke-width: 3; stroke-linecap: round; }
+    .corpo    { fill: var(--corpo); }
+    .corpoE   { fill: var(--corpo-e); }
+    .corpoC   { fill: var(--corpo-c); }
+    .unha     { fill: var(--unha); }
+    .braco    { fill: none; stroke: var(--corpo); stroke-width: 16; stroke-linecap: round; stroke-linejoin: round; }
+    .bracoC   { fill: none; stroke: var(--corpo-e); stroke-width: 24; stroke-linecap: round; stroke-linejoin: round; }
+    .dedo     { fill: none; stroke: var(--corpo); stroke-width: 9; stroke-linecap: round; }
+    .osso     { fill: var(--osso); }
+    .ossoE    { fill: var(--osso-e); }
+    .cova     { fill: var(--cova); }
+    .moldura  { fill: none; stroke: var(--moldura); stroke-width: 2; }
+    .vinco    { fill: none; stroke: var(--corpo-e); stroke-width: 3; stroke-linecap: round; opacity: .5; }
+    .sinal    { fill: none; stroke: var(--sinal); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; opacity: .9; }
+  ]]></style>
+
+  <defs>
+    <linearGradient id="gradCeu1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   stop-color="#13538f"/>
+      <stop offset=".68" stop-color="#5cabda"/>
+    </linearGradient>
+    <g id="florzinha">
+      <path class="caule" d="M0 2 v15"/>
+      <circle class="petala" cx="0" cy="0" r="7.5"/>
+      <circle class="miolo"  cx="0" cy="0" r="3.2"/>
+    </g>
+  </defs>
+
+  <rect class="ceu" x="0" y="0" width="1020" height="700"/>
+
+  <!-- ══ O sol ══ -->
+  <g>
+    <g class="raio">
+      <path d="M876.0 52.0 L876.0 34.0"/>
+      <path d="M906.7 59.6 L915.0 43.6"/>
+      <path d="M930.3 80.5 L945.1 70.3"/>
+      <path d="M941.5 110.0 L959.4 107.9"/>
+      <path d="M937.7 141.4 L954.5 147.8"/>
+      <path d="M919.8 167.4 L931.7 180.9"/>
+      <path d="M891.8 182.1 L896.1 199.6"/>
+      <path d="M860.2 182.1 L855.9 199.6"/>
+      <path d="M832.2 167.4 L820.3 180.9"/>
+      <path d="M814.3 141.4 L797.5 147.8"/>
+      <path d="M810.5 110.0 L792.6 107.9"/>
+      <path d="M821.7 80.5 L806.9 70.3"/>
+      <path d="M845.3 59.6 L837.0 43.6"/>
+    </g>
+    <circle class="sol" cx="876" cy="118" r="58"/>
+    <path class="solE" d="M876 60 a58 58 0 0 1 0 116 a33 58 0 0 0 0 -116 z" opacity=".5"/>
+  </g>
+
+  <!-- ══ O chão ══ -->
+  <path class="chao" d="M0 434 C 220 412, 420 428, 640 422 C 820 418, 920 426, 1020 416 L1020 700 L0 700 Z"/>
+  <path class="chaoC" d="M0 434 C 220 412, 420 428, 640 422 C 820 418, 920 426, 1020 416 L1020 440
+                         C 920 448, 800 442, 620 446 C 420 452, 210 440, 0 458 Z"/>
+  <ellipse class="chaoE" cx="408" cy="614" rx="332" ry="40" opacity=".42"/>
+
+  <!-- ══ A planta ══ -->
+  <g>
+    <rect class="cactoE" x="834" y="356" width="70" height="46" rx="23"/>
+    <rect class="cactoE" x="862" y="286" width="46" height="104" rx="23"/>
+    <rect class="cacto"  x="796" y="272" width="54" height="234" rx="27"/>
+    <path class="cactoE" d="M834 272 h-11 v234 h11 a27 27 0 0 0 16 -5 v-224 a27 27 0 0 0 -16 -5 z" opacity=".5"/>
+    <g class="espinho">
+      <path d="M797 300 l-14 -4"/>
+      <path d="M795 336 l-14 -3"/>
+      <path d="M795 372 l-14 -3"/>
+      <path d="M795 408 l-14 -3"/>
+      <path d="M795 444 l-14 -3"/>
+      <path d="M797 480 l-14 -3"/>
+      <path d="M849 300 l14 -4"/>
+      <path d="M851 330 l14 -3"/>
+      <path d="M851 420 l14 -3"/>
+      <path d="M851 450 l14 -3"/>
+      <path d="M849 480 l14 -3"/>
+      <path d="M907 312 l14 -4"/>
+      <path d="M907 344 l14 -3"/>
+    </g>
+    <circle class="florC" cx="823" cy="258" r="26"/>
+    <circle class="flor"  cx="823" cy="258" r="15"/>
+    <circle class="florC" cx="885" cy="274" r="15"/>
+    <circle class="flor"  cx="885" cy="274" r="8"/>
+  </g>
+
+  <!-- ══ A figura, espelhada ══ -->
+  <g transform="translate(820 0) scale(-1 1)">
+    <!-- tronco: um monte que sobe da base larga até o ombro estreito -->
+    <path class="corpo" d="M500 596
+                           C 492 512, 518 414, 568 348
+                           C 590 318, 614 304, 638 304
+                           C 666 304, 690 336, 702 386
+                           C 726 456, 738 540, 726 598
+                           C 660 622, 566 622, 500 596 Z"/>
+    <path class="corpoE" d="M640 306
+                            C 668 308, 690 338, 702 386
+                            C 726 456, 738 540, 726 598
+                            C 708 606, 688 611, 668 611
+                            C 690 530, 682 400, 640 312 Z"/>
+
+    <!-- pescoço, gola e cabeça pequena, de perfil -->
+    <rect class="corpo" x="636" y="288" width="32" height="30" rx="10"/>
+    <g>
+      <ellipse class="ossoE" cx="652" cy="316" rx="46" ry="14"/>
+      <g class="ossoE">
+        <circle cx="610" cy="316" r="8"/><circle cx="624" cy="324" r="8"/>
+        <circle cx="640" cy="329" r="8"/><circle cx="658" cy="330" r="8"/>
+        <circle cx="676" cy="326" r="8"/><circle cx="691" cy="319" r="8"/>
+      </g>
+      <ellipse class="osso" cx="652" cy="312" rx="46" ry="14"/>
+      <g class="osso">
+        <circle cx="610" cy="312" r="8"/><circle cx="624" cy="320" r="8"/>
+        <circle cx="640" cy="325" r="8"/><circle cx="658" cy="326" r="8"/>
+        <circle cx="676" cy="322" r="8"/><circle cx="691" cy="315" r="8"/>
+      </g>
+    </g>
+    <g transform="rotate(-14 650 262)">
+      <path class="corpo" d="M650 224 c17 0 31 17 31 38 c0 21 -14 38 -31 38 c-13 0 -24 -10 -28 -23
+                             l-8 -2 c-5 -1 -5 -8 0 -9 l6 -2 c2 -21 16 -40 30 -40 z"/>
+      <path class="corpoE" d="M650 224 c17 0 31 17 31 38 c0 21 -14 38 -31 38 l0 -7
+                              c13 0 23 -14 23 -31 c0 -17 -10 -31 -23 -31 z" opacity=".7"/>
+      <circle class="cova" cx="632" cy="252" r="3.4"/>
+    </g>
+
+    <!-- a perna dobrada: canela, joelho e coxa numa peça só -->
+    <path class="corpo" d="M276 548
+                           C 296 448, 338 342, 390 264
+                           C 410 234, 456 232, 478 262
+                           C 516 316, 562 398, 592 454
+                           C 612 490, 592 520, 560 506
+                           C 528 492, 492 402, 462 316
+                           C 436 382, 400 486, 352 580
+                           C 330 596, 268 594, 276 548 Z"/>
+    <path class="corpoC" d="M390 264 C 410 234, 456 232, 478 262 C 500 293, 526 337, 550 380
+                            C 516 320, 478 276, 444 268 C 420 262, 400 262, 390 264 Z"/>
+    <path class="vinco" d="M402 292 C 430 268, 462 270, 482 296"/>
+
+    <!-- o pé -->
+    <g>
+      <circle class="corpo" cx="124" cy="588" r="21"/>
+      <circle class="corpo" cx="160" cy="572" r="17"/>
+      <circle class="corpo" cx="192" cy="561" r="14"/>
+      <circle class="corpo" cx="218" cy="553" r="11.5"/>
+      <path class="corpo" d="M352 494 C 362 556, 336 602, 292 608 L 152 610
+                             C 116 610, 106 598, 116 582 C 128 566, 152 560, 180 556
+                             C 248 546, 306 528, 330 490 Z"/>
+      <ellipse class="unha" cx="117" cy="578" rx="10"  ry="7.5" transform="rotate(-26 117 578)"/>
+      <ellipse class="unha" cx="155" cy="563" rx="8"   ry="6"   transform="rotate(-24 155 563)"/>
+      <ellipse class="unha" cx="189" cy="553" rx="6.5" ry="5"   transform="rotate(-22 189 553)"/>
+      <ellipse class="unha" cx="216" cy="546" rx="5"   ry="4"   transform="rotate(-20 216 546)"/>
+      <path class="vinco" d="M192 584 C 240 576, 290 560, 322 530"/>
+    </g>
+
+    <!-- braço fino: do ombro ao cotovelo apoiado no joelho, e daí para cima.
+         O traço escuro por baixo é só o contorno, para o braço não sumir na perna. -->
+    <path class="bracoC" d="M662 356 C 612 336, 548 296, 478 262"/>
+    <path class="braco"  d="M662 356 C 612 336, 548 296, 478 262"/>
+    <path class="bracoC" d="M478 262 C 482 226, 490 192, 498 170"/>
+    <path class="braco"  d="M478 262 C 482 226, 490 192, 498 170"/>
+
+    <!-- a palma, atrás do que ela segura -->
+    <circle class="corpo" cx="500" cy="152" r="20"/>
+
+    <!-- o crânio -->
+    <g transform="translate(26.2 -38.8) scale(.85)">
+      <path class="osso" d="M588 118 c31 0 54 22 54 50 c0 16 -7 29 -18 37 l0 15
+                            c0 11 -14 16 -36 16 c-23 0 -36 -5 -36 -16 l0 -15
+                            c-11 -8 -18 -21 -18 -37 c0 -28 23 -50 54 -50 z"/>
+      <path class="ossoE" d="M588 118 c31 0 54 22 54 50 c0 16 -7 29 -18 37 l0 15
+                             c0 11 -14 16 -36 16 l0 -9 c15 0 23 -4 23 -11 l0 -18
+                             c11 -8 17 -19 17 -32 c0 -23 -17 -40 -40 -42 z"/>
+      <ellipse class="cova" cx="571" cy="164" rx="12" ry="14.5"/>
+      <ellipse class="cova" cx="606" cy="164" rx="12" ry="14.5"/>
+      <path class="cova" d="M588 180 l10 17 h-19 z"/>
+      <path class="cova" d="M562 202 h52 v5 h-52 z" opacity=".5"/>
+      <g class="osso">
+        <rect x="565" y="204" width="10" height="14" rx="2"/>
+        <rect x="578" y="204" width="10" height="14" rx="2"/>
+        <rect x="591" y="204" width="10" height="14" rx="2"/>
+        <rect x="604" y="204" width="8"  height="14" rx="2"/>
+      </g>
+    </g>
+
+    <!-- os dedos, por cima, segurando -->
+    <g>
+      <path class="dedo" d="M502 130 C 514 126, 524 126, 532 129"/>
+      <path class="dedo" d="M504 145 C 516 141, 526 141, 534 144"/>
+      <path class="dedo" d="M504 160 C 514 157, 522 157, 528 160"/>
+    </g>
+  </g>
+
+  <!-- ══ As flores da grama ══ -->
+  <g>
+    <use href="#florzinha" x="62"  y="470"/>
+    <use href="#florzinha" x="44"  y="556"/>
+    <use href="#florzinha" x="120" y="640"/>
+    <use href="#florzinha" x="228" y="660"/>
+    <use href="#florzinha" x="346" y="636"/>
+    <use href="#florzinha" x="456" y="662"/>
+    <use href="#florzinha" x="572" y="638"/>
+    <use href="#florzinha" x="676" y="660"/>
+    <use href="#florzinha" x="744" y="472"/>
+    <use href="#florzinha" x="768" y="562"/>
+    <use href="#florzinha" x="838" y="648"/>
+    <use href="#florzinha" x="900" y="556"/>
+    <use href="#florzinha" x="982" y="596"/>
+  </g>
+
+  <!-- ══ O sinal, no canto ══ -->
+  <path class="sinal" d="M924 626 L946 666 L968 626"/>
+
+  <rect class="moldura" x="10" y="10" width="1000" height="680" rx="16"/>
+</svg>

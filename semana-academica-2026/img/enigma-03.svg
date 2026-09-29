@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 580" width="2080" height="1160"
+     role="img" aria-labelledby="t3 d3">
+  <title id="t3">Um homem com um cachorro, e quatro coisas somadas</title>
+  <desc id="d3">Em cima, um homem de casaco e cartola passeando com um cachorro. Embaixo,
+  um troféu, três batatas, um machado e um jogador de camisa amarela, separados por
+  sinais de mais.</desc>
+  <style><![CDATA[
+    svg {
+      --fundo:    #1a2350;
+      --ouro:     #facc15;  --ouro-e:   #d9a406;
+      --batata:   #c8a06a;  --batata-e: #a87f4d;  --olho: #6b4f2e;
+      --cabo:     #8b5e3c;  --cabo-e:   #6d4629;
+      --metal:    #cdd7e6;  --metal-e:  #8e9db4;
+      --mais:     #7d8bb8;  --moldura:  #2c3870;  --linha: #33406f;
+      --pele:     #935a33;  --pele-e:   #74441f;
+      --cabelo:   #241a12;  --cabelo-e: #38291b;
+      --camisa:   #ffdf00;  --camisa-e: #e0c200;  --verde: #009c3b;
+      --dente:    #fdfdfa;  --boca:     #5c2a26;
+      --pele2:    #e0b48c;  --pele2-e:  #c2946c;
+      --casaco:   #3c4a7d;  --casaco-e: #2c3860;
+      --cartola:  #171c2e;
+      --cao:      #b8834e;  --cao-e:    #96683a;  --cao-focinho: #6b4a2b;
+    }
+    .fundo    { fill: url(#gradFundo3); }
+    .moldura  { fill: none; stroke: var(--moldura); stroke-width: 2; }
+    .divisor  { fill: none; stroke: var(--linha); stroke-width: 2; stroke-dasharray: 8 10; }
+    .ouro     { fill: var(--ouro); }   .ouroE   { fill: var(--ouro-e); }
+    .batata   { fill: var(--batata); } .batataE { fill: var(--batata-e); }
+    .olho     { fill: var(--olho); }
+    .cabo     { fill: var(--cabo); }   .caboE   { fill: var(--cabo-e); }
+    .metal    { fill: var(--metal); }  .metalE  { fill: var(--metal-e); }
+    .mais     { fill: none; stroke: var(--mais); stroke-width: 9; stroke-linecap: round; }
+    .alca     { fill: none; stroke: var(--ouro); stroke-width: 9; stroke-linecap: round; }
+    .pele     { fill: var(--pele); }   .peleE   { fill: var(--pele-e); }
+    .cabelo   { fill: var(--cabelo); } .cabeloE { fill: var(--cabelo-e); }
+    .camisa   { fill: var(--camisa); } .camisaE { fill: var(--camisa-e); }
+    .verde    { fill: var(--verde); }
+    .dente    { fill: var(--dente); }  .boca    { fill: var(--boca); }
+    .numero   { fill: var(--verde); font-family: 'DM Sans', system-ui, sans-serif; font-weight: 800; font-size: 32px; text-anchor: middle; }
+    .nome     { fill: var(--verde); font-family: 'DM Sans', system-ui, sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 2px; text-anchor: middle; }
+    .sobrancelha { fill: none; stroke: var(--cabelo); stroke-width: 4; stroke-linecap: round; }
+    .pele2    { fill: var(--pele2); }  .pele2E  { fill: var(--pele2-e); }
+    .casaco   { fill: var(--casaco); } .casacoE { fill: var(--casaco-e); }
+    .cartola  { fill: var(--cartola); }
+    .cao      { fill: var(--cao); }    .caoE    { fill: var(--cao-e); }
+    .focinho  { fill: var(--cao-focinho); }
+    .guia     { fill: none; stroke: var(--cartola); stroke-width: 3; stroke-linecap: round; }
+  ]]></style>
+
+  <defs>
+    <linearGradient id="gradFundo3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a2350"/>
+      <stop offset="1" stop-color="#131a3c"/>
+    </linearGradient>
+  </defs>
+
+  <rect class="fundo" x="0" y="0" width="1040" height="580"/>
+  <rect class="moldura" x="14" y="14" width="1012" height="552" rx="18"/>
+  <path class="divisor" d="M70 318 H970"/>
+
+  <!-- ══ Em cima: o homem e o cachorro ══ -->
+  <g transform="translate(0 0)">
+    <!-- guia, da mão ao pescoço do cão -->
+    <path class="guia" d="M492 190 q38 14 62 26"/>
+
+    <!-- homem -->
+    <g transform="translate(440 160)">
+      <rect class="casacoE" x="-19" y="46" width="15" height="54" rx="4"/>
+      <rect class="casacoE" x="5" y="46" width="15" height="54" rx="4"/>
+      <ellipse class="cartola" cx="-12" cy="102" rx="12" ry="6"/>
+      <ellipse class="cartola" cx="13" cy="102" rx="12" ry="6"/>
+      <path class="casaco" d="M-33 -28 q33 -13 66 0 l 9 76 h-84 z"/>
+      <path class="casacoE" d="M18 -24 l15 -4 l9 76 h-22 z"/>
+      <path class="casaco" d="M-33 -26 q-12 6 -13 26 l -2 32 q 0 6 7 6 q 7 0 7 -6 l 3 -30 z"/>
+      <path class="casaco" d="M33 -26 q12 6 13 26 l 2 26 q 1 6 -6 7 q -7 1 -8 -5 l -5 -26 z"/>
+      <ellipse class="pele2" cx="50" cy="36" rx="8" ry="7"/>
+      <rect class="pele2E" x="-7" y="-40" width="14" height="14"/>
+      <circle class="pele2" cx="0" cy="-56" r="19"/>
+      <circle class="cabelo" cx="-7" cy="-58" r="2.2"/>
+      <circle class="cabelo" cx="7" cy="-58" r="2.2"/>
+      <path class="pele2E" d="M-6 -47 q6 5 12 0 q-6 4 -12 0 z"/>
+      <ellipse class="cartola" cx="0" cy="-74" rx="33" ry="7"/>
+      <rect class="cartola" x="-17" y="-105" width="34" height="32" rx="3"/>
+    </g>
+
+    <!-- cachorro -->
+    <g transform="translate(600 218)">
+      <path class="caoE" d="M-30 6 q-14 -22 -4 -34 q6 -7 10 4 q-8 14 2 28 z"/>
+      <rect class="cao" x="-22" y="8" width="9" height="30" rx="4"/>
+      <rect class="cao" x="-6" y="10" width="9" height="28" rx="4"/>
+      <rect class="caoE" x="12" y="8" width="9" height="30" rx="4"/>
+      <rect class="caoE" x="26" y="10" width="9" height="28" rx="4"/>
+      <ellipse class="cao" cx="4" cy="-4" rx="34" ry="21"/>
+      <path class="caoE" d="M-30 -2 q18 18 46 16 q20 -2 22 -14 q-2 19 -26 21 q-30 2 -42 -23 z"/>
+      <circle class="cao" cx="38" cy="-26" r="17"/>
+      <path class="caoE" d="M28 -40 q-12 -4 -14 10 q-2 14 10 16 q-4 -14 4 -26 z"/>
+      <path class="caoE" d="M50 -40 q12 -4 14 10 q2 14 -10 16 q4 -14 -4 -26 z"/>
+      <ellipse class="cao" cx="52" cy="-18" rx="13" ry="10"/>
+      <ellipse class="focinho" cx="61" cy="-20" rx="5" ry="4"/>
+      <circle class="cartola" cx="35" cy="-30" r="2.4"/>
+      <circle class="cartola" cx="46" cy="-31" r="2.4"/>
+    </g>
+  </g>
+
+  <!-- ══ Embaixo: a soma ══ -->
+  <!-- 1. Troféu -->
+  <g transform="translate(130 450) scale(.78)">
+    <path class="alca" d="M-46 -44 q-26 0 -26 20 q0 20 26 24"/>
+    <path class="alca" d="M46 -44 q26 0 26 20 q0 20 -26 24"/>
+    <path class="ouro" d="M-46 -56 h92 v34 q0 46 -46 62 q-46 -16 -46 -62 z"/>
+    <path class="ouroE" d="M0 40 q46 -16 46 -62 v-34 h-12 v34 q0 40 -34 56 z"/>
+    <rect class="ouro" x="-7" y="40" width="14" height="22"/>
+    <rect class="ouroE" x="-7" y="40" width="5" height="22"/>
+    <rect class="ouro" x="-26" y="62" width="52" height="12" rx="3"/>
+    <rect class="ouroE" x="-36" y="74" width="72" height="14" rx="4"/>
+  </g>
+
+  <g class="mais" transform="translate(245 450)"><path d="M-14 0 h28 M0 -14 v28"/></g>
+
+  <!-- 2. Batatas -->
+  <g transform="translate(370 450) scale(.78)">
+    <g transform="translate(-42 12) rotate(-13)">
+      <path class="batata" d="M-52 -2 q-2 -18 16 -25 q16 -6 34 -4 q22 2 30 13 q9 12 1 23 q-9 12 -32 14 q-25 2 -39 -6 q-9 -5 -10 -15 z"/>
+      <path class="batataE" d="M-51 4 q8 16 34 18 q26 2 38 -11 q-5 16 -30 19 q-25 2 -39 -6 q-8 -5 -3 -20 z"/>
+      <ellipse class="olho" cx="-20" cy="-8" rx="3.4" ry="2.4" transform="rotate(20 -20 -8)"/>
+      <ellipse class="olho" cx="12" cy="3" rx="3" ry="2.1" transform="rotate(-10 12 3)"/>
+      <ellipse class="olho" cx="-4" cy="13" rx="2.6" ry="1.8"/>
+    </g>
+    <g transform="translate(38 -10) rotate(14)">
+      <path class="batata" d="M-44 -1 q-2 -15 14 -21 q14 -5 29 -3 q19 2 25 11 q8 10 1 19 q-8 10 -27 12 q-21 2 -33 -5 q-8 -5 -9 -13 z"/>
+      <path class="batataE" d="M-43 4 q7 13 29 15 q22 2 32 -9 q-4 13 -25 16 q-21 2 -33 -5 q-7 -4 -3 -17 z"/>
+      <ellipse class="olho" cx="-16" cy="-6" rx="3" ry="2.1" transform="rotate(15 -16 -6)"/>
+      <ellipse class="olho" cx="11" cy="4" rx="2.6" ry="1.9"/>
+    </g>
+    <g transform="translate(4 42) rotate(-5)">
+      <path class="batata" d="M-35 -1 q-1 -12 11 -17 q11 -4 23 -2 q15 2 20 9 q6 8 1 15 q-7 8 -22 9 q-17 2 -26 -4 q-6 -4 -7 -10 z"/>
+      <path class="batataE" d="M-34 3 q6 10 23 12 q17 2 25 -7 q-3 10 -20 13 q-17 1 -26 -4 q-6 -4 -2 -14 z"/>
+      <ellipse class="olho" cx="-12" cy="-4" rx="2.6" ry="1.8"/>
+      <ellipse class="olho" cx="9" cy="3" rx="2.2" ry="1.6"/>
+    </g>
+  </g>
+
+  <g class="mais" transform="translate(500 450)"><path d="M-14 0 h28 M0 -14 v28"/></g>
+
+  <!-- 3. Machado -->
+  <g transform="translate(620 450) rotate(-18) scale(.78)">
+    <rect class="cabo" x="-9" y="-16" width="18" height="118" rx="7"/>
+    <rect class="caboE" x="2" y="-16" width="7" height="118" rx="3"/>
+    <path class="metal" d="M-10 -76 q44 -12 74 14 q10 9 4 19 q-8 13 -30 15 q-26 3 -48 -10 z"/>
+    <path class="metalE" d="M-10 -76 q44 -12 74 14 q10 9 4 19 q-4 -16 -22 -27 q-22 -13 -56 -6 z"/>
+    <rect class="metal" x="-16" y="-80" width="16" height="56" rx="5"/>
+    <rect class="metalE" x="-16" y="-80" width="6" height="56" rx="3"/>
+  </g>
+
+  <g class="mais" transform="translate(745 450)"><path d="M-14 0 h28 M0 -14 v28"/></g>
+
+  <!-- 4. O jogador -->
+  <g transform="translate(880 452) scale(.82)">
+    <path class="cabeloE" d="M-58 -18 q-6 -62 58 -62 q64 0 58 62 q-2 42 -14 62 q-8 13 -18 4 q10 -34 6 -60 q-32 12 -64 0 q-4 26 6 60 q-10 9 -18 -4 q-12 -20 -14 -62 z"/>
+    <path class="camisa" d="M-72 108 q2 -46 28 -58 l 20 -9 q24 16 48 0 l 20 9 q26 12 28 58 z"/>
+    <path class="camisaE" d="M44 41 l20 9 q26 12 28 58 h-22 q-2 -44 -26 -55 z"/>
+    <path class="verde" d="M-24 41 l24 22 l24 -22 l-10 -5 q-14 10 -28 0 z"/>
+    <path class="peleE" d="M-17 16 h34 v26 q-17 12 -34 0 z"/>
+    <ellipse class="pele" cx="0" cy="-26" rx="40" ry="45"/>
+    <ellipse class="pele" cx="-40" cy="-24" rx="7" ry="10"/>
+    <ellipse class="pele" cx="40" cy="-24" rx="7" ry="10"/>
+    <path class="cabelo" d="M-41 -34 q-4 -44 41 -44 q45 0 41 44 q-10 -22 -41 -20 q-31 -2 -41 20 z"/>
+    <ellipse class="cabelo" cx="-15" cy="-30" rx="4.6" ry="5.2"/>
+    <ellipse class="cabelo" cx="15" cy="-30" rx="4.6" ry="5.2"/>
+    <path class="sobrancelha" d="M-24 -42 q9 -6 18 -1"/>
+    <path class="sobrancelha" d="M24 -42 q-9 -6 -18 -1"/>
+    <path class="peleE" d="M-6 -16 q6 6 12 0 q-6 5 -12 0 z"/>
+    <path class="boca" d="M-22 -4 q22 20 44 0 q-4 20 -22 20 q-18 0 -22 -20 z"/>
+    <path class="dente" d="M-19 -3 q19 6 38 0 q-2 8 -19 8 q-17 0 -19 -8 z"/>
+    <text class="numero" x="0" y="96">10</text>
+  </g>
+</svg>

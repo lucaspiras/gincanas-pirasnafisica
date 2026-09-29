@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 600" width="2080" height="1200"
+     role="img" aria-labelledby="t10 d10">
+  <title id="t10">Um guarda-chuva amarelo, sozinho na chuva</title>
+  <desc id="d10">Sob chuva pesada, um guarda-chuva amarelo aberto, grande, sozinho no centro da
+  imagem. Nada mais aparece: nem pessoa, nem rua, nem fundo além da chuva.</desc>
+  <style><![CDATA[
+    svg {
+      --fundo:     #1a2350;
+      --fundo-b:   #121838;
+      --moldura:   #2c3870;
+      --chuva:     #9fb3d9;
+      --amarelo:   #f5c518;
+      --amarelo-e: #d29e08;
+      --haste:     #cdd7e6;
+      --cabo:      #a8703c;
+    }
+    .fundo    { fill: url(#gradFundo10); }
+    .moldura  { fill: none; stroke: var(--moldura); stroke-width: 2; }
+    .chuva    { fill: none; stroke: var(--chuva); stroke-width: 2; stroke-linecap: round; }
+    .lona     { fill: var(--amarelo); }
+    .lonaE    { fill: var(--amarelo-e); }
+    .costura  { fill: none; stroke: var(--amarelo-e); stroke-width: 2; }
+    .haste    { fill: none; stroke: var(--haste); stroke-width: 6; stroke-linecap: round; }
+    .cabo     { fill: none; stroke: var(--cabo); stroke-width: 10; stroke-linecap: round; }
+    .ponta    { fill: var(--haste); }
+  ]]></style>
+
+  <defs>
+    <linearGradient id="gradFundo10" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a2350"/>
+      <stop offset="1" stop-color="#121838"/>
+    </linearGradient>
+
+    <!-- O guarda-chuva, desenhado uma vez e reaproveitado no eco. -->
+    <g id="gc10">
+      <path class="haste" d="M0 -118 V148"/>
+      <path class="cabo" d="M0 148 q0 30 -24 30 q-24 0 -24 -24"/>
+      <path class="lona" d="M-150 0 A150 132 0 0 1 150 0
+                            Q 112 27 75 0 Q 37 27 0 0 Q -37 27 -75 0 Q -112 27 -150 0 Z"/>
+      <path class="lonaE" d="M0 -131 A150 132 0 0 1 150 0 Q 112 27 75 0 L 0 0 Z" opacity=".55"/>
+      <g class="costura">
+        <path d="M0 -130 L0 0"/>
+        <path d="M0 -130 L75 0"/>
+        <path d="M0 -130 L-75 0"/>
+      </g>
+      <path class="ponta" d="M-4 -140 h8 v26 h-8 z"/>
+      <circle class="ponta" cx="0" cy="-146" r="6"/>
+    </g>
+  </defs>
+
+  <rect class="fundo" x="0" y="0" width="1040" height="600"/>
+  <rect class="moldura" x="14" y="14" width="1012" height="572" rx="18"/>
+
+  <!-- chuva -->
+  <g class="chuva" opacity=".5">
+    <path d="M70 60 l-12 34 M150 40 l-12 34 M230 90 l-12 34 M320 46 l-12 34 M410 96 l-12 34"/>
+    <path d="M500 54 l-12 34 M590 92 l-12 34 M680 48 l-12 34 M770 96 l-12 34 M860 56 l-12 34"/>
+    <path d="M950 92 l-12 34 M110 180 l-12 34 M262 200 l-12 34 M436 210 l-12 34 M614 196 l-12 34"/>
+    <path d="M806 214 l-12 34 M958 192 l-12 34 M64 330 l-12 34 M172 430 l-12 34 M96 500 l-12 34"/>
+    <path d="M300 520 l-12 34 M470 470 l-12 34 M640 500 l-12 34 M820 480 l-12 34 M960 520 l-12 34"/>
+    <path d="M204 120 l-12 34 M356 142 l-12 34 M528 118 l-12 34 M718 140 l-12 34 M894 124 l-12 34"/>
+    <path d="M148 268 l-12 34 M338 288 l-12 34 M712 276 l-12 34 M888 296 l-12 34 M40 412 l-12 34"/>
+    <path d="M226 462 l-12 34 M392 410 l-12 34 M556 448 l-12 34 M724 418 l-12 34 M886 452 l-12 34"/>
+  </g>
+
+  <!-- um só, no meio: o amarelo é a pista, e não precisa de companhia -->
+  <use href="#gc10" transform="translate(520 300) scale(1.18)"/>
+</svg>
