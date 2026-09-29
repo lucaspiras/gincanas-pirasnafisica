@@ -25,14 +25,14 @@
       <div class="card mt-24">
         <h3>Como funciona</h3>
         <p class="mt-8">
-          São quinze enigmas em corrente. A resposta de um abre o próximo, e a sua turma só enxerga
-          aquele em que está. Não dá para pular nem para espiar adiante.
+          Os enigmas formam uma corrente.<span id="quantos"></span> A resposta de um abre o próximo,
+          e a sua turma só enxerga aquele em que está. Não dá para pular nem para espiar adiante.
         </p>
         <ul class="mt-12" style="margin-left:20px">
           <li>A resposta <strong>não precisa de acento nem de maiúscula</strong>. Pontuação e espaço também não contam.</li>
           <li>Entre uma tentativa e outra, espere <strong>cinco segundos</strong>.</li>
           <li>Cada enigma aceita até <strong>50 tentativas</strong> da turma. A página mostra quantas restam.</li>
-          <li>Alguns enigmas <strong>só abrem no dia marcado</strong>, porque dependem de algo que acontece na semana.</li>
+          <li>Pode haver enigma que <strong>só abre no dia marcado</strong>, porque depende de algo que acontece na semana.</li>
           <li>Todos da turma usam o mesmo acesso, então o progresso é um só, e qualquer um pode responder.</li>
         </ul>
       </div>
@@ -40,13 +40,20 @@
       <div class="card mt-12">
         <h3>Antes de começar</h3>
         <p class="mt-8">
-          Os enigmas não são explícitos. Alguns pedem para olhar com atenção, outros pedem para procurar
-          algo no campus, e há os que dependem de conversar com alguém. Tentar várias vezes faz parte.
+          Os enigmas não são explícitos. Quase sempre a imagem aponta para alguma coisa fora dela:
+          uma pessoa conhecida, uma obra, uma canção, um livro, um filme, do Brasil ou de fora.
+          <strong>Quem indica o caminho são os detalhes</strong>, e eles estão ali de propósito:
+          uma cor, um número, um objeto pequeno num canto. Nem tudo é o que parece.
         </p>
         <p class="mt-8">
-          Uma palavra sobre inteligência artificial: a resposta quase nunca está no enunciado, e sim em
-          algo que só existe aqui, naquele dia, ou com alguma pessoa. Usar IA não é proibido, e também
-          não resolve a trilha.
+          Tentar várias vezes faz parte, e errar não tira ponto: só gasta uma das cinquenta
+          tentativas daquele enigma.
+        </p>
+        <p class="mt-8">
+          Sobre inteligência artificial: usar não é proibido, e em vários enigmas ela vai reconhecer
+          a referência antes de vocês. O que ela costuma não fazer é o segundo passo, que é onde o
+          enigma mora de verdade, e há aqui enigmas em que ela trava. Ela serve para ter ideias,
+          não para substituir o olhar. Usem a criatividade.
         </p>
       </div>
 
@@ -106,7 +113,10 @@
         $('progresso').textContent = explicarErro(error)
         $('progresso').classList.add('erro')
         $('progresso').classList.remove('hidden')
-      } else if (estado && estado.resolvidos > 0) {
+      }
+      // o total vem do banco, para o texto não prometer um número que mudou
+      if (estado?.total) $('quantos').textContent = ` São ${estado.total} ao todo.`
+      if (!error && estado && estado.resolvidos > 0) {
         $('progresso').textContent = `A sua turma já resolveu ${estado.resolvidos} de ${estado.total}.`
         $('progresso').classList.remove('hidden')
         $('btn-comecar').textContent = 'Continuar a trilha →'
