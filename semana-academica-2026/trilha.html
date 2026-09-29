@@ -23,6 +23,9 @@
     /* Barra de administrador: um clique para chegar em qualquer enigma. */
     .admin-barra { border: 1.5px dashed var(--alerta-border); background: var(--alerta-bg); border-radius: var(--raio); padding: 12px 14px; }
     .admin-barra .rotulo { font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--alerta); }
+    /* mesma mecânica dos chips do admin, mas para a turma e só com o que ela já resolveu */
+    .resolvidos-barra { border: 1.5px solid var(--border); background: var(--surface-2); border-radius: var(--raio); padding: 10px 14px; margin-top: 16px; }
+    .resolvidos-barra .rotulo { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
     .admin-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .admin-chips .chip { cursor: pointer; background: var(--surface); border-color: var(--border); color: var(--texto); }
     .admin-chips .chip:hover { border-color: var(--azul); }
@@ -44,6 +47,12 @@
         <span class="rotulo">Prévia de administrador</span>
         <div class="admin-chips" id="admin-chips"></div>
         <p class="muted texto-p mt-8" id="admin-nota">Clique num enigma para ver como a turma o recebe. Nada é gravado.</p>
+      </div>
+
+      <!-- Enigmas que a turma já resolveu, para poder voltar neles -->
+      <div id="resolvidos-barra" class="resolvidos-barra hidden">
+        <span class="rotulo">Já resolvidos</span>
+        <div class="admin-chips" id="resolvidos-chips"></div>
       </div>
 
       <div class="topo-secao mt-16">
@@ -78,6 +87,13 @@
       <div id="gabarito" class="card mt-12 hidden">
         <h3>Gabarito</h3>
         <dl class="gabarito" id="gabarito-lista"></dl>
+      </div>
+
+      <!-- Revendo um enigma já resolvido -->
+      <div id="revisto" class="card mt-12 hidden">
+        <h3>✓ Já resolvido</h3>
+        <p class="mt-8" id="revisto-revela"></p>
+        <div class="mt-16"><button class="btn btn-primary btn-sm" id="btn-voltar-atual">Voltar ao enigma atual →</button></div>
       </div>
 
       <!-- Acertou -->
@@ -181,10 +197,45 @@
       mostrar('cartao-enigma', true)
     }
 
+    /* ── Rever o que a turma já resolveu ──────────────────────
+       A lista vem de gincana_enigmas_meus, que só devolve enigma resolvido
+       por esta equipe e nunca a resposta. É leitura: não grava nada. */
+    let resolvidos = []
+
+    function marcarChipResolvido(id) {
+      document.querySelectorAll('#resolvidos-chips .chip')
+        .forEach(c => c.classList.toggle('ativo', c.dataset.id === id))
+    }
+
+    async function montarBarraResolvidos() {
+      const { data, error } = await supabase.rpc('gincana_enigmas_meus', { p_slug: SLUG, p_trilha: 'dna' })
+      if (error) return
+      resolvidos = data ?? []
+      mostrar('resolvidos-barra', resolvidos.length > 0)
+      $('resolvidos-chips').innerHTML = resolvidos
+        .map(e => `<span class="chip" data-id="${e.enigma_id}">${escHtml(e.titulo || 'Enigma ' + e.ord)}</span>`)
+        .join('')
+    }
+
+    function verResolvido(id) {
+      const e = resolvidos.find(x => x.enigma_id === id)
+      if (!e) return
+      marcarChipResolvido(id)
+      pintarEnigma({ titulo: e.titulo, ord: e.ord, pergunta: e.pergunta, media_url: e.media_url, dica: null })
+      $('revisto-revela').textContent = e.revela || ''
+      mostrar('form-resposta', false); mostrar('acertou', false); mostrar('gabarito', false)
+      mostrar('espera', false); mostrar('fim', false); mostrar('barra-wrap', false)
+      mostrar('revisto', true)
+      $('progresso-txt').textContent = `revendo · ${e.ord}`
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
     /* ── Modo turma ──────────────────────────────────────── */
     async function carregar() {
       previa = null
       marcarChip(null)
+      marcarChipResolvido(null)
+      mostrar('revisto', false)
       mostrar('gabarito', false); mostrar('acertou', false); mostrar('barra-wrap', true)
       const { data, error } = await supabase.rpc('gincana_enigma_atual', { p_slug: SLUG, p_trilha: 'dna' })
       if (error) return falha(error)
@@ -224,6 +275,7 @@
         $('revela').textContent = data.revela || 'Siga para o próximo.'
         $('ganhou').textContent = Number(data.pontos) > 0 ? `+${Number(data.pontos)} pontos para a turma.` : ''
         mostrar('cartao-enigma', false); mostrar('form-resposta', false); mostrar('acertou', true)
+        montarBarraResolvidos()   // o que acabou de ser resolvido já entra na barra
       } else {
         $('msg').textContent = `Não é essa. Restam ${data?.restantes ?? '?'} tentativas neste enigma.`
         $('msg').className = 'aviso erro mt-12'
@@ -288,9 +340,14 @@
     $('resposta').addEventListener('keydown', (e) => { if (e.key === 'Enter') responder() })
     $('btn-proximo').addEventListener('click', carregar)
     $('btn-modo-turma').addEventListener('click', carregar)
+    $('btn-voltar-atual').addEventListener('click', carregar)
+    $('resolvidos-chips').addEventListener('click', (ev2) => {
+      const c = ev2.target.closest('.chip[data-id]')
+      if (c) verResolvido(c.dataset.id)
+    })
 
     if (ehAdmin) await montarBarraAdmin()
-    if (equipe) await carregar()
+    if (equipe) { await montarBarraResolvidos(); await carregar() }
     else if (todos.length) verPrevia(todos[0].id)
   </script>
 </body>
