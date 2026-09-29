@@ -1,146 +1,164 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 560" width="2080" height="1120"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 360" width="2080" height="720"
      role="img" aria-labelledby="t13 d13">
-  <title id="t13">Uma parede com o alfabeto e um cordão de lâmpadas</title>
-  <desc id="d13">Numa parede escura, o alfabeto pintado à mão em duas fileiras, de A a M em cima e
-  de N a Z embaixo. Sobre cada fileira pende um cordão de lâmpadas, uma lâmpada acima de cada
-  letra. Seis lâmpadas estão acesas e trazem um número pequeno embaixo; as outras vinte estão
-  apagadas.</desc>
+  <title id="t13">Um cordão de vinte e seis lâmpadas que piscam em sequência</title>
+  <desc id="d13">Numa parede escura, um cordão com vinte e seis lâmpadas iguais, lado a lado, todas
+  apagadas. Uma de cada vez acende e apaga, sempre na mesma ordem, e o ciclo recomeça. Não há
+  nenhuma letra nem número escrito na imagem.</desc>
   <style><![CDATA[
     svg {
-      --parede:  #2b2420;  --parede-b: #1d1815;  --risco: #3a312b;
-      --letra:   #ddd2bf;
+      --parede:  #2b2420;  --parede-b: #1a1512;  --risco: #382f29;
       --fio:     #4a4038;  --soquete: #5c5046;
-      --apagada: #55504a;  --acesa:   #ffd452;
-      --num:     #ffb35c;
+      --apagada: #514c46;  --acesa:   #ffd452;  --ordem: #ffb35c;
     }
-    .parede   { fill: url(#gradParede13); }
-    .risco    { fill: none; stroke: var(--risco); stroke-width: 2; }
-    .moldura  { fill: none; stroke: #3a312b; stroke-width: 2; }
-    .letra    { fill: var(--letra); font-family: 'DM Sans', system-ui, sans-serif;
-                font-weight: 800; font-size: 46px; text-anchor: middle; opacity: .92; }
-    .fio      { fill: none; stroke: var(--fio); stroke-width: 3; }
-    .soquete  { fill: none; stroke: var(--soquete); stroke-width: 4; stroke-linecap: round; }
-    .apagada  { fill: var(--apagada); }
-    .acesa    { fill: var(--acesa); }
-    .halo     { fill: url(#gradHalo13); }
-    .num      { fill: var(--num); font-family: 'Space Mono', ui-monospace, monospace;
-                font-weight: 700; font-size: 17px; text-anchor: middle; }
+    .parede  { fill: url(#gradParede13); }
+    .risco   { fill: none; stroke: var(--risco); stroke-width: 2; }
+    .moldura { fill: none; stroke: #3a312b; stroke-width: 2; }
+    .fio     { fill: none; stroke: var(--fio); stroke-width: 3; }
+    .soquete { fill: none; stroke: var(--soquete); stroke-width: 4; stroke-linecap: round; }
+    .apagada { fill: var(--apagada); }
+    .acesa   { fill: var(--acesa); }
+    .halo    { fill: url(#gradHalo13); }
+    .ordem   { fill: var(--ordem); font-family: 'Space Mono', ui-monospace, monospace;
+               font-weight: 700; font-size: 16px; text-anchor: middle; }
+
+    .pisca   { opacity: 0; animation: acende 7.5s linear infinite; }
+    .parado  { display: none; }
+
+    @keyframes acende {
+      0%            { opacity: 0; }
+      1.067%  { opacity: 1; }
+      6.667%  { opacity: 1; }
+      8.0% { opacity: 0; }
+      100%          { opacity: 0; }
+    }
+
+    /* Quem pede menos movimento não consegue ler uma sequência. Nesse caso as
+       seis acendem de uma vez e ganham o número da ordem, que é a única forma
+       de a informação continuar completa. */
+    @media (prefers-reduced-motion: reduce) {
+      .pisca  { display: none; }
+      .parado { display: block; }
+    }
   ]]></style>
 
   <defs>
     <linearGradient id="gradParede13" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2b2420"/><stop offset="1" stop-color="#1d1815"/>
+      <stop offset="0" stop-color="#2b2420"/><stop offset="1" stop-color="#1a1512"/>
     </linearGradient>
     <radialGradient id="gradHalo13" cx=".5" cy=".5" r=".5">
-      <stop offset="0"   stop-color="#ffd452" stop-opacity=".55"/>
-      <stop offset=".55" stop-color="#ffd452" stop-opacity=".18"/>
+      <stop offset="0"   stop-color="#ffd452" stop-opacity=".60"/>
+      <stop offset=".5"  stop-color="#ffd452" stop-opacity=".20"/>
       <stop offset="1"   stop-color="#ffd452" stop-opacity="0"/>
     </radialGradient>
   </defs>
 
-  <rect class="parede" x="0" y="0" width="1040" height="560"/>
-  <g class="risco" opacity=".5">
-    <path d="M150 0 V560 M380 0 V560 M610 0 V560 M840 0 V560"/>
+  <rect class="parede" x="0" y="0" width="1040" height="360"/>
+  <g class="risco" opacity=".45">
+    <path d="M180 0 V360 M430 0 V360 M680 0 V360 M900 0 V360"/>
   </g>
-  <rect class="moldura" x="14" y="14" width="1012" height="532" rx="14"/>
+  <rect class="moldura" x="14" y="14" width="1012" height="332" rx="14"/>
 
-  <g>
-    <path class="fio" d="M56.2 150 Q92.0 168 127.8 150 Q163.5 168 199.2 150 Q235.0 168 270.8 150 Q306.5 168 342.2 150 Q378.0 168 413.8 150 Q449.5 168 485.2 150 Q521.0 168 556.8 150 Q592.5 168 628.2 150 Q664.0 168 699.8 150 Q735.5 168 771.2 150 Q807.0 168 842.8 150 Q878.5 168 914.2 150 Q950.0 168 985.8 150"/>
-    <path class="fio" d="M56.2 330 Q92.0 348 127.8 330 Q163.5 348 199.2 330 Q235.0 348 270.8 330 Q306.5 348 342.2 330 Q378.0 348 413.8 330 Q449.5 348 485.2 330 Q521.0 348 556.8 330 Q592.5 348 628.2 330 Q664.0 348 699.8 330 Q735.5 348 771.2 330 Q807.0 348 842.8 330 Q878.5 348 914.2 330 Q950.0 348 985.8 330"/>
-    <path class="soquete" d="M92.0 164 v8"/>
-    <circle class="halo" cx="92.0" cy="172" r="26"/>
-    <circle class="acesa" cx="92.0" cy="172" r="11"/>
-    <path class="soquete" d="M163.5 164 v8"/>
-    <circle class="halo" cx="163.5" cy="172" r="26"/>
-    <circle class="acesa" cx="163.5" cy="172" r="11"/>
-    <path class="soquete" d="M235.0 164 v8"/>
-    <circle class="apagada" cx="235.0" cy="172" r="11"/>
-    <path class="soquete" d="M306.5 164 v8"/>
-    <circle class="apagada" cx="306.5" cy="172" r="11"/>
-    <path class="soquete" d="M378.0 164 v8"/>
-    <circle class="apagada" cx="378.0" cy="172" r="11"/>
-    <path class="soquete" d="M449.5 164 v8"/>
-    <circle class="apagada" cx="449.5" cy="172" r="11"/>
-    <path class="soquete" d="M521.0 164 v8"/>
-    <circle class="apagada" cx="521.0" cy="172" r="11"/>
-    <path class="soquete" d="M592.5 164 v8"/>
-    <circle class="apagada" cx="592.5" cy="172" r="11"/>
-    <path class="soquete" d="M664.0 164 v8"/>
-    <circle class="halo" cx="664.0" cy="172" r="26"/>
-    <circle class="acesa" cx="664.0" cy="172" r="11"/>
-    <path class="soquete" d="M735.5 164 v8"/>
-    <circle class="apagada" cx="735.5" cy="172" r="11"/>
-    <path class="soquete" d="M807.0 164 v8"/>
-    <circle class="apagada" cx="807.0" cy="172" r="11"/>
-    <path class="soquete" d="M878.5 164 v8"/>
-    <circle class="apagada" cx="878.5" cy="172" r="11"/>
-    <path class="soquete" d="M950.0 164 v8"/>
-    <circle class="halo" cx="950.0" cy="172" r="26"/>
-    <circle class="acesa" cx="950.0" cy="172" r="11"/>
-    <path class="soquete" d="M92.0 344 v8"/>
-    <circle class="apagada" cx="92.0" cy="352" r="11"/>
-    <path class="soquete" d="M163.5 344 v8"/>
-    <circle class="halo" cx="163.5" cy="352" r="26"/>
-    <circle class="acesa" cx="163.5" cy="352" r="11"/>
-    <path class="soquete" d="M235.0 344 v8"/>
-    <circle class="apagada" cx="235.0" cy="352" r="11"/>
-    <path class="soquete" d="M306.5 344 v8"/>
-    <circle class="apagada" cx="306.5" cy="352" r="11"/>
-    <path class="soquete" d="M378.0 344 v8"/>
-    <circle class="apagada" cx="378.0" cy="352" r="11"/>
-    <path class="soquete" d="M449.5 344 v8"/>
-    <circle class="halo" cx="449.5" cy="352" r="26"/>
-    <circle class="acesa" cx="449.5" cy="352" r="11"/>
-    <path class="soquete" d="M521.0 344 v8"/>
-    <circle class="apagada" cx="521.0" cy="352" r="11"/>
-    <path class="soquete" d="M592.5 344 v8"/>
-    <circle class="apagada" cx="592.5" cy="352" r="11"/>
-    <path class="soquete" d="M664.0 344 v8"/>
-    <circle class="apagada" cx="664.0" cy="352" r="11"/>
-    <path class="soquete" d="M735.5 344 v8"/>
-    <circle class="apagada" cx="735.5" cy="352" r="11"/>
-    <path class="soquete" d="M807.0 344 v8"/>
-    <circle class="apagada" cx="807.0" cy="352" r="11"/>
-    <path class="soquete" d="M878.5 344 v8"/>
-    <circle class="apagada" cx="878.5" cy="352" r="11"/>
-    <path class="soquete" d="M950.0 344 v8"/>
-    <circle class="apagada" cx="950.0" cy="352" r="11"/>
-  </g>
-  <g>
-    <text class="num" x="92.0" y="200">1</text>
-    <text class="num" x="163.5" y="200">2</text>
-    <text class="num" x="664.0" y="200">3</text>
-    <text class="num" x="950.0" y="200">5</text>
-    <text class="num" x="163.5" y="380">6</text>
-    <text class="num" x="449.5" y="380">4</text>
-  </g>
-  <g>
-    <text class="letra" x="92.0" y="254" transform="rotate(-5 92.0 254)">A</text>
-    <text class="letra" x="163.5" y="254" transform="rotate(-1 163.5 254)">B</text>
-    <text class="letra" x="235.0" y="254" transform="rotate(3 235.0 254)">C</text>
-    <text class="letra" x="306.5" y="254" transform="rotate(-4 306.5 254)">D</text>
-    <text class="letra" x="378.0" y="254" transform="rotate(0 378.0 254)">E</text>
-    <text class="letra" x="449.5" y="254" transform="rotate(4 449.5 254)">F</text>
-    <text class="letra" x="521.0" y="254" transform="rotate(-3 521.0 254)">G</text>
-    <text class="letra" x="592.5" y="254" transform="rotate(1 592.5 254)">H</text>
-    <text class="letra" x="664.0" y="254" transform="rotate(5 664.0 254)">I</text>
-    <text class="letra" x="735.5" y="254" transform="rotate(-2 735.5 254)">J</text>
-    <text class="letra" x="807.0" y="254" transform="rotate(2 807.0 254)">K</text>
-    <text class="letra" x="878.5" y="254" transform="rotate(-5 878.5 254)">L</text>
-    <text class="letra" x="950.0" y="254" transform="rotate(-1 950.0 254)">M</text>
-    <text class="letra" x="92.0" y="434" transform="rotate(3 92.0 434)">N</text>
-    <text class="letra" x="163.5" y="434" transform="rotate(-4 163.5 434)">O</text>
-    <text class="letra" x="235.0" y="434" transform="rotate(0 235.0 434)">P</text>
-    <text class="letra" x="306.5" y="434" transform="rotate(4 306.5 434)">Q</text>
-    <text class="letra" x="378.0" y="434" transform="rotate(-3 378.0 434)">R</text>
-    <text class="letra" x="449.5" y="434" transform="rotate(1 449.5 434)">S</text>
-    <text class="letra" x="521.0" y="434" transform="rotate(5 521.0 434)">T</text>
-    <text class="letra" x="592.5" y="434" transform="rotate(-2 592.5 434)">U</text>
-    <text class="letra" x="664.0" y="434" transform="rotate(2 664.0 434)">V</text>
-    <text class="letra" x="735.5" y="434" transform="rotate(-5 735.5 434)">W</text>
-    <text class="letra" x="807.0" y="434" transform="rotate(-1 807.0 434)">X</text>
-    <text class="letra" x="878.5" y="434" transform="rotate(3 878.5 434)">Y</text>
-    <text class="letra" x="950.0" y="434" transform="rotate(-4 950.0 434)">Z</text>
-  </g>
+  <path class="fio" d="M39.5 172 Q58.0 189 76.5 172 Q95.0 189 113.4 172 Q131.9 189 150.4 172 Q168.9 189 187.4 172 Q205.8 189 224.3 172 Q242.8 189 261.3 172 Q279.8 189 298.2 172 Q316.7 189 335.2 172 Q353.7 189 372.2 172 Q390.6 189 409.1 172 Q427.6 189 446.1 172 Q464.6 189 483.0 172 Q501.5 189 520.0 172 Q538.5 189 557.0 172 Q575.4 189 593.9 172 Q612.4 189 630.9 172 Q649.4 189 667.8 172 Q686.3 189 704.8 172 Q723.3 189 741.8 172 Q760.2 189 778.7 172 Q797.2 189 815.7 172 Q834.2 189 852.6 172 Q871.1 189 889.6 172 Q908.1 189 926.6 172 Q945.0 189 963.5 172 Q982.0 189 1000.5 172"/>
+    <path class="soquete" d="M58.0 185 v8"/>
+    <circle class="apagada" cx="58.0" cy="196" r="12"/>
+    <path class="soquete" d="M95.0 185 v8"/>
+    <circle class="apagada" cx="95.0" cy="196" r="12"/>
+    <path class="soquete" d="M131.9 185 v8"/>
+    <circle class="apagada" cx="131.9" cy="196" r="12"/>
+    <path class="soquete" d="M168.9 185 v8"/>
+    <circle class="apagada" cx="168.9" cy="196" r="12"/>
+    <path class="soquete" d="M205.8 185 v8"/>
+    <circle class="apagada" cx="205.8" cy="196" r="12"/>
+    <path class="soquete" d="M242.8 185 v8"/>
+    <circle class="apagada" cx="242.8" cy="196" r="12"/>
+    <path class="soquete" d="M279.8 185 v8"/>
+    <circle class="apagada" cx="279.8" cy="196" r="12"/>
+    <path class="soquete" d="M316.7 185 v8"/>
+    <circle class="apagada" cx="316.7" cy="196" r="12"/>
+    <path class="soquete" d="M353.7 185 v8"/>
+    <circle class="apagada" cx="353.7" cy="196" r="12"/>
+    <path class="soquete" d="M390.6 185 v8"/>
+    <circle class="apagada" cx="390.6" cy="196" r="12"/>
+    <path class="soquete" d="M427.6 185 v8"/>
+    <circle class="apagada" cx="427.6" cy="196" r="12"/>
+    <path class="soquete" d="M464.6 185 v8"/>
+    <circle class="apagada" cx="464.6" cy="196" r="12"/>
+    <path class="soquete" d="M501.5 185 v8"/>
+    <circle class="apagada" cx="501.5" cy="196" r="12"/>
+    <path class="soquete" d="M538.5 185 v8"/>
+    <circle class="apagada" cx="538.5" cy="196" r="12"/>
+    <path class="soquete" d="M575.4 185 v8"/>
+    <circle class="apagada" cx="575.4" cy="196" r="12"/>
+    <path class="soquete" d="M612.4 185 v8"/>
+    <circle class="apagada" cx="612.4" cy="196" r="12"/>
+    <path class="soquete" d="M649.4 185 v8"/>
+    <circle class="apagada" cx="649.4" cy="196" r="12"/>
+    <path class="soquete" d="M686.3 185 v8"/>
+    <circle class="apagada" cx="686.3" cy="196" r="12"/>
+    <path class="soquete" d="M723.3 185 v8"/>
+    <circle class="apagada" cx="723.3" cy="196" r="12"/>
+    <path class="soquete" d="M760.2 185 v8"/>
+    <circle class="apagada" cx="760.2" cy="196" r="12"/>
+    <path class="soquete" d="M797.2 185 v8"/>
+    <circle class="apagada" cx="797.2" cy="196" r="12"/>
+    <path class="soquete" d="M834.2 185 v8"/>
+    <circle class="apagada" cx="834.2" cy="196" r="12"/>
+    <path class="soquete" d="M871.1 185 v8"/>
+    <circle class="apagada" cx="871.1" cy="196" r="12"/>
+    <path class="soquete" d="M908.1 185 v8"/>
+    <circle class="apagada" cx="908.1" cy="196" r="12"/>
+    <path class="soquete" d="M945.0 185 v8"/>
+    <circle class="apagada" cx="945.0" cy="196" r="12"/>
+    <path class="soquete" d="M982.0 185 v8"/>
+    <circle class="apagada" cx="982.0" cy="196" r="12"/>
+    <g class="pisca" style="animation-delay:0.00s">
+      <circle class="halo"  cx="58.0" cy="196" r="34"/>
+      <circle class="acesa" cx="58.0" cy="196" r="12"/>
+    </g>
+    <g class="pisca" style="animation-delay:0.90s">
+      <circle class="halo"  cx="834.2" cy="196" r="34"/>
+      <circle class="acesa" cx="834.2" cy="196" r="12"/>
+    </g>
+    <g class="pisca" style="animation-delay:1.80s">
+      <circle class="halo"  cx="205.8" cy="196" r="34"/>
+      <circle class="acesa" cx="205.8" cy="196" r="12"/>
+    </g>
+    <g class="pisca" style="animation-delay:2.70s">
+      <circle class="halo"  cx="723.3" cy="196" r="34"/>
+      <circle class="acesa" cx="723.3" cy="196" r="12"/>
+    </g>
+    <g class="pisca" style="animation-delay:3.60s">
+      <circle class="halo"  cx="723.3" cy="196" r="34"/>
+      <circle class="acesa" cx="723.3" cy="196" r="12"/>
+    </g>
+    <g class="pisca" style="animation-delay:4.50s">
+      <circle class="halo"  cx="575.4" cy="196" r="34"/>
+      <circle class="acesa" cx="575.4" cy="196" r="12"/>
+    </g>
+    <g class="parado">
+      <circle class="halo"  cx="58.0" cy="196" r="30"/>
+      <circle class="acesa" cx="58.0" cy="196" r="12"/>
+      <text class="ordem" x="58.0" y="230">1</text>
+    </g>
+    <g class="parado">
+      <circle class="halo"  cx="205.8" cy="196" r="30"/>
+      <circle class="acesa" cx="205.8" cy="196" r="12"/>
+      <text class="ordem" x="205.8" y="230">3</text>
+    </g>
+    <g class="parado">
+      <circle class="halo"  cx="575.4" cy="196" r="30"/>
+      <circle class="acesa" cx="575.4" cy="196" r="12"/>
+      <text class="ordem" x="575.4" y="230">6</text>
+    </g>
+    <g class="parado">
+      <circle class="halo"  cx="723.3" cy="196" r="30"/>
+      <circle class="acesa" cx="723.3" cy="196" r="12"/>
+      <text class="ordem" x="723.3" y="230">4,5</text>
+    </g>
+    <g class="parado">
+      <circle class="halo"  cx="834.2" cy="196" r="30"/>
+      <circle class="acesa" cx="834.2" cy="196" r="12"/>
+      <text class="ordem" x="834.2" y="230">2</text>
+    </g>
 </svg>
