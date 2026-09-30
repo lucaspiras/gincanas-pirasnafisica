@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jurado · Semana Acadêmica 2026</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
+  <script src="../js/theme.js"></script>
+  <link rel="stylesheet" href="../comum/estilo.css">
+  <style>
+    .filtros { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+    .filtros .chip { cursor: pointer; background: var(--surface); border-color: var(--border); color: var(--texto); }
+    .filtros .chip.ativo { background: var(--azul); color: #fff; border-color: var(--azul); }
+    .fila { display: grid; gap: 14px; margin-top: 18px; }
+    .env { display: grid; grid-template-columns: 180px 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 620px) { .env { grid-template-columns: 1fr; } }
+    .env img { width: 100%; height: 180px; object-fit: cover; border-radius: var(--raio);
+               border: 1.5px solid var(--border); cursor: zoom-in; background: var(--surface-2); display: block; }
+    .env h3 { margin: 0 0 2px; font-size: 1rem; }
+    .pedido { font-size: 1.02rem; line-height: 1.5; font-weight: 600; }
+    .linha-acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+    .linha-acoes .input { flex: 1 1 180px; }
+    .selo { font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+            border-radius: 999px; padding: 2px 9px; }
+    .st-pendente { background: var(--alerta-bg); color: var(--alerta); }
+    .st-aceita   { background: #1f7a45; color: #fff; }
+    .st-recusada { background: #8b2130; color: #fff; }
+    .estrela { background: none; border: 1.5px solid var(--border); border-radius: 999px; cursor: pointer;
+               padding: 4px 12px; font-weight: 700; color: var(--texto); }
+    .estrela.on { background: #f2b705; color: #1a1a1a; border-color: #f2b705; }
+    .extra { width: 66px; }
+    .lupa { position: fixed; inset: 0; background: rgba(6,9,24,.92); display: flex; align-items: center;
+            justify-content: center; z-index: 60; padding: 20px; cursor: zoom-out; }
+    .lupa img { max-width: 100%; max-height: 100%; border-radius: var(--raio); }
+    .contador { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body data-tipo="placar">
+  <div id="header-slot"></div>
+
+  <main class="container-largo pt-24 pb-32">
+    <div id="loading" class="empty"><strong>Carregando…</strong></div>
+
+    <div id="negado" class="empty hidden">
+      <strong>Esta página é da organização.</strong>
+      <p class="muted mt-8">Só quem está inscrito na gincana como jurado, ou o administrador, avalia as fotos.</p>
+      <div class="mt-16"><a class="btn btn-ghost btn-sm" href="index.html">← Início da gincana</a></div>
+    </div>
+
+    <div id="content" class="hidden">
+      <div class="topo-secao">
+        <div class="section-header compacto">
+          <h1>Avaliação das fotos</h1>
+          <div class="pitch-rule"></div>
+        </div>
+        <span class="muted mono contador" id="resumo"></span>
+      </div>
+
+      <div class="filtros" id="filtros">
+        <span class="chip ativo" data-status="pendente">Na fila</span>
+        <span class="chip" data-status="aceita">Aceitas</span>
+        <span class="chip" data-status="recusada">Recusadas</span>
+        <span class="chip" data-status="">Todas</span>
+      </div>
+
+      <p class="muted texto-p mt-12">
+        A foto precisa mostrar pelo menos quatro integrantes da turma junto do que a missão pediu, e ter sido
+        feita durante a Semana Acadêmica. Recusar sempre com o motivo: a turma lê e pode refazer.
+      </p>
+
+      <div class="fila" id="fila"></div>
+
+      <div class="mt-24">
+        <a class="btn btn-ghost btn-sm" href="index.html">← Início da gincana</a>
+        <a class="btn btn-ghost btn-sm" href="placar.html">Placar</a>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { supabase, requireAuthWithProfile, renderCabecalho, bindSignOut,
+             slugDaPasta, escHtml, fmtDataCurta } from '../comum/auth.js'
+
+    const SLUG  = slugDaPasta()
+    const BALDE = 'gincana-fotos'
+    const EXTRA_PADRAO = 3
+
+    const $ = id => document.getElementById(id)
+    const auth = await requireAuthWithProfile()
+    if (!auth) throw new Error('not reached')
+    $('header-slot').innerHTML = renderCabecalho(auth.profile, '')
+    bindSignOut()
+
+    let filtro = 'pendente'
+    let linhas = []
+
+    async function urlAssinada(caminho) {
+      const { data } = await supabase.storage.from(BALDE).createSignedUrl(caminho, 3600)
+      return data?.signedUrl ?? ''
+    }
+
+    function cartao(f) {
+      const rot = { pendente: 'na fila', aceita: 'aceita', recusada: 'recusada' }[f.status] ?? f.status
+      const quando = fmtDataCurta(f.enviada_em)
+      const acoes = f.status === 'aceita'
+        ? `<button class="estrela ${f.destaque ? 'on' : ''}" data-acao="destaque" data-id="${escHtml(f.id)}">
+             ★ Criatividade
+           </button>
+           <input class="input extra" type="number" min="0" max="20" step="1"
+                  value="${EXTRA_PADRAO}" data-extra="${escHtml(f.id)}" title="Pontos extras">
+           <button class="btn btn-ghost btn-sm" data-acao="recusar" data-id="${escHtml(f.id)}">Recusar</button>`
+        : `<button class="btn btn-primary btn-sm" data-acao="aceitar" data-id="${escHtml(f.id)}">Aceitar</button>
+           <input class="input" type="text" maxlength="160" placeholder="Motivo, se for recusar"
+                  data-motivo="${escHtml(f.id)}" value="${escHtml(f.observacao || '')}">
+           <button class="btn btn-ghost btn-sm" data-acao="recusar" data-id="${escHtml(f.id)}">Recusar</button>`
+
+      return `<article class="card env" data-id="${escHtml(f.id)}">
+        <img alt="Foto enviada" data-src="${escHtml(f.caminho)}">
+        <div>
+          <h3>${escHtml(f.equipe_emoji || '')} ${escHtml(f.equipe)}</h3>
+          <div class="muted">${escHtml(f.missao)} · ${escHtml(String(f.pontos))} pts · enviada ${escHtml(quando)}</div>
+          ${f.pedido ? `<p class="pedido mt-8">${escHtml(f.pedido)}</p>` : ''}
+          <div class="mt-8">
+            <span class="selo st-${escHtml(f.status)}">${escHtml(rot)}</span>
+            ${f.destaque ? '<span class="selo" style="background:#f2b705;color:#1a1a1a">★ criatividade</span>' : ''}
+          </div>
+          ${f.legenda ? `<p class="mt-8">${escHtml(f.legenda)}</p>` : ''}
+          ${f.status === 'recusada' && f.observacao ? `<p class="muted mt-8">Motivo: ${escHtml(f.observacao)}</p>` : ''}
+          <div class="linha-acoes">${acoes}</div>
+          <p class="msg hidden mt-8"></p>
+        </div>
+      </article>`
+    }
+
+    function pintar() {
+      if (!linhas.length) {
+        $('fila').innerHTML = `<div class="empty"><strong>Nada por aqui.</strong>
+          <p class="muted mt-8">Quando as turmas enviarem fotos, elas aparecem nesta lista.</p></div>`
+      } else {
+        $('fila').innerHTML = linhas.map(cartao).join('')
+        for (const img of document.querySelectorAll('#fila img[data-src]')) {
+          urlAssinada(img.dataset.src).then(u => { if (u) img.src = u })
+        }
+      }
+      const pend = linhas.filter(f => f.status === 'pendente').length
+      $('resumo').textContent = filtro === 'pendente'
+        ? `${linhas.length} na fila`
+        : `${linhas.length} envios · ${pend} na fila`
+    }
+
+    async function recarregar() {
+      const { data, error } = await supabase.rpc('gincana_fotos_fila',
+        { p_slug: SLUG, p_status: filtro || null })
+      if (error) throw error
+      linhas = data ?? []
+      pintar()
+    }
+
+    function aviso(cartaoEl, texto) {
+      const p = cartaoEl.querySelector('.msg')
+      p.className = 'msg mt-8 aviso alerta'
+      p.textContent = texto
+      p.classList.remove('hidden')
+    }
+
+    async function avaliar(id, status, cartaoEl, extras = {}) {
+      const botoes = cartaoEl.querySelectorAll('button')
+      botoes.forEach(b => { b.disabled = true })
+      try {
+        const { error } = await supabase.rpc('gincana_foto_avaliar', {
+          p_foto: id,
+          p_status: status,
+          p_destaque: extras.destaque ?? false,
+          p_observacao: extras.observacao ?? null,
+          p_extra: extras.extra ?? EXTRA_PADRAO,
+        })
+        if (error) throw error
+        await recarregar()
+      } catch (e) {
+        aviso(cartaoEl, e.message || String(e))
+        botoes.forEach(b => { b.disabled = false })
+      }
+    }
+
+    $('fila').addEventListener('click', ev => {
+      const img = ev.target.closest('img[data-src]')
+      if (img?.src) {
+        const lupa = document.createElement('div')
+        lupa.className = 'lupa'
+        lupa.innerHTML = `<img src="${escHtml(img.src)}" alt="Foto ampliada">`
+        lupa.addEventListener('click', () => lupa.remove())
+        document.body.appendChild(lupa)
+        return
+      }
+
+      const botao = ev.target.closest('[data-acao]')
+      if (!botao) return
+      const id = botao.dataset.id
+      const cartaoEl = botao.closest('.env')
+      const linha = linhas.find(f => f.id === id)
+
+      if (botao.dataset.acao === 'aceitar') {
+        avaliar(id, 'aceita', cartaoEl)
+      } else if (botao.dataset.acao === 'recusar') {
+        const motivo = cartaoEl.querySelector(`[data-motivo="${id}"]`)?.value?.trim()
+        if (!motivo) { aviso(cartaoEl, 'Escreva o motivo antes de recusar. A turma lê e refaz.'); return }
+        avaliar(id, 'recusada', cartaoEl, { observacao: motivo })
+      } else if (botao.dataset.acao === 'destaque') {
+        // liga e desliga; o banco refaz os lançamentos desta foto do zero
+        const extra = Number(cartaoEl.querySelector(`[data-extra="${id}"]`)?.value ?? EXTRA_PADRAO)
+        avaliar(id, 'aceita', cartaoEl, { destaque: !linha?.destaque, extra })
+      }
+    })
+
+    $('filtros').addEventListener('click', async ev => {
+      const chip = ev.target.closest('.chip')
+      if (!chip) return
+      for (const c of $('filtros').children) c.classList.toggle('ativo', c === chip)
+      filtro = chip.dataset.status
+      await recarregar()
+    })
+
+    document.addEventListener('keydown', ev => {
+      if (ev.key === 'Escape') document.querySelector('.lupa')?.remove()
+    })
+
+    try {
+      await recarregar()
+      $('content').classList.remove('hidden')
+    } catch (e) {
+      // gincana_fotos_fila recusa quem não é jurado nem administrador
+      if (/autorizado/i.test(e.message || '')) $('negado').classList.remove('hidden')
+      else { $('negado').classList.remove('hidden'); $('negado').querySelector('.muted').textContent = e.message }
+    } finally {
+      $('loading').classList.add('hidden')
+    }
+  </script>
+</body>
+</html>

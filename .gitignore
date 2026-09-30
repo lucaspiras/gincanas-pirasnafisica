@@ -2,11 +2,14 @@
 # Rede de segurança: gabaritos, bancos de perguntas e segredos nunca entram aqui.
 perguntas*.json
 perguntas.html
-# Fotos de origem dos enigmas. O desenho já leva a imagem embutida em base64,
-# então o arquivo solto não é servido por página nenhuma, e foto de pessoa não
-# vai para repositório público sem necessidade. Se algum dia um .png precisar
-# ser servido, abra exceção com "!caminho/do/arquivo.png".
+# Fotos e material de origem dos enigmas. O desenho já leva a imagem embutida em
+# base64, então o arquivo solto não é servido por página nenhuma, e foto de
+# pessoa não vai para repositório público sem necessidade. Vale também para capa
+# e página escaneada de livro, que são de terceiros. Se algum dia um destes
+# precisar mesmo ser servido, abra exceção com "!caminho/do/arquivo.png".
 semana-academica-2026/img/*.png
+semana-academica-2026/img/*.jpg
+semana-academica-2026/img/*.jpeg
 img/fernando_abrahao.png
 .env
 *.env

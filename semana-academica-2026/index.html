@@ -32,15 +32,15 @@
         </article>
 
         <article class="card gcard" data-tipo="placar">
-          <div class="gcard-topo"><h3>📸 Gincana de fotos</h3><span class="badge badge-open">400 pts</span></div>
-          <div class="meta">Vinte itens revelados por enigma</div>
+          <div class="gcard-topo"><h3>📸 Gincana de fotos</h3><span class="badge badge-open">320 pts</span></div>
+          <div class="meta">Missões cifradas, todas abertas, nos três dias</div>
           <div class="botoes">
-            <button class="btn btn-ghost btn-sm" disabled>Em breve</button>
+            <a class="btn btn-primary btn-sm" href="fotos.html">Abrir</a>
           </div>
         </article>
 
         <article class="card gcard" data-tipo="quiz">
-          <div class="gcard-topo"><h3>🎯 Quiz final</h3><span class="badge badge-open">300 pts</span></div>
+          <div class="gcard-topo"><h3>🎯 Quiz final</h3><span class="badge badge-open">250 pts</span></div>
           <div class="meta">Dia 23, ao vivo, sobre a semana</div>
           <div class="botoes">
             <button class="btn btn-ghost btn-sm" disabled>Em breve</button>
@@ -51,6 +51,7 @@
       <div class="mt-24">
         <a class="btn btn-ghost btn-sm" href="placar.html">Placar</a>
         <a class="btn btn-ghost btn-sm" href="regulamento.html">Regulamento</a>
+        <a class="btn btn-ghost btn-sm hidden" id="link-jurado" href="jurado.html">Avaliar fotos</a>
       </div>
     </div>
   </main>
@@ -73,6 +74,15 @@
     const equipe = (eq ?? [])[0]
     if (equipe) document.getElementById('sub').textContent =
       `21 a 23 de outubro · Turma ${equipe.team_name}`
+
+    // O atalho da avaliação só aparece para quem pode avaliar. Quem não puder e
+    // abrir a página assim mesmo esbarra na recusa da própria RPC.
+    if (equipe?.event_id) {
+      const { data: jurado } = await supabase.rpc('gincana_is_juror', { p_event: equipe.event_id })
+      if (jurado) document.getElementById('link-jurado').classList.remove('hidden')
+    } else if (auth.profile.is_admin) {
+      document.getElementById('link-jurado').classList.remove('hidden')
+    }
 
     document.getElementById('loading').classList.add('hidden')
     document.getElementById('content').classList.remove('hidden')

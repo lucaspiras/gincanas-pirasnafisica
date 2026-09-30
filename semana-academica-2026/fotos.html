@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gincana de fotos · Semana Acadêmica 2026</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
+  <script src="../js/theme.js"></script>
+  <link rel="stylesheet" href="../comum/estilo.css">
+  <style>
+    .barra-prog { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+    .barra-prog > span { display: block; height: 100%; background: var(--acento-grad); transition: width .4s; }
+
+    /* Lista corrida das missões. Sem campo de resposta: a turma decifra por fora. */
+    .lista { list-style: none; margin: 0; padding: 0; counter-reset: nada; }
+    .lista li { display: grid; grid-template-columns: 2.1rem 1fr auto; gap: 10px;
+                padding: 11px 0; border-bottom: 1px solid var(--border); align-items: baseline; }
+    .lista li:last-child { border-bottom: 0; }
+    .lista .num { font-weight: 700; color: var(--acento-forte); font-variant-numeric: tabular-nums; }
+    .lista .cifra { font-family: var(--font-mono); font-size: 1.02rem; line-height: 1.5; word-break: break-word; }
+    .lista .vazio { color: var(--text-muted); font-style: italic; }
+    .lista .dica { display: block; font-size: .82rem; color: var(--text-muted); font-family: var(--font-body);
+                   margin-top: 3px; font-style: normal; }
+    .lista .quais { font-size: .8rem; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    @media (max-width: 560px) {
+      .lista li { grid-template-columns: 1.9rem 1fr; }
+      .lista .quais { grid-column: 2; }
+    }
+
+    /* Vagas numeradas de 1 a 21. */
+    .vagas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .vaga { width: 124px; border: 1.5px dashed var(--border); border-radius: var(--raio); background: var(--surface-2);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 8px; gap: 4px; min-height: 124px; position: relative; cursor: pointer; }
+    .vaga.cheia { border-style: solid; padding: 0; overflow: hidden; }
+    .vaga img { width: 100%; height: 124px; object-fit: cover; display: block; }
+    .vaga .n { position: absolute; top: 5px; left: 7px; font-weight: 700; font-size: .78rem;
+               background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+               padding: 0 7px; line-height: 1.5; z-index: 2; }
+    .vaga .marca-status { position: absolute; left: 0; right: 0; bottom: 0; font-size: .72rem; font-weight: 700;
+                          padding: 3px 6px; text-align: center; }
+    .st-pendente { background: var(--alerta-bg); color: var(--alerta); }
+    .st-aceita   { background: #1f7a45; color: #fff; }
+    .st-recusada { background: #8b2130; color: #fff; }
+    .vaga .add { font-size: 1.5rem; line-height: 1; }
+    .vaga .rot { font-size: .74rem; color: var(--text-muted); }
+    .vaga input[type=file] { display: none; }
+    .obs { font-size: .82rem; color: var(--text-muted); margin-top: 8px; }
+    .contador { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body data-tipo="placar">
+  <div id="header-slot"></div>
+
+  <main class="container pt-24 pb-32">
+    <div id="loading" class="empty"><strong>Carregando…</strong></div>
+
+    <div id="content" class="hidden">
+      <div class="topo-secao">
+        <div class="section-header compacto">
+          <h1>Gincana de fotos</h1>
+          <div class="pitch-rule"></div>
+        </div>
+        <span class="muted mono contador" id="progresso-txt"></span>
+      </div>
+      <div class="barra-prog mt-12"><span id="barra" style="width:0%"></span></div>
+
+      <p class="muted texto-p mt-12" id="intro">
+        Cada missão está cifrada. Decifrem, façam a foto e enviem na vaga com o número indicado ao lado da
+        missão. Toda foto precisa mostrar pelo menos quatro integrantes da turma, e é reduzida no próprio
+        celular antes de subir.
+      </p>
+
+      <div class="card mt-16">
+        <h3>As missões</h3>
+        <ul class="lista mt-12" id="lista"></ul>
+      </div>
+
+      <div class="card mt-16" id="cartao-envio">
+        <h3>Envio das fotos</h3>
+        <p class="muted texto-p mt-8">
+          Toque na vaga com o número da missão. Foto recusada libera a vaga de novo, com o motivo escrito.
+        </p>
+        <div class="vagas" id="vagas"></div>
+        <div id="recusas"></div>
+        <p id="msg" class="hidden mt-12"></p>
+      </div>
+
+      <div class="mt-24">
+        <a class="btn btn-ghost btn-sm" href="index.html">← Início da gincana</a>
+        <a class="btn btn-ghost btn-sm" href="regulamento.html">Regulamento</a>
+        <a class="btn btn-ghost btn-sm" href="placar.html">Placar</a>
+      </div>
+    </div>
+  </main>
+
+  <!--
+    Parabéns por procurar aqui. Sobrou uma vaga de foto sem missão anunciada: é
+    esta, e ela vale 30 pontos. Cifrada como a primeira da lista.
+
+      oimerg od atesimac odnasu rosseforp mu moc otof amu
+  -->
+
+  <script type="module">
+    import { supabase, requireAuthWithProfile, renderCabecalho, bindSignOut,
+             slugDaPasta, escHtml, PAINEL_URL } from '../comum/auth.js'
+
+    const SLUG      = slugDaPasta()
+    const BALDE     = 'gincana-fotos'
+    const MAXLADO   = 1280
+    const QUALIDADE = 0.75
+
+    const $ = id => document.getElementById(id)
+    const auth = await requireAuthWithProfile()
+    if (!auth) throw new Error('not reached')
+    $('header-slot').innerHTML = renderCabecalho(auth.profile, '')
+    bindSignOut()
+
+    const { data: ok } = await supabase.rpc('gincana_is_member', { p_slug: SLUG })
+    // O administrador entra mesmo sem estar inscrito, para conferir antes de abrir.
+    if (!ok && !auth.profile.is_admin) { location.replace(PAINEL_URL); throw new Error('not member') }
+
+    let estado = null
+    let vagas = []   // as 21 vagas, na ordem, cada uma sabendo de que missão é
+
+    /* ── Imagem: reduzir no próprio aparelho ──────────────────
+       1 GB é tudo o que o plano dá, e uma foto crua de celular ocupa 4 MB. Com
+       1280 px de lado maior e JPEG 0,75 cada foto fica perto de 300 KB, o que
+       também faz o envio funcionar em Wi-Fi de evento. `imageOrientation` é o que
+       impede a foto de subir deitada, porque o celular grava a rotação no EXIF
+       em vez de girar os pixels. */
+    async function reduzir(arquivo) {
+      const bitmap = await createImageBitmap(arquivo, { imageOrientation: 'from-image' })
+      const escala = Math.min(1, MAXLADO / Math.max(bitmap.width, bitmap.height))
+      const w = Math.max(1, Math.round(bitmap.width * escala))
+      const h = Math.max(1, Math.round(bitmap.height * escala))
+      const tela = document.createElement('canvas')
+      tela.width = w; tela.height = h
+      tela.getContext('2d').drawImage(bitmap, 0, 0, w, h)
+      bitmap.close?.()
+      const blob = await new Promise(r => tela.toBlob(r, 'image/jpeg', QUALIDADE))
+      if (!blob) throw new Error('Não consegui preparar a imagem.')
+      return blob
+    }
+
+    // O balde é privado, então a imagem só aparece por URL assinada e de curta duração.
+    async function urlAssinada(caminho) {
+      const { data } = await supabase.storage.from(BALDE).createSignedUrl(caminho, 3600)
+      return data?.signedUrl ?? ''
+    }
+
+    /* ── A numeração ──────────────────────────────────────────
+       As vagas são numeradas de 1 a 21, corridas: a missão 1 pede seis fotos e
+       leva os números 1 a 6, e daí em diante cada missão leva um número. É essa
+       contagem que a lista anuncia em "(fotos 1 a 6)". */
+    function numerar(missoes) {
+      const saida = []
+      let n = 0
+      for (const m of missoes) {
+        const primeiro = n + 1
+        // recusada não ocupa vaga: a turma pode refazer
+        const enviadas = (m.fotos ?? []).filter(f => f.status !== 'recusada')
+        for (let i = 0; i < m.fotos_max; i++) {
+          n += 1
+          saida.push({ numero: n, missao: m, foto: enviadas[i] ?? null })
+        }
+        m._de = primeiro
+        m._ate = n
+      }
+      return saida
+    }
+
+    function quais(m) {
+      return m._de === m._ate ? `foto ${m._de}` : `fotos ${m._de} a ${m._ate}`
+    }
+
+    /* ── Desenho ─────────────────────────────────────────────── */
+
+    // Missão sem enunciado é a secreta: fica FORA da lista. A vaga dela existe e
+    // é o que denuncia que ela existe, por sobrar uma vaga sem missão anunciada.
+    const naLista = m => !!m.pergunta
+
+    function itemLista(m) {
+      return `<li>
+        <span class="num">${m.ord}</span>
+        <span class="cifra">${escHtml(m.pergunta)}</span>
+        <span class="quais">${escHtml(quais(m))} · ${escHtml(String(m.pontos))} pts</span>
+      </li>`
+    }
+
+    function itemVaga(v) {
+      const anunciada = naLista(v.missao)
+      if (v.foto) {
+        const rot = { pendente: 'em análise', aceita: 'aceita', recusada: 'recusada' }[v.foto.status] ?? v.foto.status
+        return `<div class="vaga cheia">
+                  <span class="n">${v.numero}</span>
+                  <img alt="Foto ${v.numero}" data-src="${escHtml(v.foto.caminho)}">
+                  <span class="marca-status st-${escHtml(v.foto.status)}">${escHtml(rot)}</span>
+                </div>`
+      }
+      return `<label class="vaga" data-enigma="${escHtml(v.missao.id)}">
+                <span class="n">${v.numero}</span>
+                <span class="add">＋</span>
+                ${anunciada ? `<span class="rot">missão ${v.missao.ord}</span>` : ''}
+                <input type="file" accept="image/*" capture="environment">
+              </label>`
+    }
+
+    async function pintar() {
+      const missoes = estado.missoes ?? []
+      vagas = numerar(missoes)
+
+      $('lista').innerHTML = missoes.filter(naLista).map(itemLista).join('')
+      $('vagas').innerHTML = vagas.map(itemVaga).join('')
+
+      const recusadas = missoes.flatMap(m => (m.fotos ?? [])
+        .filter(f => f.status === 'recusada' && f.observacao)
+        .map(f => `<p class="obs">Missão ${m.ord}, recusada: ${escHtml(f.observacao)}</p>`))
+      $('recusas').innerHTML = recusadas.join('')
+
+      const aceitas = missoes.reduce((s, m) => s + (m.fotos ?? []).filter(f => f.status === 'aceita').length, 0)
+      $('progresso-txt').textContent = `${aceitas} de ${vagas.length} fotos aceitas`
+      $('barra').style.width = vagas.length ? `${Math.round(aceitas / vagas.length * 100)}%` : '0%'
+
+      for (const img of document.querySelectorAll('#vagas img[data-src]')) {
+        urlAssinada(img.dataset.src).then(u => { if (u) img.src = u })
+      }
+    }
+
+    /* ── Prévia de administrador ──────────────────────────────
+       O administrador fica de propósito sem turma (ver 04_turma_por_perfil.sql),
+       então gincana_fotos_painel devolve "sem equipe" para ele. Aqui ele lê as
+       missões direto da tabela, o que a policy de admin já permite, e vê o que a
+       turma não vê: a resposta da cifra e o texto em claro da missão. */
+    async function previaAdmin() {
+      const { data: ev } = await supabase.from('gincana_events').select('id').eq('slug', SLUG).maybeSingle()
+      if (!ev) return false
+      const { data, error } = await supabase.from('gincana_enigmas')
+        .select('ord, pergunta, dica, resposta_norm, respostas_alt, revela, pontos, fotos_max')
+        .eq('event_id', ev.id).eq('trilha', 'fotos').order('ord')
+      if (error || !data?.length) return false
+
+      numerar(data.map(m => Object.assign(m, { fotos: [] })))
+      $('intro').innerHTML = '<strong>Prévia de administrador.</strong> Você vê a resposta de cada cifra e o '
+        + 'que a missão pede. A turma vê só a coluna cifrada e as vagas numeradas.'
+      $('cartao-envio').classList.add('hidden')
+      $('progresso-txt').textContent = `${data.length} missões · ${data.reduce((s, m) => s + m.fotos_max, 0)} fotos`
+      $('barra').style.width = '100%'
+      $('lista').innerHTML = data.map(m => `<li>
+        <span class="num">${m.ord}</span>
+        <span class="cifra">${m.pergunta ? escHtml(m.pergunta) : '<span class="vazio">??? (cifra no comentário do código)</span>'}
+          <span class="dica"><strong>${escHtml(m.resposta_norm)}</strong>${
+            (m.respostas_alt ?? []).length ? ` · também aceita ${escHtml(m.respostas_alt.join(', '))}` : ''
+          } — ${escHtml(m.revela || '')}</span></span>
+        <span class="quais">${escHtml(quais(m))} · ${escHtml(String(m.pontos))} pts</span>
+      </li>`).join('')
+      return true
+    }
+
+    async function recarregar() {
+      const { data, error } = await supabase.rpc('gincana_fotos_painel', { p_slug: SLUG })
+      if (error) throw error
+      if (data?.erro) {
+        estado = { missoes: [] }
+        if (auth.profile.is_admin && await previaAdmin()) return
+        $('lista').innerHTML = `<li><span class="cifra">${escHtml(data.erro)}</span></li>`
+        $('cartao-envio').classList.add('hidden')
+        $('progresso-txt').textContent = ''
+        return
+      }
+      estado = data
+      if (!(estado.missoes ?? []).length) {
+        $('lista').innerHTML = '<li><span class="cifra vazio">As missões ainda não abriram.</span></li>'
+        $('cartao-envio').classList.add('hidden')
+        $('progresso-txt').textContent = ''
+        return
+      }
+      await pintar()
+    }
+
+    function aviso(texto) {
+      const p = $('msg')
+      p.className = 'mt-12 aviso alerta'
+      p.textContent = texto
+      p.classList.remove('hidden')
+    }
+
+    async function enviar(enigmaId, arquivo, vagaEl) {
+      const rot = vagaEl.querySelector('.rot')
+      const antes = rot?.textContent
+      $('msg').classList.add('hidden')
+      try {
+        if (rot) rot.textContent = 'preparando…'
+        const blob = await reduzir(arquivo)
+        if (rot) rot.textContent = 'enviando…'
+
+        const caminho = `${estado.evento.id}/${estado.equipe.id}/${enigmaId}/${crypto.randomUUID()}.jpg`
+        const { error: erroUp } = await supabase.storage.from(BALDE)
+          .upload(caminho, blob, { contentType: 'image/jpeg', upsert: false })
+        if (erroUp) throw erroUp
+
+        const { error } = await supabase.rpc('gincana_foto_enviar',
+          { p_enigma: enigmaId, p_caminho: caminho })
+        if (error) {
+          // o arquivo subiu mas o registro falhou: não deixa lixo no balde
+          await supabase.storage.from(BALDE).remove([caminho]).catch(() => {})
+          throw error
+        }
+        await recarregar()
+      } catch (e) {
+        if (rot) rot.textContent = antes
+        aviso(e.message || String(e))
+      }
+    }
+
+    $('vagas').addEventListener('change', ev => {
+      const campo = ev.target
+      if (campo.type !== 'file' || !campo.files?.length) return
+      const vagaEl = campo.closest('.vaga')
+      enviar(vagaEl.dataset.enigma, campo.files[0], vagaEl)
+      campo.value = ''
+    })
+
+    await recarregar()
+    $('loading').classList.add('hidden')
+    $('content').classList.remove('hidden')
+  </script>
+</body>
+</html>
