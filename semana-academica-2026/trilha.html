@@ -16,6 +16,9 @@
        área clicável no próprio desenho. Vai num shadow root para que o estilo
        do desenho e o estilo do site não se misturem. */
     .enigma-svg { width: 100%; border-radius: var(--raio); border: 1.5px solid var(--border); display: block; overflow: hidden; background: #0b1029; margin-bottom: 14px; }
+    /* Enigma que é simulador, e não desenho: documento próprio num iframe. */
+    .enigma-app { width: 100%; height: 420px; border-radius: var(--raio); border: 1.5px solid var(--border); display: block; background: #0b1029; margin-bottom: 14px; }
+    /* 420px é só o valor de partida, antes de o conteúdo ser medido pelo script */
     .enunciado { font-size: 1.12rem; line-height: 1.55; }
     .resposta-linha { display: flex; gap: 8px; flex-wrap: wrap; }
     .resposta-linha .input { flex: 1 1 220px; }
@@ -167,12 +170,43 @@
 
     // Desenho do enigma. SVG entra embutido, para que link dentro do desenho funcione;
     // qualquer outro formato continua em <img>. Se a busca falhar, cai no <img> também.
+    //
+    // HTML é o terceiro caso: enigma que não é desenho, e sim coisa de mexer. Vai num
+    // iframe, que lhe dá documento próprio (estilo, estado e scripts sem se misturar
+    // com a trilha). Mesma origem, então a página embutida enxerga a sessão e pode
+    // falar com o banco. O `media_url` do banco só aceita caminho de dentro do site,
+    // então não há como apontar o iframe para fora.
     async function pintarMedia(url) {
       const slot = $('img-slot')
       slot.innerHTML = ''
       if (!url) return
       const comoImagem = () => {
         slot.innerHTML = `<img class="enigma-img" src="${escHtml(url)}" alt="Imagem do enigma">`
+      }
+      if (/\.html?(\?|$)/i.test(url)) {
+        const quadro = document.createElement('iframe')
+        quadro.className = 'enigma-app'
+        quadro.title = 'Simulador do enigma'
+        quadro.src = url
+        slot.appendChild(quadro)
+        // A altura vem do conteúdo, e não de uma media query. Tentar adivinhar não
+        // funciona: a media query daqui mede a JANELA e a de lá mede o IFRAME, que é
+        // uns 160 px mais estreito, então elas viram em larguras diferentes e sobra
+        // barra de rolagem no meio do caminho. Mesma origem, então dá para medir.
+        const ajustar = () => {
+          try {
+            const d = quadro.contentDocument
+            // +4 de folga: sem ela sobra 1 ou 2 px de arredondamento e a barra aparece
+            if (d?.body) quadro.style.height = (Math.ceil(d.body.getBoundingClientRect().height) + 4) + 'px'
+          } catch { /* se um dia não for mesma origem, fica a altura do CSS */ }
+        }
+        quadro.addEventListener('load', () => {
+          ajustar()
+          // o conteúdo muda de altura ao usar (a fita cresce de linha)
+          try { new ResizeObserver(ajustar).observe(quadro.contentDocument.body) } catch {}
+        })
+        addEventListener('resize', ajustar)
+        return
       }
       if (!/\.svg(\?|$)/i.test(url)) return comoImagem()
       try {
