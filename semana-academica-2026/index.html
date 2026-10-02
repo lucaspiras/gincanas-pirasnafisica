@@ -22,7 +22,21 @@
       </div>
       <p class="muted" id="sub">21 a 23 de outubro · disputa entre as turmas</p>
 
-      <div class="grade-cartoes mt-24">
+      <!-- Tela do jurado: aparece no lugar das três atividades, que são da turma -->
+      <article id="painel-jurado" class="card mt-24 hidden">
+        <div class="gcard-topo"><h3>⚖️ Avaliação das fotos</h3></div>
+        <p class="texto-p mt-8">
+          Você entra nesta gincana como <strong>jurado</strong>. As três atividades são das turmas; o seu
+          trabalho é a fila das fotos: aceitar, recusar com o motivo e, no encerramento, escolher as mais
+          criativas junto com os outros dois jurados.
+        </p>
+        <div class="botoes mt-16">
+          <a class="btn btn-primary" href="jurado.html">Abrir a fila</a>
+          <a class="btn btn-ghost btn-sm" href="regulamento.html">Regulamento</a>
+        </div>
+      </article>
+
+      <div class="grade-cartoes mt-24" id="grade-turma">
         <article class="card gcard" data-tipo="misto">
           <div class="gcard-topo"><h3>🧩 Trilha de enigmas</h3><span class="badge badge-open">300 pts</span></div>
           <div class="meta">Quinze enigmas em corrente, nos três dias</div>
@@ -75,13 +89,28 @@
     if (equipe) document.getElementById('sub').textContent =
       `21 a 23 de outubro · Turma ${equipe.team_name}`
 
-    // O atalho da avaliação só aparece para quem pode avaliar. Quem não puder e
-    // abrir a página assim mesmo esbarra na recusa da própria RPC.
-    if (equipe?.event_id) {
-      const { data: jurado } = await supabase.rpc('gincana_is_juror', { p_event: equipe.event_id })
-      if (jurado) document.getElementById('link-jurado').classList.remove('hidden')
-    } else if (auth.profile.is_admin) {
+    // O id do evento NÃO pode vir de gincana_minha_equipe: aquela função faz join
+    // interno com gincana_teams, e jurado não tem turma, então ela devolve zero
+    // linhas para ele. Era por isso que o atalho da avaliação nunca aparecia para
+    // quem mais precisava dele. gincana_my_events não depende de turma.
+    const { data: meus } = await supabase.rpc('gincana_my_events')
+    const evento = (meus ?? []).find(e => e.slug === SLUG)
+
+    let jurado = false
+    if (evento?.event_id) {
+      const { data } = await supabase.rpc('gincana_is_juror', { p_event: evento.event_id })
+      jurado = !!data
+    }
+
+    // Jurado é organização: as três atividades são da turma, e sem turma elas só
+    // levam a becos. Em vez de deixá-lo adivinhar, a página vira a tela dele.
+    if (jurado) {
       document.getElementById('link-jurado').classList.remove('hidden')
+      if (!equipe) {
+        document.getElementById('sub').textContent = '21 a 23 de outubro · você avalia as fotos'
+        document.getElementById('painel-jurado').classList.remove('hidden')
+        document.getElementById('grade-turma').classList.add('hidden')
+      }
     }
 
     document.getElementById('loading').classList.add('hidden')
