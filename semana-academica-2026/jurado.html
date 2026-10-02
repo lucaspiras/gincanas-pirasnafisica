@@ -19,17 +19,23 @@
                border: 1.5px solid var(--border); cursor: zoom-in; background: var(--surface-2); display: block; }
     .env h3 { margin: 0 0 2px; font-size: 1rem; }
     .pedido { font-size: 1.02rem; line-height: 1.5; font-weight: 600; }
-    .linha-acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
-    .linha-acoes .input { flex: 1 1 180px; }
+    .selos { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
     .selo { font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
             border-radius: 999px; padding: 2px 9px; }
     .st-pendente { background: var(--alerta-bg); color: var(--alerta); }
     .st-aceita   { background: #1f7a45; color: #fff; }
     .st-recusada { background: #8b2130; color: #fff; }
+    .placar-votos { font-size: .8rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .meu { border: 1.5px solid var(--border); border-radius: var(--raio); padding: 10px 12px; margin-top: 12px; }
+    .meu .rotulo { font-size: .7rem; font-weight: 700; letter-spacing: .08em;
+                   text-transform: uppercase; color: var(--text-muted); }
+    .meu.votei-sim { border-color: #1f7a45; }
+    .meu.votei-nao { border-color: #8b2130; }
+    .linha-acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+    .linha-acoes .input { flex: 1 1 200px; }
     .estrela { background: none; border: 1.5px solid var(--border); border-radius: 999px; cursor: pointer;
-               padding: 4px 12px; font-weight: 700; color: var(--texto); }
+               padding: 5px 13px; font-weight: 700; color: var(--texto); font: inherit; font-weight: 700; }
     .estrela.on { background: #f2b705; color: #1a1a1a; border-color: #f2b705; }
-    .extra { width: 66px; }
     .lupa { position: fixed; inset: 0; background: rgba(6,9,24,.92); display: flex; align-items: center;
             justify-content: center; z-index: 60; padding: 20px; cursor: zoom-out; }
     .lupa img { max-width: 100%; max-height: 100%; border-radius: var(--raio); }
@@ -58,15 +64,19 @@
       </div>
 
       <div class="filtros" id="filtros">
-        <span class="chip ativo" data-status="pendente">Na fila</span>
-        <span class="chip" data-status="aceita">Aceitas</span>
-        <span class="chip" data-status="recusada">Recusadas</span>
-        <span class="chip" data-status="">Todas</span>
+        <span class="chip ativo" data-filtro="minha">Falta eu avaliar</span>
+        <span class="chip" data-filtro="pendente">Sem dois votos</span>
+        <span class="chip" data-filtro="aceita">Aceitas</span>
+        <span class="chip" data-filtro="recusada">Recusadas</span>
+        <span class="chip" data-filtro="">Todas</span>
       </div>
 
       <p class="muted texto-p mt-12">
-        A foto precisa mostrar pelo menos quatro integrantes da turma junto do que a missão pediu, e ter sido
-        feita durante a Semana Acadêmica. Recusar sempre com o motivo: a turma lê e pode refazer.
+        Todos os jurados avaliam todas as fotos, e cada um vota uma vez. A foto vale os pontos quando
+        <strong>dois jurados aceitam</strong>, e é recusada quando dois recusam. Além disso, cada jurado pode dar
+        <strong>um ponto de criatividade</strong>, então uma foto chega a três. Dá para mudar o próprio voto a
+        qualquer momento. A foto precisa mostrar pelo menos quatro integrantes da turma junto do que a missão
+        pediu, e recusar exige escrever o motivo, que é o que a turma lê para refazer.
       </p>
 
       <div class="fila" id="fila"></div>
@@ -84,7 +94,7 @@
 
     const SLUG  = slugDaPasta()
     const BALDE = 'gincana-fotos'
-    const EXTRA_PADRAO = 3
+    const PARA_VALER = 2          // o mesmo "dois aceites" que o banco aplica
 
     const $ = id => document.getElementById(id)
     const auth = await requireAuthWithProfile()
@@ -92,7 +102,7 @@
     $('header-slot').innerHTML = renderCabecalho(auth.profile, '')
     bindSignOut()
 
-    let filtro = 'pendente'
+    let filtro = 'minha'
     let linhas = []
 
     async function urlAssinada(caminho) {
@@ -101,57 +111,71 @@
     }
 
     function cartao(f) {
-      const rot = { pendente: 'na fila', aceita: 'aceita', recusada: 'recusada' }[f.status] ?? f.status
-      const quando = fmtDataCurta(f.enviada_em)
-      const acoes = f.status === 'aceita'
-        ? `<button class="estrela ${f.destaque ? 'on' : ''}" data-acao="destaque" data-id="${escHtml(f.id)}">
-             ★ Criatividade
-           </button>
-           <input class="input extra" type="number" min="0" max="20" step="1"
-                  value="${EXTRA_PADRAO}" data-extra="${escHtml(f.id)}" title="Pontos extras">
-           <button class="btn btn-ghost btn-sm" data-acao="recusar" data-id="${escHtml(f.id)}">Recusar</button>`
-        : `<button class="btn btn-primary btn-sm" data-acao="aceitar" data-id="${escHtml(f.id)}">Aceitar</button>
-           <input class="input" type="text" maxlength="160" placeholder="Motivo, se for recusar"
-                  data-motivo="${escHtml(f.id)}" value="${escHtml(f.observacao || '')}">
-           <button class="btn btn-ghost btn-sm" data-acao="recusar" data-id="${escHtml(f.id)}">Recusar</button>`
+      const rot = { pendente: 'sem dois votos', aceita: 'aceita', recusada: 'recusada' }[f.status] ?? f.status
+      const votei = f.meu_voto !== null && f.meu_voto !== undefined
+      const classeMeu = !votei ? '' : f.meu_voto ? ' votei-sim' : ' votei-nao'
+
+      const meuEstado = !votei
+        ? '<span class="muted">Você ainda não votou nesta foto.</span>'
+        : f.meu_voto
+          ? `<strong>Você aceitou.</strong>${f.minha_criativa ? ' Deu o ponto de criatividade.' : ''}`
+          : `<strong>Você recusou.</strong>${f.minha_observacao ? ' Motivo: ' + escHtml(f.minha_observacao) : ''}`
 
       return `<article class="card env" data-id="${escHtml(f.id)}">
         <img alt="Foto enviada" data-src="${escHtml(f.caminho)}">
         <div>
           <h3>${escHtml(f.equipe_emoji || '')} ${escHtml(f.equipe)}</h3>
-          <div class="muted">${escHtml(f.missao)} · ${escHtml(String(f.pontos))} pts · enviada ${escHtml(quando)}</div>
+          <div class="muted">${escHtml(f.missao)} · ${escHtml(String(f.pontos))} pts · enviada ${escHtml(fmtDataCurta(f.enviada_em))}</div>
           ${f.pedido ? `<p class="pedido mt-8">${escHtml(f.pedido)}</p>` : ''}
-          <div class="mt-8">
+          <div class="selos">
             <span class="selo st-${escHtml(f.status)}">${escHtml(rot)}</span>
-            ${f.destaque ? '<span class="selo" style="background:#f2b705;color:#1a1a1a">★ criatividade</span>' : ''}
+            <span class="placar-votos">${f.aceites} de ${PARA_VALER} aceites${
+              f.recusas ? ` · ${f.recusas} recusa${f.recusas > 1 ? 's' : ''}` : ''}${
+              f.criativas ? ` · ★ ${f.criativas}` : ''}</span>
           </div>
           ${f.legenda ? `<p class="mt-8">${escHtml(f.legenda)}</p>` : ''}
-          ${f.status === 'recusada' && f.observacao ? `<p class="muted mt-8">Motivo: ${escHtml(f.observacao)}</p>` : ''}
-          <div class="linha-acoes">${acoes}</div>
-          <p class="msg hidden mt-8"></p>
+          ${f.motivos ? `<p class="muted mt-8">Motivos da recusa: ${escHtml(f.motivos)}</p>` : ''}
+
+          <div class="meu${classeMeu}">
+            <div class="rotulo">O seu voto</div>
+            <div class="mt-4">${meuEstado}</div>
+            <div class="linha-acoes">
+              <button class="btn btn-primary btn-sm" data-acao="aceitar" data-id="${escHtml(f.id)}">
+                ${votei && f.meu_voto ? 'Manter aceite' : 'Aceitar'}
+              </button>
+              <button class="estrela ${f.minha_criativa ? 'on' : ''}" data-acao="criativa" data-id="${escHtml(f.id)}"
+                      title="Vale 1 ponto, e só com o seu aceite">★ criatividade</button>
+              <input class="input" type="text" maxlength="160" placeholder="Motivo, se for recusar"
+                     data-motivo="${escHtml(f.id)}" value="${escHtml(!f.meu_voto && f.minha_observacao || '')}">
+              <button class="btn btn-ghost btn-sm" data-acao="recusar" data-id="${escHtml(f.id)}">Recusar</button>
+            </div>
+            <p class="msg hidden mt-8"></p>
+          </div>
         </div>
       </article>`
     }
 
     function pintar() {
       if (!linhas.length) {
-        $('fila').innerHTML = `<div class="empty"><strong>Nada por aqui.</strong>
-          <p class="muted mt-8">Quando as turmas enviarem fotos, elas aparecem nesta lista.</p></div>`
+        const vazio = filtro === 'minha'
+          ? '<strong>Você avaliou tudo.</strong><p class="muted mt-8">Quando chegar foto nova, ela aparece aqui.</p>'
+          : '<strong>Nada por aqui.</strong><p class="muted mt-8">Nenhuma foto nesta situação.</p>'
+        $('fila').innerHTML = `<div class="empty">${vazio}</div>`
       } else {
         $('fila').innerHTML = linhas.map(cartao).join('')
         for (const img of document.querySelectorAll('#fila img[data-src]')) {
           urlAssinada(img.dataset.src).then(u => { if (u) img.src = u })
         }
       }
-      const pend = linhas.filter(f => f.status === 'pendente').length
-      $('resumo').textContent = filtro === 'pendente'
-        ? `${linhas.length} na fila`
-        : `${linhas.length} envios · ${pend} na fila`
+      const faltam = linhas.filter(f => f.meu_voto === null || f.meu_voto === undefined).length
+      $('resumo').textContent = filtro === 'minha'
+        ? `${linhas.length} para avaliar`
+        : `${linhas.length} envios${faltam ? ` · ${faltam} sem o seu voto` : ''}`
     }
 
     async function recarregar() {
       const { data, error } = await supabase.rpc('gincana_fotos_fila',
-        { p_slug: SLUG, p_status: filtro || null })
+        { p_slug: SLUG, p_filtro: filtro || null })
       if (error) throw error
       linhas = data ?? []
       pintar()
@@ -164,16 +188,15 @@
       p.classList.remove('hidden')
     }
 
-    async function avaliar(id, status, cartaoEl, extras = {}) {
+    async function votar(id, aceita, cartaoEl, extra = {}) {
       const botoes = cartaoEl.querySelectorAll('button')
       botoes.forEach(b => { b.disabled = true })
       try {
-        const { error } = await supabase.rpc('gincana_foto_avaliar', {
+        const { error } = await supabase.rpc('gincana_foto_votar', {
           p_foto: id,
-          p_status: status,
-          p_destaque: extras.destaque ?? false,
-          p_observacao: extras.observacao ?? null,
-          p_extra: extras.extra ?? EXTRA_PADRAO,
+          p_aceita: aceita,
+          p_criativa: extra.criativa ?? false,
+          p_observacao: extra.observacao ?? null,
         })
         if (error) throw error
         await recarregar()
@@ -199,17 +222,17 @@
       const id = botao.dataset.id
       const cartaoEl = botao.closest('.env')
       const linha = linhas.find(f => f.id === id)
+      const acao = botao.dataset.acao
 
-      if (botao.dataset.acao === 'aceitar') {
-        avaliar(id, 'aceita', cartaoEl)
-      } else if (botao.dataset.acao === 'recusar') {
+      if (acao === 'aceitar') {
+        votar(id, true, cartaoEl, { criativa: !!linha?.minha_criativa })
+      } else if (acao === 'recusar') {
         const motivo = cartaoEl.querySelector(`[data-motivo="${id}"]`)?.value?.trim()
         if (!motivo) { aviso(cartaoEl, 'Escreva o motivo antes de recusar. A turma lê e refaz.'); return }
-        avaliar(id, 'recusada', cartaoEl, { observacao: motivo })
-      } else if (botao.dataset.acao === 'destaque') {
-        // liga e desliga; o banco refaz os lançamentos desta foto do zero
-        const extra = Number(cartaoEl.querySelector(`[data-extra="${id}"]`)?.value ?? EXTRA_PADRAO)
-        avaliar(id, 'aceita', cartaoEl, { destaque: !linha?.destaque, extra })
+        votar(id, false, cartaoEl, { observacao: motivo })
+      } else if (acao === 'criativa') {
+        // o ponto de criatividade acompanha o aceite: marcar a estrela é aceitar com ela
+        votar(id, true, cartaoEl, { criativa: !linha?.minha_criativa })
       }
     })
 
@@ -217,7 +240,7 @@
       const chip = ev.target.closest('.chip')
       if (!chip) return
       for (const c of $('filtros').children) c.classList.toggle('ativo', c === chip)
-      filtro = chip.dataset.status
+      filtro = chip.dataset.filtro
       await recarregar()
     })
 
@@ -230,8 +253,8 @@
       $('content').classList.remove('hidden')
     } catch (e) {
       // gincana_fotos_fila recusa quem não é jurado nem administrador
-      if (/autorizado/i.test(e.message || '')) $('negado').classList.remove('hidden')
-      else { $('negado').classList.remove('hidden'); $('negado').querySelector('.muted').textContent = e.message }
+      $('negado').classList.remove('hidden')
+      if (!/autorizado/i.test(e.message || '')) $('negado').querySelector('.muted').textContent = e.message
     } finally {
       $('loading').classList.add('hidden')
     }

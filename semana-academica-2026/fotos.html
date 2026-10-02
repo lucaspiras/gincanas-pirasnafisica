@@ -43,6 +43,9 @@
     .st-pendente { background: var(--alerta-bg); color: var(--alerta); }
     .st-aceita   { background: #1f7a45; color: #fff; }
     .st-recusada { background: #8b2130; color: #fff; }
+    .vaga .criativa { position: absolute; top: 5px; right: 7px; z-index: 2; font-size: .8rem;
+                      background: #f2b705; color: #1a1a1a; border-radius: 999px; padding: 0 6px;
+                      line-height: 1.55; letter-spacing: -1px; }
     .vaga .add { font-size: 1.5rem; line-height: 1; }
     .vaga .rot { font-size: .74rem; color: var(--text-muted); }
     .vaga input[type=file] { display: none; }
@@ -193,8 +196,12 @@
       const anunciada = naLista(v.missao)
       if (v.foto) {
         const rot = { pendente: 'em análise', aceita: 'aceita', recusada: 'recusada' }[v.foto.status] ?? v.foto.status
+        // cada jurado dá um ponto de criatividade, então são até três estrelas
+        const estrelas = v.foto.status === 'aceita' && v.foto.criatividade > 0
+          ? `<span class="criativa">${'★'.repeat(v.foto.criatividade)}</span>` : ''
         return `<div class="vaga cheia">
                   <span class="n">${v.numero}</span>
+                  ${estrelas}
                   <img alt="Foto ${v.numero}" data-src="${escHtml(v.foto.caminho)}">
                   <span class="marca-status st-${escHtml(v.foto.status)}">${escHtml(rot)}</span>
                 </div>`
