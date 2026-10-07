@@ -20,7 +20,7 @@
         <h1>Semana Acadêmica 2026</h1>
         <div class="pitch-rule"></div>
       </div>
-      <p class="muted" id="sub">21 a 23 de outubro · disputa entre as turmas</p>
+      <p class="muted" id="sub">19 a 23 de outubro · disputa entre as turmas</p>
 
       <!-- Tela do jurado: aparece no lugar das três atividades, que são da turma -->
       <article id="painel-jurado" class="card mt-24 hidden">
@@ -41,7 +41,7 @@
           <!-- os tetos espelham gincana_activities.max_points; o número de enigmas saiu
                daqui de propósito, porque ele muda e era o que estava errado -->
           <div class="gcard-topo"><h3>🧩 Trilha de enigmas</h3><span class="badge badge-open">300 pts</span></div>
-          <div class="meta">Enigmas em corrente, 20 pontos cada, nos três dias</div>
+          <div class="meta">Enigmas em corrente, 20 pontos cada, nos cinco dias</div>
           <div class="botoes">
             <a class="btn btn-primary btn-sm" href="enigmas.html">Abrir</a>
           </div>
@@ -49,7 +49,7 @@
 
         <article class="card gcard" data-tipo="placar">
           <div class="gcard-topo"><h3>📸 Gincana de fotos</h3><span class="badge badge-open">333 pts</span></div>
-          <div class="meta">Missões cifradas, todas abertas, nos três dias</div>
+          <div class="meta">Missões cifradas, todas abertas, nos cinco dias</div>
           <div class="botoes">
             <a class="btn btn-primary btn-sm" href="fotos.html">Abrir</a>
           </div>
@@ -89,7 +89,7 @@
     const { data: eq } = await supabase.rpc('gincana_minha_equipe', { p_slug: SLUG })
     const equipe = (eq ?? [])[0]
     if (equipe) document.getElementById('sub').textContent =
-      `21 a 23 de outubro · Turma ${equipe.team_name}`
+      `19 a 23 de outubro · Turma ${equipe.team_name}`
 
     // O id do evento NÃO pode vir de gincana_minha_equipe: aquela função faz join
     // interno com gincana_teams, e jurado não tem turma, então ela devolve zero
@@ -106,10 +106,19 @@
 
     // Jurado é organização: as três atividades são da turma, e sem turma elas só
     // levam a becos. Em vez de deixá-lo adivinhar, a página vira a tela dele.
+    //
+    // ADMINISTRADOR NÃO É "SÓ JURADO", e é por isso que o is_admin entra aqui.
+    // gincana_is_juror responde `quiz_is_admin() or role = 'juror'`. Como PERMISSÃO
+    // isso está certo: o administrador pode avaliar foto. Como IDENTIDADE, não: usado
+    // para decidir a navegação, ele trocava a tela do administrador pela do jurado e
+    // escondia as três atividades, que são justamente o que o admin abre para conferir
+    // a gincana antes de ela começar (é o que a liberação lá em cima, no is_member,
+    // existe para permitir). O atalho da fila continua aparecendo para os dois; o que
+    // fica restrito a quem é jurado e MAIS NADA é a troca de tela.
     if (jurado) {
       document.getElementById('link-jurado').classList.remove('hidden')
-      if (!equipe) {
-        document.getElementById('sub').textContent = '21 a 23 de outubro · você avalia as fotos'
+      if (!equipe && !auth.profile.is_admin) {
+        document.getElementById('sub').textContent = '19 a 23 de outubro · você avalia as fotos'
         document.getElementById('painel-jurado').classList.remove('hidden')
         document.getElementById('grade-turma').classList.add('hidden')
       }

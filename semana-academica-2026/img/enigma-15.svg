@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" width="720" height="380"
+     role="img" aria-labelledby="t15 d15">
+  <title id="t15">Um número</title>
+  <desc id="d15">Seis algarismos grandes, 2 1 3 0 9 1, em letras claras sobre um
+  cartão escuro. Não há mais nada no desenho: nenhuma palavra, nenhum símbolo e nenhuma
+  indicação do que o número signifique.</desc>
+
+  <defs>
+    <linearGradient id="fundo15" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#121a3a"/>
+      <stop offset="1" stop-color="#0b1029"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="720" height="380" fill="url(#fundo15)"/>
+  <rect x="37" y="37" width="646" height="306" rx="13"
+        fill="none" stroke="#2b3566" stroke-width="2"/>
+
+  <!-- Centralizado de verdade: medido com getBBox, sobra igual dos dois lados. O
+       letter-spacing deixa um vão depois do último algarismo, mas a caixa do texto
+       não o conta, então não há nada a compensar. -->
+  <text x="360" y="190" text-anchor="middle" dominant-baseline="central"
+        font-family="'DM Sans', 'Segoe UI', system-ui, sans-serif"
+        font-size="130" font-weight="700" letter-spacing="14"
+        fill="#e8ecff">213091</text>
+</svg>
