@@ -8,6 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
   <script src="../js/theme.js"></script>
   <link rel="stylesheet" href="../comum/estilo.css">
+  <link rel="stylesheet" href="identidade.css">
 </head>
 <body data-tipo="misto">
   <div id="header-slot"></div>
@@ -16,11 +17,20 @@
     <div id="loading" class="empty"><strong>Carregando…</strong></div>
 
     <div id="content" class="hidden">
-      <div class="section-header">
-        <h1>Semana Acadêmica 2026</h1>
-        <div class="pitch-rule"></div>
+      <div class="sa-cabecalho">
+        <!-- Logo 2 da identidade visual: a porta aberta, "o campus de portas
+             abertas". O h1 continua existindo para leitor de tela e para busca,
+             escondido visualmente, porque a palavra já está desenhada na marca. -->
+        <h1 class="sr-only">Semana Acadêmica 2026</h1>
+        <img class="sa-marca sa-marca-clara" src="img/marca-semana.svg"
+             alt="Semana Acadêmica 2026" width="840" height="388">
+        <img class="sa-marca sa-marca-escura" src="img/marca-semana-escura.svg"
+             alt="" aria-hidden="true" width="840" height="388">
+        <div class="sa-dizeres">
+          <p class="sa-slogan">Diferentes formas de criar</p>
+          <p class="muted" id="sub">19 a 23 de outubro · disputa entre as turmas</p>
+        </div>
       </div>
-      <p class="muted" id="sub">19 a 23 de outubro · disputa entre as turmas</p>
 
       <!-- Tela do jurado: aparece no lugar das três atividades, que são da turma -->
       <article id="painel-jurado" class="card mt-24 hidden">
@@ -32,6 +42,7 @@
         </p>
         <div class="botoes mt-16">
           <a class="btn btn-primary" href="jurado.html">Abrir a fila</a>
+          <a class="btn btn-ghost btn-sm" href="guia-do-jurado.html">Guia do jurado</a>
           <a class="btn btn-ghost btn-sm" href="regulamento.html">Regulamento</a>
         </div>
       </article>
@@ -48,7 +59,7 @@
         </article>
 
         <article class="card gcard" data-tipo="placar">
-          <div class="gcard-topo"><h3>📸 Gincana de fotos</h3><span class="badge badge-open">333 pts</span></div>
+          <div class="gcard-topo"><h3>📸 Gincana de fotos</h3><span class="badge badge-open">350 pts</span></div>
           <div class="meta">Missões cifradas, todas abertas, nos cinco dias</div>
           <div class="botoes">
             <a class="btn btn-primary btn-sm" href="fotos.html">Abrir</a>
@@ -66,6 +77,7 @@
 
       <div class="mt-24">
         <a class="btn btn-ghost btn-sm" href="placar.html">Placar</a>
+        <a class="btn btn-ghost btn-sm" href="guia-das-turmas.html">Guia das turmas</a>
         <a class="btn btn-ghost btn-sm" href="regulamento.html">Regulamento</a>
         <a class="btn btn-ghost btn-sm hidden" id="link-jurado" href="jurado.html">Avaliar fotos</a>
       </div>

@@ -1,0 +1,191 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   Identidade visual da Semana Acadêmica 2026
+   ───────────────────────────────────────────────────────────────────────────
+   Entregue pela comissão organizadora em 16/10/2026. A arte-fonte (PDFs e os
+   dez SVGs da proposta) fica fora do site, em notas/, porque é material de
+   origem; aqui mora só o que a página serve.
+
+   COMO ISTO FUNCIONA, e por que não há um só seletor novo de componente: o
+   comum/estilo.css é construído sobre variáveis (--bg, --texto, --acento…), e
+   esta folha apenas as REDEFINE. Carregada depois dele, e só pelas páginas
+   desta pasta, ela reveste a gincana inteira sem tocar no bolão, no quiz, no
+   painel nem no admin, que seguem com a marca do Piras na Física.
+
+   Tirar a identidade é remover uma linha de <link> de cada página.
+
+   A IDENTIDADE
+     cores ...... #0000ff (azul vivo), #0047ab (cobalto), #f4f2ec (fundo), #000
+     títulos .... Oswald
+     subtítulos . IBM Plex Mono
+     texto ...... Atkinson Hyperlegible
+     símbolo .... a porta aberta, "o campus de portas abertas"
+     slogan ..... Diferentes formas de criar
+
+   DUAS DECISÕES QUE A PROPOSTA NÃO COBRIA
+
+   1. Tema escuro. A proposta é toda sobre fundo claro, e #0000ff sobre fundo
+      escuro fica ilegível: a luminância dele é baixa demais para servir de
+      texto no escuro. Então o escuro usa um azul clareado da mesma família
+      (#8fa0ff e #5b6cff) e guarda o #0000ff para áreas de fundo. A alternativa
+      seria travar estas páginas no claro, mas o site inteiro já segue o tema
+      escolhido pela pessoa, e quebrar isso só aqui seria pior.
+
+   2. Oswald tem peso máximo 700, e o comum/estilo.css pede 800 nos títulos. Sem
+      o ajuste abaixo o navegador sintetizaria um negrito falso, engordando os
+      traços de uma fonte condensada. Daí a regra explícita de peso.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&family=Oswald:wght@400;500;600;700&display=swap');
+
+:root {
+  /* paleta da identidade */
+  --sa-azul:     #0000ff;
+  --sa-cobalto:  #0047ab;
+  --sa-papel:    #f4f2ec;
+  --sa-preto:    #000000;
+
+  /* fundo e superfícies */
+  --bg:          var(--sa-papel);
+  --surface:     #ffffff;
+  --surface-2:   #ebe8df;
+  --border:      #d9d4c6;
+
+  /* texto */
+  --texto:       var(--sa-preto);
+  --text-muted:  #4b4b4b;
+  --titulo:      var(--sa-azul);
+
+  /* acentos: o vivo manda, o cobalto é o apoio */
+  --azul-escuro: var(--sa-cobalto);
+  --azul:        var(--sa-azul);
+  --roxo:        var(--sa-cobalto);
+  --acento-deep:  var(--sa-cobalto);
+  --acento:       var(--sa-azul);
+  --acento-light: var(--sa-cobalto);
+
+  /* tipografia */
+  --font-body:   'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:   'IBM Plex Mono', 'Courier New', monospace;
+  --font-titulo: 'Oswald', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* As quatro famílias de acento do sistema (bolão, quiz, placar, misto) existem
+   para separar gincanas diferentes por cor. Dentro da Semana Acadêmica há uma
+   marca só, então todas apontam para ela. */
+[data-tipo="bolao"],
+[data-tipo="quiz"],
+[data-tipo="placar"],
+[data-tipo="misto"] {
+  --acento-deep:  var(--sa-cobalto);
+  --acento:       var(--sa-azul);
+  --acento-light: var(--sa-cobalto);
+}
+
+[data-theme="dark"] {
+  --bg:          #0a0c18;
+  --surface:     #141829;
+  --surface-2:   #1b2036;
+  --border:      #2a3150;
+  --texto:       #eceae3;
+  --text-muted:  #9aa3bd;
+  --titulo:      #9fb0ff;
+
+  --azul-escuro: #3b4bd8;
+  --azul:        #5b6cff;
+  --roxo:        #8fa0ff;
+  --acento-deep:  #3b4bd8;
+  --acento:       #5b6cff;
+  --acento-light: #9fb0ff;
+}
+
+[data-theme="dark"][data-tipo],
+[data-theme="dark"] [data-tipo] {
+  --acento-deep:  #3b4bd8;
+  --acento:       #5b6cff;
+  --acento-light: #9fb0ff;
+  --acento-forte: #9fb0ff;
+}
+
+/* ── Tipografia ─────────────────────────────────────────────
+   Oswald é condensada e de caixa alta generosa: pede um pouco de espaçamento
+   entre letras para não fechar demais em título grande. */
+h1, h2, h3 {
+  font-family: var(--font-titulo);
+  font-weight: 600;
+  letter-spacing: .005em;
+}
+h1 { letter-spacing: .01em; }
+
+/* Subtítulo e rótulo seguem a mono da identidade. */
+.muted, .meta, .badge, .pilula, th, .rodape-home {
+  font-family: var(--font-mono);
+}
+th { letter-spacing: .04em; }
+
+/* ── A marca ────────────────────────────────────────────────
+   A porta aberta, com a palavra, vem do Logo 2 da proposta. No escuro o
+   arquivo é azul #0000ff sobre fundo quase preto, então ele é clareado por
+   filtro, que preserva o desenho sem precisar de um segundo arquivo. */
+.sa-marca { display: block; width: min(420px, 78vw); height: auto; }
+
+/* Duas imagens em vez de um filtro. A tentativa anterior usava
+   filter: brightness(1.9) e nao clareava nada: brightness multiplica os canais,
+   e o azul da marca e' (0,0,255), ja no teto. O arquivo escuro traz a mesma arte
+   com #9fb0ff. */
+.sa-marca-escura { display: none; }
+[data-theme="dark"] .sa-marca-clara  { display: none; }
+[data-theme="dark"] .sa-marca-escura { display: block; }
+
+/* O selo "aberto" nasceu verde, que e' cor de estado e nao da identidade. Aqui
+   ele veste o azul da marca, porque na Semana Academica todas as atividades
+   estao abertas e o verde so introduzia uma cor estranha ao conjunto. */
+.badge-open {
+  background: color-mix(in srgb, var(--acento) 10%, transparent);
+  color: var(--acento-forte);
+  border-color: color-mix(in srgb, var(--acento) 35%, transparent);
+}
+
+.sa-slogan {
+  font-family: var(--font-titulo);
+  font-weight: 500;
+  font-size: clamp(1.1rem, 1rem + 1.4vw, 1.7rem);
+  line-height: 1.15;
+  color: var(--acento);
+  margin-top: 10px;
+}
+
+/* O h1 do hub existe para leitor de tela e para a busca, mas some aos olhos:
+   a palavra já está desenhada dentro da marca, e repeti-la em texto duplicaria o
+   título na tela. Esconder com display:none tiraria o h1 também do leitor, então
+   usa-se o recorte de 1px, que é o jeito de esconder sem deixar de existir. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  border: 0;
+}
+
+/* ── Cabeçalho do hub ───────────────────────────────────────
+   A marca e os dizeres convivem lado a lado, porque o logotipo é largo e baixo:
+   empilhá-los deixava um vazio comprido à direita da porta. O flex-wrap resolve
+   o telefone sozinho, e a media query só acerta a largura da marca, que em
+   coluna pode ocupar mais espaço do que ocupa ao lado do texto. */
+.sa-cabecalho {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(16px, 3vw, 42px);
+  margin: 4px 0 26px;
+}
+.sa-dizeres { min-width: 0; }
+.sa-dizeres .sa-slogan { margin-top: 0; }
+.sa-cabecalho .muted { margin-top: 8px; }
+
+@media (max-width: 760px) {
+  .sa-cabecalho { gap: 14px; }
+  .sa-marca { width: min(420px, 82vw); }
+}
+
+/* ── A marca no alto dos documentos ─────────────────────────
+   Menor do que no hub: aqui ela assina a página, não a abre. Entra também no
+   PDF, que é o formato em que o regulamento e os guias chegam às turmas. */
+.sa-marca-doc { width: min(230px, 54vw); margin-bottom: 20px; }

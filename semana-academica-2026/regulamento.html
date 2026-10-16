@@ -8,14 +8,20 @@
   <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
   <script src="../js/theme.js"></script>
   <link rel="stylesheet" href="../comum/estilo.css">
+  <link rel="stylesheet" href="identidade.css">
   <style>
     .reg h2 { margin: 34px 0 10px; }
     .reg h3 { margin: 26px 0 8px; color: var(--acento-forte); }
     .reg p, .reg li { margin-bottom: 10px; }
-    .reg ul, .reg ol { margin: 0 0 14px 22px; }
-    .reg .tabela td:first-child { font-weight: 700; }
-    .definir { background: var(--alerta-bg); color: var(--alerta); border: 1px dashed var(--alerta-border);
-               border-radius: 6px; padding: 1px 7px; font-weight: 700; font-size: .9em; }
+    .reg ul, .reg ol { margin: 0 0 14px 24px; }
+    /* Subnumeração: letras dentro de cada item, romanos dentro das letras. */
+    .reg ol.alfa { list-style: lower-alpha; }
+    .reg ol.romano { list-style: lower-roman; margin-top: 8px; }
+    .reg ol.alfa > li { margin-bottom: 12px; }
+    /* A data e a hora formam uma unidade: "23/10 · 17h" quebrado em duas linhas
+       se lê como duas entradas diferentes do calendário. */
+    .reg .tabela td:first-child { font-weight: 700; white-space: nowrap; }
+    .reg .contato { font-weight: 700; }
   </style>
 </head>
 <body data-tipo="misto">
@@ -28,151 +34,262 @@
   </div>
 
   <main class="container pb-32 reg">
+    <img class="sa-marca sa-marca-doc sa-marca-clara" src="img/marca-semana.svg"
+         alt="Semana Acadêmica 2026" width="840" height="388">
+    <img class="sa-marca sa-marca-doc sa-marca-escura" src="img/marca-semana-escura.svg"
+         alt="" aria-hidden="true" width="840" height="388">
     <div class="section-header">
       <h1>Regulamento</h1>
       <div class="pitch-rule"></div>
     </div>
     <p class="muted">Gincana da Semana Acadêmica 2026 · 19 a 23 de outubro</p>
+    <p class="mt-12">
+      <a class="btn btn-ghost btn-sm" href="regulamento-gincana-semana-academica-2026.pdf"
+         download>⬇ Baixar em PDF</a>
+    </p>
 
     <p class="mt-16">
-      A gincana da Semana Acadêmica é uma disputa entre as turmas. São três atividades que somam
-      <strong>883 pontos</strong>: a gincana de fotos, a trilha de enigmas e o quiz final. Este regulamento
-      descreve cada uma delas na ordem em que acontecem, e fecha com o critério de desempate e as regras de conduta.
+      Este regulamento estabelece as regras da gincana da Semana Acadêmica 2026 do IFSul. São três
+      atividades, que somam <strong>900 pontos</strong>. Os itens 1 a 3 tratam do objetivo, da
+      participação e da pontuação; os itens 4 a 6 descrevem cada atividade; os itens 7 a 10 tratam
+      do placar, da conduta, dos prazos e das disposições finais.
     </p>
 
-    <h2>Quem participa e como entra</h2>
-    <p>
-      Participam as turmas, e cada uma joga como uma equipe única. Não existe inscrição individual: a turma
-      recebe um acesso e se organiza como quiser.
-    </p>
-    <p>
-      Cada turma recebe <strong>um login</strong>, com e-mail e senha entregues pela organização. Todos os
-      integrantes usam o mesmo acesso, então a senha é combinada entre eles. Cabe perceber que quem trocar a senha
-      tranca os colegas para fora; acontecendo isso, a organização redefine.
-    </p>
+    <h2>1. Do objetivo e da premiação</h2>
+    <ol class="alfa">
+      <li>
+        A gincana tem por objetivo <strong>apontar a melhor turma da Semana Acadêmica de 2026</strong>,
+        assim entendida a turma que obtiver a maior pontuação no conjunto das três atividades.
+      </li>
+      <li>
+        A turma vencedora receberá um <strong>certificado</strong> que a declara a melhor turma da
+        Semana Acadêmica de 2026, emitido pela organização do evento.
+      </li>
+      <li>
+        A disputa é entre turmas. Não há premiação individual, e a pontuação pertence à turma,
+        qualquer que tenha sido o número de integrantes que dela participou.
+      </li>
+    </ol>
 
-    <h2>As três atividades</h2>
+    <h2>2. Da participação e do acesso</h2>
+    <ol class="alfa">
+      <li>
+        Participam as turmas do campus, cada uma concorrendo como equipe única. Não há inscrição
+        individual: a turma recebe um acesso e organiza-se internamente como julgar conveniente.
+      </li>
+      <li>
+        Cada turma recebe <strong>um login</strong>, com endereço e senha fornecidos pela
+        organização. Todos os integrantes utilizam o mesmo acesso, de modo que a senha é combinada
+        entre eles.
+      </li>
+      <li>
+        <strong>Os acessos são liberados às 15h do dia 19 de outubro</strong>, depois que as
+        turmas dos dois turnos tiverem recebido a orientação. Até esse horário, as missões de
+        fotografia e a trilha de enigmas permanecem fechadas no próprio sistema, e não apenas por
+        combinação: ainda que alguém entre antes, nada se abre. É o que garante que as dez turmas
+        comecem no mesmo instante.
+      </li>
+      <li>
+        Cabe perceber que a troca da senha por um integrante tranca os demais para fora do sistema.
+        Ocorrendo isso, a organização redefine a senha mediante solicitação, pelos contatos do item 10.
+      </li>
+      <li>
+        A turma responde por tudo o que for realizado com o seu login.
+      </li>
+    </ol>
+
+    <h2>3. Das atividades e da pontuação</h2>
     <div class="tabela-wrap mt-12">
       <table class="tabela">
         <thead><tr><th>Atividade</th><th>Quando</th><th>Pontos</th></tr></thead>
         <tbody>
-          <tr><td>Gincana de fotos</td><td>Os cinco dias</td><td class="mono">333</td></tr>
-          <tr><td>Trilha de enigmas</td><td>Os cinco dias, a qualquer hora</td><td class="mono">300</td></tr>
-          <tr><td>Quiz final</td><td>Dia 23, ao vivo</td><td class="mono">250</td></tr>
+          <tr><td>Gincana de fotos</td><td>De 19 a 23 de outubro</td><td class="mono">350</td></tr>
+          <tr><td>Trilha de enigmas</td><td>De 19 a 23 de outubro, a qualquer hora</td><td class="mono">300</td></tr>
+          <tr><td>Quiz final</td><td>23 de outubro, às 17h, ao vivo</td><td class="mono">250</td></tr>
+          <tr><td><strong>Total</strong></td><td></td><td class="mono"><strong>900</strong></td></tr>
         </tbody>
       </table>
     </div>
-
-    <h3>1. Gincana de fotos</h3>
     <p>
-      Cada missão vem <strong>cifrada</strong>. A turma decifra o texto, descobre o que precisa fotografar, tira a
-      foto e envia pelo site. As missões aparecem <strong>todas de uma vez</strong>, numa lista só, então dá para
-      planejar o caminho pelo campus e resolver na ordem que for mais prática.
-    </p>
-    <p>
-      Ao lado de cada missão está o <strong>número da vaga</strong> onde a foto dela entra. Não há campo de
-      resposta: a turma decifra por fora e envia a foto na vaga certa. Foto na vaga errada é recusada pelo jurado,
-      com o motivo, e a vaga volta a ficar livre.
-    </p>
-    <p>
-      Cada foto aceita vale <strong>12 pontos</strong>. Uma das missões pede várias fotos, e nela cada foto vale os
-      mesmos 12.
-    </p>
-    <p>
-      Toda foto precisa mostrar <strong>pelo menos quatro integrantes</strong> da turma junto do que foi pedido, e
-      precisa ter sido feita durante a Semana Acadêmica. Foto antiga, foto de outra turma e montagem não valem.
-    </p>
-    <p>
-      O envio é pelo site, direto do celular. A foto é reduzida no próprio aparelho antes de subir, então não
-      depende de Wi-Fi bom.
-    </p>
-    <p>
-      <strong>São três jurados, e cada um dá um voto em cada foto.</strong> A foto vale os 12 pontos quando
-      <strong>dois jurados a aceitam</strong>, e é recusada quando dois a recusam. Quem recusa escreve o motivo, e
-      a turma lê. Foto recusada pode ser refeita e enviada de novo, dentro do prazo, e não ocupa a vaga da missão.
-    </p>
-    <p>
-      Além do voto, cada jurado decide se dá ou não o <strong>ponto de criatividade</strong> àquela foto. É um
-      ponto por jurado, então uma foto que agrade aos três leva <strong>3 pontos</strong> além dos 12. O ponto de
-      criatividade só conta junto de um aceite.
+      A pontuação de cada atividade respeita o teto correspondente, de modo que nenhuma turma
+      ultrapassa 350 pontos nas fotos, 300 nos enigmas ou 250 no quiz.
     </p>
 
-    <h3>2. Trilha de enigmas</h3>
-    <p>
-      Os enigmas são em corrente, cada um valendo 20 pontos. A resposta de um abre o próximo, e a turma só
-      enxerga o enigma em que está. Podem ser resolvidos em casa, a qualquer hora. A turma pode voltar a qualquer
-      enigma que já tenha resolvido.
-    </p>
-    <p>
-      Pode haver enigma que <strong>só abre no dia marcado</strong>, porque depende de algo que acontece durante a
-      semana. Quando for o caso, a página mostra a hora da abertura.
-    </p>
-    <p>
-      Há duas travas contra chute: a turma espera cinco segundos entre uma tentativa e outra, e tem um número
-      limitado de tentativas em cada enigma. A página mostra quantas restam. A resposta não precisa de acento nem
-      de maiúscula.
-    </p>
-    <p class="aviso alerta">
-      Uma palavra sobre inteligência artificial. Os enigmas foram escritos para que a resposta não esteja no
-      texto: ela depende de algo que só existe no campus, naquele dia, ou com alguma pessoa. Usar uma IA não é
-      proibido, e também não resolve a trilha.
-    </p>
-
-    <h3>3. Quiz final</h3>
-    <p>
-      No dia 23, ao vivo, com perguntas sobre o que aconteceu na Semana Acadêmica: as palestras, as oficinas e as
-      atividades. Quem acompanhou a semana responde melhor.
-    </p>
-    <p>
-      A turma joga em <strong>um dispositivo só</strong>. Entra pelo endereço do quiz, digita o PIN mostrado no
-      telão e usa <strong>o nome exato da turma</strong> como apelido. Apelido diferente atrasa a contagem.
-    </p>
-    <p>
-      Os 250 pontos vão para a turma de maior pontuação no quiz. As demais recebem a fração correspondente: uma
-      turma que fizer metade dos pontos da primeira leva 125.
-    </p>
-
-    <h2>Placar e desempate</h2>
-    <p>
-      O placar é público e atualiza durante o evento. Os pontos de cada atividade respeitam o teto dela, então
-      nenhuma turma passa de 333 nas fotos, 300 nos enigmas ou 250 no quiz.
-    </p>
-    <p>Havendo empate no total, vence, nesta ordem:</p>
-    <ol>
-      <li>a turma que terminou a trilha de enigmas primeiro;</li>
-      <li>a turma com mais fotos aceitas;</li>
-      <li>a turma com mais pontos de criatividade;</li>
-      <li>a turma com mais acertos no quiz final.</li>
+    <h2>4. Da gincana de fotos</h2>
+    <ol class="alfa">
+      <li>
+        Cada missão é apresentada <strong>cifrada</strong>. Compete à turma decifrar o texto,
+        identificar o que deve ser fotografado, produzir a fotografia e enviá-la pelo site. As
+        missões são liberadas <strong>todas de uma vez</strong>, em lista única, o que permite
+        planejar o percurso pelo campus e resolvê-las na ordem que for mais conveniente.
+      </li>
+      <li>
+        Ao lado de cada missão consta o <strong>número da vaga</strong> correspondente. Não há campo
+        de resposta no site: a turma decifra por fora e envia a fotografia na vaga certa. Fotografia
+        enviada em vaga que não lhe corresponde é recusada pelo jurado, com indicação do motivo, e a
+        vaga volta a ficar livre.
+      </li>
+      <li>
+        Cada fotografia aceita vale <strong>12 pontos</strong>. Uma das missões admite várias
+        fotografias, e nela cada uma vale os mesmos 12 pontos, de modo que aquela missão vale seis
+        vezes uma missão comum. Há ainda <strong>uma missão de valor diferenciado</strong>, que
+        pontua acima das demais tanto na base quanto na criatividade.
+      </li>
+      <li>
+        Toda fotografia deverá mostrar <strong>no mínimo quatro integrantes</strong> da turma junto
+        do que foi solicitado, e deverá ter sido produzida durante a Semana Acadêmica. Não são
+        aceitas fotografias anteriores ao evento, fotografias de outra turma nem montagens.
+      </li>
+      <li>
+        O envio é feito pelo site, diretamente do telefone celular. A imagem é reduzida no próprio
+        aparelho antes do envio, de modo que a operação não depende de conexão de alta velocidade.
+      </li>
+      <li>
+        <strong>A avaliação é feita por três jurados, e cada um deles emite um voto por
+        fotografia.</strong> A fotografia é aceita, e vale os 12 pontos, quando <strong>dois jurados
+        a aceitam</strong>; é recusada quando dois jurados a recusam. Quem recusa registra o motivo,
+        que fica visível para a turma. Fotografia recusada pode ser refeita e reenviada dentro do
+        prazo, e não ocupa a vaga da missão.
+      </li>
+      <li>
+        Independentemente do voto de aceitação, cada jurado decide se atribui à fotografia o
+        <strong>ponto de criatividade</strong>, no valor de um ponto por jurado. Uma fotografia que
+        agrade aos três jurados recebe, portanto, <strong>3 pontos</strong> além dos 12. O ponto de
+        criatividade somente é computado quando acompanhado de um voto de aceitação.
+      </li>
     </ol>
 
-    <h2>Conduta</h2>
-    <ul>
-      <li>A turma responde pelo que for feito com o seu login.</li>
-      <li>Passar resposta de enigma para outra turma custa os pontos daquele enigma às duas turmas.</li>
-      <li>A foto precisa ser da Semana Acadêmica, com a turma presente.</li>
-      <li>Toda pessoa que aparece numa foto precisa saber que está sendo fotografada e concordar com isso.</li>
-      <li>As fotos ficam guardadas em área fechada do site, visíveis apenas para a organização e para a própria turma.</li>
-      <li>A organização pode anular um lançamento, e todo lançamento anulado fica registrado.</li>
-      <li>Casos não previstos aqui são decididos pela organização.</li>
-    </ul>
+    <h2>5. Da trilha de enigmas</h2>
+    <ol class="alfa">
+      <li>
+        Os enigmas são encadeados e valem <strong>20 pontos</strong> cada um. A resposta correta de
+        um enigma abre o seguinte, e a turma visualiza apenas o enigma em que se encontra. A trilha
+        pode ser percorrida a qualquer hora, inclusive fora do campus.
+      </li>
+      <li>
+        A turma pode reabrir, a qualquer momento, os enigmas que já tiver resolvido, sem prejuízo da
+        pontuação obtida.
+      </li>
+      <li>
+        São duas as travas contra tentativa aleatória: há intervalo mínimo de <strong>cinco
+        segundos</strong> entre uma tentativa e outra, e há número máximo de tentativas por enigma,
+        exibido na própria página. A resposta é comparada sem acento, sem maiúscula e sem pontuação.
+      </li>
+      <li>
+        <strong>Do uso de inteligência artificial.</strong> O uso não é proibido. Em vários enigmas
+        uma ferramenta de inteligência artificial auxilia legitimamente, seja para organizar o
+        raciocínio, reconhecer uma referência ou conferir uma hipótese que a turma já formulou. O
+        que ela não faz é entregar a resposta pronta, por duas razões:
+        <ol class="romano">
+          <li>
+            parte dos enigmas depende de informação que existe <strong>fisicamente no campus</strong>,
+            como uma placa, um objeto ou uma medida feita no local, e que não está no enunciado;
+          </li>
+          <li>
+            outra parte depende de reconhecer algo que o texto deliberadamente não nomeia.
+          </li>
+        </ol>
+        <p class="mt-8">
+          Cabe registrar que <strong>nenhum enigma depende da data</strong> em que é respondido: a
+          trilha inteira fica disponível desde a abertura e permanece válida até o prazo do item 9.
+        </p>
+      </li>
+    </ol>
 
-    <h2>Calendário</h2>
+    <h2>6. Do quiz final</h2>
+    <ol class="alfa">
+      <li>
+        O quiz será realizado <strong>no dia 23 de outubro, às 17h</strong>, ao vivo, com perguntas
+        sobre o que ocorreu durante a Semana Acadêmica, incluindo palestras, oficinas e demais
+        atividades. A turma que houver acompanhado o evento responde em melhores condições.
+      </li>
+      <li>
+        A turma participa com <strong>um único dispositivo</strong>. O acesso se dá pelo endereço do
+        quiz, informando o PIN exibido no telão e utilizando <strong>o nome exato da turma</strong>
+        como apelido. Apelido diverso do nome da turma atrasa a apuração.
+      </li>
+      <li>
+        <strong>É vedada qualquer forma de consulta durante o quiz</strong>, seja a ferramenta de
+        inteligência artificial, a páginas da internet, a anotações ou a outra turma. A turma
+        flagrada em consulta <strong>é eliminada da competição</strong>. Cabe perceber que a regra
+        é diferente da que vale para os enigmas e para as fotografias, porque o quiz é respondido
+        ao vivo, em um único aparelho e à vista de todos.
+      </li>
+      <li>
+        <strong>A pontuação do quiz é proporcional ao número de acertos.</strong> Os 250 pontos são
+        divididos pelo número de questões, e cada acerto vale a fração resultante. Assim, a turma de
+        melhor desempenho <strong>poderá receber menos de 250 pontos</strong>, caso não acerte todas
+        as questões, e a pontuação de cada turma reflete o que ela efetivamente acertou, e não a sua
+        posição em relação às demais.
+      </li>
+    </ol>
+
+    <h2>7. Do placar e do desempate</h2>
+    <ol class="alfa">
+      <li>
+        O placar é público e atualizado ao longo do evento.
+      </li>
+      <li>
+        Havendo empate na pontuação total, a classificação é decidida pelos seguintes critérios,
+        aplicados nesta ordem:
+        <ol class="romano">
+          <li>a turma que concluiu a trilha de enigmas em primeiro lugar;</li>
+          <li>a turma com maior número de fotografias aceitas;</li>
+          <li>a turma com maior número de pontos de criatividade;</li>
+          <li>a turma com maior número de acertos no quiz final.</li>
+        </ol>
+      </li>
+    </ol>
+
+    <h2>8. Da conduta</h2>
+    <ol class="alfa">
+      <li>Transmitir a resposta de um enigma a outra turma acarreta a perda dos pontos daquele enigma para ambas as turmas.</li>
+      <li>Toda pessoa que apareça em uma fotografia deverá saber que está sendo fotografada e concordar com isso.</li>
+      <li>As fotografias ficam armazenadas em área fechada do site, acessível apenas à organização, aos jurados e à própria turma.</li>
+      <li>A organização pode anular um lançamento de pontos, ficando todo lançamento anulado registrado no sistema.</li>
+      <li>A conduta incompatível com o ambiente escolar, verificada em fotografia ou em qualquer outra atividade, acarreta a recusa do item e pode levar à perda de pontos, a critério da organização.</li>
+    </ol>
+
+    <h2>9. Do calendário e dos prazos</h2>
     <div class="tabela-wrap mt-12">
       <table class="tabela">
         <thead><tr><th>Quando</th><th>O quê</th></tr></thead>
         <tbody>
-          <tr><td class="mono">19/10</td><td>Abertura da gincana: as missões de foto e a trilha de enigmas abrem juntas</td></tr>
-          <tr><td class="mono">23/10</td><td>Quiz final, às <span class="definir">a definir</span></td></tr>
-          <tr><td class="mono">23/10</td><td>Prazo final para enviar fotos: <span class="definir">a definir</span></td></tr>
-          <tr><td class="mono">23/10</td><td>Escolha das fotos mais criativas e divulgação do resultado: <span class="definir">a definir</span></td></tr>
+          <tr><td class="mono">19/10 · 7h30</td><td>Orientação às turmas do turno da manhã</td></tr>
+          <tr><td class="mono">19/10 · 13h30</td><td>Orientação às turmas do turno da tarde</td></tr>
+          <tr><td class="mono">19/10 · 15h</td><td><strong>Abertura da gincana.</strong> Os acessos são liberados, e as missões de fotografia e a trilha de enigmas abrem juntas</td></tr>
+          <tr><td class="mono">23/10 · 17h</td><td><strong>Prazo final</strong> para o envio de fotografias</td></tr>
+          <tr><td class="mono">23/10 · 17h</td><td><strong>Prazo final</strong> para responder aos enigmas da trilha</td></tr>
+          <tr><td class="mono">23/10 · 17h</td><td>Quiz final, ao vivo</td></tr>
+          <tr><td class="mono">23/10 · 18h</td><td>Encerramento da gincana, apuração final e divulgação do resultado</td></tr>
         </tbody>
       </table>
     </div>
-
-    <p class="muted mt-24 texto-p">
-      Organização: <span class="definir">a definir</span> · Dúvidas: <span class="definir">a definir</span>
+    <p>
+      Fotografia enviada após as 17h do dia 23 de outubro não é avaliada, e resposta de enigma
+      registrada após esse horário não pontua.
     </p>
-    <div class="mt-16"><a class="btn btn-ghost btn-sm" href="index.html">← Voltar</a></div>
+
+    <h2>10. Das disposições finais</h2>
+    <ol class="alfa">
+      <li>
+        Os casos não previstos neste regulamento são decididos pela organização do evento.
+      </li>
+      <li>
+        A organização pode alterar este regulamento até a abertura da gincana, comunicando as turmas
+        pelos mesmos canais em que o divulgou.
+      </li>
+      <li>
+        Dúvidas, pedidos de redefinição de senha e comunicações sobre a gincana devem ser dirigidos a
+        Lucas Telichevesky:
+        <ol class="romano">
+          <li>por mensagem eletrônica: <span class="contato">lucastelichevesky@ifsul.edu.br</span></li>
+          <li>por telefone ou mensagem: <span class="contato">(51) 98131-2109</span></li>
+        </ol>
+      </li>
+    </ol>
+
+    <div class="mt-24"><a class="btn btn-ghost btn-sm" href="index.html">← Voltar</a></div>
   </main>
 </body>
 </html>

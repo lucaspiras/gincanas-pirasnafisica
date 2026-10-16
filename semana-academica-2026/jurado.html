@@ -8,6 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
   <script src="../js/theme.js"></script>
   <link rel="stylesheet" href="../comum/estilo.css">
+  <link rel="stylesheet" href="identidade.css">
   <style>
     .filtros { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
     .filtros .chip { cursor: pointer; background: var(--surface); border-color: var(--border); color: var(--texto); }
@@ -40,6 +41,18 @@
             justify-content: center; z-index: 60; padding: 20px; cursor: zoom-out; }
     .lupa img { max-width: 100%; max-height: 100%; border-radius: var(--raio); }
     .contador { font-variant-numeric: tabular-nums; }
+    /* Tira das outras fotos da mesma turma na mesma missão. Miniatura pequena e
+       clicável: o objetivo é comparar de relance, e a lupa resolve o detalhe. */
+    .irmas { margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; }
+    .irmas .rotulo { font-size: .7rem; font-weight: 700; letter-spacing: .08em;
+                     text-transform: uppercase; color: var(--text-muted); }
+    .tira { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .tira figure { margin: 0; width: 104px; }
+    .tira img { width: 104px; height: 78px; object-fit: cover; border-radius: var(--raio-sm);
+                border: 1.5px solid var(--border); cursor: zoom-in; background: var(--surface-2);
+                display: block; }
+    .tira figcaption { font-size: .68rem; color: var(--text-muted); margin-top: 3px;
+                       line-height: 1.25; }
   </style>
 </head>
 <body data-tipo="placar">
@@ -104,6 +117,13 @@
 
     let filtro = 'minha'
     let linhas = []
+    // Índice de TODAS as fotos do evento, independente do filtro da tela. É o que
+    // permite mostrar, ao lado de uma foto, as irmãs da mesma turma na mesma missão.
+    let todas = []
+
+    const irmasDe = (f) => todas.filter(
+      x => x.team_id === f.team_id && x.enigma_id === f.enigma_id && x.id !== f.id)
+      .sort((a, b) => (a.enviada_em || '').localeCompare(b.enviada_em || ''))
 
     async function urlAssinada(caminho) {
       const { data } = await supabase.storage.from(BALDE).createSignedUrl(caminho, 3600)
@@ -135,6 +155,7 @@
           </div>
           ${f.legenda ? `<p class="mt-8">${escHtml(f.legenda)}</p>` : ''}
           ${f.motivos ? `<p class="muted mt-8">Motivos da recusa: ${escHtml(f.motivos)}</p>` : ''}
+          ${tira(f)}
 
           <div class="meu${classeMeu}">
             <div class="rotulo">O seu voto</div>
@@ -153,6 +174,28 @@
           </div>
         </div>
       </article>`
+    }
+
+    // As outras fotos desta turma nesta missão. Na missão dos palestrantes é o que
+    // deixa ver se são seis pessoas diferentes; nas demais, aparece quando a turma
+    // reenviou depois de uma recusa, e aí mostra o histórico.
+    function tira(f) {
+      const irmas = irmasDe(f)
+      if (!irmas.length) return ''
+      const rot = { pendente: 'sem dois votos', aceita: 'aceita', recusada: 'recusada' }
+      const itens = irmas.map(x => `<figure>
+        <img alt="Outra foto desta turma nesta missão" data-src="${escHtml(x.caminho)}">
+        <figcaption>${escHtml(rot[x.status] ?? x.status)}${
+          x.criativas ? ` · ★ ${x.criativas}` : ''}</figcaption>
+      </figure>`).join('')
+      return `<div class="irmas">
+        <div class="rotulo">Mais ${irmas.length} desta turma em ${escHtml(f.missao)}</div>
+        <p class="muted" style="font-size:.8rem;margin-top:4px">
+          Confira o conjunto antes de votar: numa missão de várias fotos, elas precisam ser
+          de pessoas ou situações diferentes.
+        </p>
+        <div class="tira">${itens}</div>
+      </div>`
     }
 
     function pintar() {
@@ -174,10 +217,15 @@
     }
 
     async function recarregar() {
-      const { data, error } = await supabase.rpc('gincana_fotos_fila',
-        { p_slug: SLUG, p_filtro: filtro || null })
-      if (error) throw error
-      linhas = data ?? []
+      // duas chamadas: a da tela (com filtro) e o índice completo (sem filtro)
+      const [atual, indice] = await Promise.all([
+        supabase.rpc('gincana_fotos_fila', { p_slug: SLUG, p_filtro: filtro || null }),
+        supabase.rpc('gincana_fotos_fila', { p_slug: SLUG, p_filtro: null }),
+      ])
+      if (atual.error) throw atual.error
+      if (indice.error) throw indice.error
+      linhas = atual.data ?? []
+      todas = indice.data ?? []
       pintar()
     }
 
