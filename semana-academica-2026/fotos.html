@@ -29,7 +29,7 @@
       .lista .quais { grid-column: 2; }
     }
 
-    /* Vagas numeradas de 1 a 21. */
+    /* 21 vagas, cada uma com o número da sua missão. */
     .vagas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
     .vaga { width: 124px; border: 1.5px dashed var(--border); border-radius: var(--raio); background: var(--surface-2);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -71,8 +71,8 @@
       <div class="barra-prog mt-12"><span id="barra" style="width:0%"></span></div>
 
       <p class="muted texto-p mt-12" id="intro">
-        Cada missão está cifrada. Decifrem, façam a foto e enviem na vaga com o número indicado ao lado da
-        missão. Toda foto precisa mostrar pelo menos quatro integrantes da turma, e é reduzida no próprio
+        Cada missão está cifrada. Decifrem, façam a foto e enviem na vaga com o mesmo número da missão
+        (a missão 1 tem seis vagas, todas com o número 1). Toda foto precisa mostrar pelo menos quatro integrantes da turma, e é reduzida no próprio
         celular antes de subir.
       </p>
 
@@ -126,7 +126,7 @@
     if (!ok && !auth.profile.is_admin) { location.replace(PAINEL_URL); throw new Error('not member') }
 
     let estado = null
-    let vagas = []   // as 21 vagas, na ordem, cada uma sabendo de que missão é
+    let vagas = []   // as 21 vagas, na ordem das missões, cada uma sabendo de que missão é
 
     /* ── Imagem: reduzir no próprio aparelho ──────────────────
        1 GB é tudo o que o plano dá, e uma foto crua de celular ocupa 4 MB. Com
@@ -155,28 +155,35 @@
     }
 
     /* ── A numeração ──────────────────────────────────────────
-       As vagas são numeradas de 1 a 21, corridas: a missão 1 pede seis fotos e
-       leva os números 1 a 6, e daí em diante cada missão leva um número. É essa
-       contagem que a lista anuncia em "(fotos 1 a 6)". */
+       Cada vaga leva o número DA MISSÃO, e não uma contagem corrida. A contagem
+       de 1 a 21 existiu até 19/10/2026 e fez turmas mandarem a foto da missão 5
+       na vaga 5, que era a quinta foto da missão 1 (a missão 1 pede seis fotos e
+       ocupava as vagas 1 a 6). Agora as seis vagas da missão 1 levam todas o
+       número 1, com "foto 2 de 6" embaixo, e a missão 5 está na vaga 5. */
     function numerar(missoes) {
       const saida = []
-      let n = 0
       for (const m of missoes) {
-        const primeiro = n + 1
         // recusada não ocupa vaga: a turma pode refazer
         const enviadas = (m.fotos ?? []).filter(f => f.status !== 'recusada')
         for (let i = 0; i < m.fotos_max; i++) {
-          n += 1
-          saida.push({ numero: n, missao: m, foto: enviadas[i] ?? null })
+          saida.push({ missao: m, indice: i + 1, foto: enviadas[i] ?? null })
         }
-        m._de = primeiro
-        m._ate = n
       }
       return saida
     }
 
     function quais(m) {
-      return m._de === m._ate ? `foto ${m._de}` : `fotos ${m._de} a ${m._ate}`
+      return m.fotos_max === 1 ? '1 foto' : `${m.fotos_max} fotos`
+    }
+
+    // A secreta não tem número anunciado: a vaga dela leva "?".
+    const numeroVaga = v => naLista(v.missao) ? String(v.missao.ord) : '?'
+
+    function rotuloVaga(v) {
+      if (!naLista(v.missao)) return ''
+      return v.missao.fotos_max > 1
+        ? `missão ${v.missao.ord} · foto ${v.indice} de ${v.missao.fotos_max}`
+        : `missão ${v.missao.ord}`
     }
 
     /* ── Desenho ─────────────────────────────────────────────── */
@@ -194,23 +201,24 @@
     }
 
     function itemVaga(v) {
-      const anunciada = naLista(v.missao)
+      const n = escHtml(numeroVaga(v))
+      const rotulo = rotuloVaga(v)
       if (v.foto) {
         const rot = { pendente: 'em análise', aceita: 'aceita', recusada: 'recusada' }[v.foto.status] ?? v.foto.status
         // cada jurado dá um ponto de criatividade, então são até três estrelas
         const estrelas = v.foto.status === 'aceita' && v.foto.criatividade > 0
           ? `<span class="criativa">${'★'.repeat(v.foto.criatividade)}</span>` : ''
         return `<div class="vaga cheia">
-                  <span class="n">${v.numero}</span>
+                  <span class="n">${n}</span>
                   ${estrelas}
-                  <img alt="Foto ${v.numero}" data-src="${escHtml(v.foto.caminho)}">
+                  <img alt="${escHtml(rotulo || 'Foto')}" data-src="${escHtml(v.foto.caminho)}">
                   <span class="marca-status st-${escHtml(v.foto.status)}">${escHtml(rot)}</span>
                 </div>`
       }
       return `<label class="vaga" data-enigma="${escHtml(v.missao.id)}">
-                <span class="n">${v.numero}</span>
+                <span class="n">${n}</span>
                 <span class="add">＋</span>
-                ${anunciada ? `<span class="rot">missão ${v.missao.ord}</span>` : ''}
+                ${rotulo ? `<span class="rot">${escHtml(rotulo)}</span>` : ''}
                 <input type="file" accept="image/*" capture="environment">
               </label>`
     }
