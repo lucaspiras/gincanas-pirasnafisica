@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Auditoria · Semana Acadêmica 2026</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/icons/favicon-32.png">
+  <script src="../js/theme.js"></script>
+  <link rel="stylesheet" href="../comum/estilo.css">
+  <link rel="stylesheet" href="identidade.css">
+  <style>
+    .barra-topo { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .filtros { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+    .painel { margin-top: 16px; }
+    .contador { font-variant-numeric: tabular-nums; }
+    .selo { font-size: .7rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+            border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+    .st-pendente { background: var(--alerta-bg); color: var(--alerta); }
+    .st-aceita   { background: #1f7a45; color: #fff; }
+    .st-recusada { background: #8b2130; color: #fff; }
+    .st-removida { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
+
+    /* linha do tempo */
+    .tempo { list-style: none; margin: 0; padding: 0; }
+    .tempo li { display: grid; grid-template-columns: 5.6rem 1.6rem 1fr; gap: 8px; padding: 8px 0;
+                border-bottom: 1px solid var(--border); align-items: baseline; }
+    .tempo li:last-child { border-bottom: 0; }
+    .tempo .h { font-family: var(--font-mono); font-size: .8rem; color: var(--text-muted); }
+    .tempo .txt { line-height: 1.45; }
+    .tempo .resp { font-family: var(--font-mono); background: var(--surface-2); border-radius: 6px; padding: 0 5px; }
+    .ok  { color: #1f7a45; font-weight: 700; }
+    .nao { color: #8b2130; font-weight: 700; }
+
+    /* grade de respostas */
+    .grade td.cel { text-align: center; cursor: pointer; font-variant-numeric: tabular-nums; min-width: 2.6rem; }
+    .grade td.cel:hover { outline: 2px solid var(--azul); outline-offset: -2px; }
+    .grade td.cel.feito { background: rgba(31,122,69,.14); }
+    .grade td.cel.vazio { color: var(--text-muted); }
+    .grade td.cel.sel { outline: 2px solid var(--acento-forte); outline-offset: -2px; }
+
+    /* fotos */
+    .turma-bloco { margin-top: 18px; }
+    .turma-bloco h3 { margin: 0 0 8px; }
+    .fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+    .foto { border: 1.5px solid var(--border); border-radius: var(--raio); overflow: hidden; background: var(--surface); }
+    .foto img { width: 100%; height: 150px; object-fit: cover; display: block; background: var(--surface-2); cursor: zoom-in; }
+    .foto .corpo { padding: 8px 10px 10px; font-size: .86rem; }
+    .foto .linha { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+    .foto .votos { margin-top: 6px; font-size: .8rem; color: var(--text-muted); line-height: 1.4; }
+    .foto .remover { margin-top: 8px; display: grid; gap: 6px; }
+    .lupa { position: fixed; inset: 0; background: rgba(6,9,24,.92); display: flex; align-items: center;
+            justify-content: center; z-index: 60; padding: 20px; cursor: zoom-out; }
+    .lupa img { max-width: 100%; max-height: 100%; border-radius: var(--raio); }
+    .anulado td { text-decoration: line-through; opacity: .6; }
+    .msg-geral { margin-top: 12px; }
+  </style>
+</head>
+<body data-tipo="placar">
+  <div id="header-slot"></div>
+
+  <main class="container-largo pt-24 pb-32">
+    <div id="loading" class="empty"><strong>Carregando…</strong></div>
+
+    <div id="negado" class="empty hidden">
+      <strong>Esta página é da organização.</strong>
+      <p class="muted mt-8">Só o administrador abre a auditoria da gincana.</p>
+      <div class="mt-16"><a class="btn btn-ghost btn-sm" href="index.html">← Início da gincana</a></div>
+    </div>
+
+    <div id="content" class="hidden">
+      <div class="topo-secao">
+        <div class="section-header compacto">
+          <h1>Auditoria</h1>
+          <div class="pitch-rule"></div>
+        </div>
+        <div class="barra-topo">
+          <span class="muted mono contador" id="atualizado"></span>
+          <button class="btn btn-ghost btn-sm" id="atualizar">Atualizar</button>
+        </div>
+      </div>
+
+      <p class="muted texto-p mt-12">
+        Tudo o que as turmas fizeram: as respostas digitadas nos enigmas, as fotos enviadas, os votos dos jurados
+        e os pontos lançados e anulados. A página se atualiza sozinha a cada 30 segundos, menos enquanto uma
+        remoção de foto está aberta.
+      </p>
+
+      <div class="filtros" id="filtro-turma"></div>
+
+      <div class="tabs mt-16" id="abas">
+        <button class="tab active" data-aba="tempo">Linha do tempo</button>
+        <button class="tab" data-aba="respostas">Respostas</button>
+        <button class="tab" data-aba="fotos">Fotos</button>
+        <button class="tab" data-aba="pontos">Pontos</button>
+      </div>
+
+      <p id="msg" class="hidden msg-geral"></p>
+
+      <section class="painel" data-painel="tempo"></section>
+      <section class="painel hidden" data-painel="respostas"></section>
+      <section class="painel hidden" data-painel="fotos"></section>
+      <section class="painel hidden" data-painel="pontos"></section>
+
+      <div class="mt-24">
+        <a class="btn btn-ghost btn-sm" href="index.html">← Início da gincana</a>
+        <a class="btn btn-ghost btn-sm" href="jurado.html">Avaliação das fotos</a>
+        <a class="btn btn-ghost btn-sm" href="placar.html">Placar</a>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { supabase, requireAuthWithProfile, renderCabecalho, bindSignOut,
+             slugDaPasta, escHtml } from '../comum/auth.js'
+
+    const SLUG   = slugDaPasta()
+    const BALDE  = 'gincana-fotos'
+    const RECARGA_MS = 30000
+    const LIMITE_TEMPO = 400   // eventos na linha do tempo; o resto fica nas outras abas
+
+    const $ = id => document.getElementById(id)
+    const auth = await requireAuthWithProfile()
+    if (!auth) throw new Error('not reached')
+    $('header-slot').innerHTML = renderCabecalho(auth.profile, '')
+    bindSignOut()
+
+    let dados = null
+    let aba = 'tempo'
+    let turma = ''            // '' = todas
+    let celula = null         // { team, enigma } escolhida na grade de respostas
+    const urls = new Map()    // caminho → URL assinada, para não pedir de novo a cada recarga
+
+    /* ── Utilidades ──────────────────────────────────────────── */
+
+    // Dia da semana e hora: o evento dura três dias, e a data inteira só ocupa espaço.
+    function hora(iso) {
+      if (!iso) return ''
+      const d = new Date(iso)
+      const dia = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
+      return `${dia} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+    }
+
+    const porId = lista => new Map(lista.map(x => [x.id, x]))
+    let equipes = new Map(), enigmas = new Map()
+
+    const nomeTurma = id => {
+      const t = equipes.get(id)
+      return t ? `${t.emoji || ''} ${t.nome}`.trim() : '(turma apagada)'
+    }
+    const nomeEnigma = id => {
+      const g = enigmas.get(id)
+      if (!g) return '(missão apagada)'
+      return g.trilha === 'fotos' ? `Missão ${g.ord}` : `Enigma ${g.ord}`
+    }
+    const daTurma = x => !turma || x.team_id === turma
+
+    async function urlAssinada(caminho) {
+      if (urls.has(caminho)) return urls.get(caminho)
+      const { data } = await supabase.storage.from(BALDE).createSignedUrl(caminho, 3600)
+      const u = data?.signedUrl ?? ''
+      if (u) urls.set(caminho, u)
+      return u
+    }
+
+    function aviso(texto, tipo = 'alerta') {
+      const p = $('msg')
+      p.className = `msg-geral aviso ${tipo}`
+      p.textContent = texto
+    }
+    const limparAviso = () => $('msg').classList.add('hidden')
+
+    /* ── Filtro por turma ────────────────────────────────────── */
+    function pintarFiltro() {
+      const chips = [`<span class="chip filtro ${turma ? '' : 'ativo'}" data-turma="">Todas</span>`]
+      for (const t of dados.equipes) {
+        chips.push(`<span class="chip filtro ${turma === t.id ? 'ativo' : ''}" data-turma="${escHtml(t.id)}">${
+          escHtml(`${t.emoji || ''} ${t.nome}`.trim())}</span>`)
+      }
+      $('filtro-turma').innerHTML = chips.join('')
+    }
+
+    /* ── Linha do tempo ──────────────────────────────────────── */
+    function eventos() {
+      const ev = []
+      for (const x of dados.tentativas.filter(daTurma)) {
+        ev.push({ em: x.em, icone: x.acertou ? '✅' : '❌', html:
+          `<strong>${escHtml(nomeTurma(x.team_id))}</strong> respondeu
+           <span class="resp">${escHtml(x.resposta ?? '')}</span> em ${escHtml(nomeEnigma(x.enigma_id))}
+           <span class="${x.acertou ? 'ok' : 'nao'}">${x.acertou ? 'certo' : 'errado'}</span>${
+           x.quem ? ` <span class="muted">· ${escHtml(x.quem)}</span>` : ''}` })
+      }
+      for (const f of dados.fotos.filter(daTurma)) {
+        ev.push({ em: f.enviada_em, icone: '📷', html:
+          `<strong>${escHtml(nomeTurma(f.team_id))}</strong> enviou foto em ${escHtml(nomeEnigma(f.enigma_id))}
+           <span class="selo st-${escHtml(f.status)}">${escHtml(f.status)}</span>${
+           f.quem ? ` <span class="muted">· ${escHtml(f.quem)}</span>` : ''}` })
+        for (const v of f.votos) {
+          ev.push({ em: v.em, icone: v.aceita ? '👍' : '👎', html:
+            `<strong>${escHtml(v.jurado || 'Jurado')}</strong> ${v.aceita ? 'aceitou' : 'recusou'} a foto de
+             ${escHtml(nomeTurma(f.team_id))} em ${escHtml(nomeEnigma(f.enigma_id))}${
+             v.criativa ? ' · ★ criatividade' : ''}${
+             v.observacao ? ` <span class="muted">· “${escHtml(v.observacao)}”</span>` : ''}` })
+        }
+      }
+      for (const e of dados.lancamentos.filter(daTurma)) {
+        ev.push({ em: e.em, icone: '➕', html:
+          `<strong>${escHtml(nomeTurma(e.team_id))}</strong> ganhou ${escHtml(String(e.pontos))} pts em
+           ${escHtml(e.atividade)}${e.nota ? ` <span class="muted">· ${escHtml(e.nota)}</span>` : ''}` })
+        if (e.anulado_em) {
+          ev.push({ em: e.anulado_em, icone: '➖', html:
+            `Anulados ${escHtml(String(e.pontos))} pts de <strong>${escHtml(nomeTurma(e.team_id))}</strong>
+             em ${escHtml(e.atividade)}${e.nota ? ` <span class="muted">· ${escHtml(e.nota)}</span>` : ''}${
+             e.anulado_por ? ` <span class="muted">· por ${escHtml(e.anulado_por)}</span>` : ''}` })
+        }
+      }
+      for (const r of dados.removidas.filter(daTurma)) {
+        ev.push({ em: r.removida_em, icone: '🗑️', html:
+          `Foto de <strong>${escHtml(nomeTurma(r.team_id))}</strong> em ${escHtml(nomeEnigma(r.enigma_id))}
+           removida${r.quem ? ` por ${escHtml(r.quem)}` : ''} <span class="muted">· ${escHtml(r.motivo)}</span>` })
+      }
+      return ev.sort((a, b) => (b.em || '').localeCompare(a.em || ''))
+    }
+
+    function pintarTempo() {
+      const ev = eventos()
+      const el = document.querySelector('[data-painel="tempo"]')
+      if (!ev.length) { el.innerHTML = '<div class="empty"><strong>Nada ainda.</strong></div>'; return }
+      const mostrados = ev.slice(0, LIMITE_TEMPO)
+      el.innerHTML = `<div class="card"><ul class="tempo">${mostrados.map(e => `<li>
+          <span class="h">${escHtml(hora(e.em))}</span><span>${e.icone}</span><span class="txt">${e.html}</span>
+        </li>`).join('')}</ul>${ev.length > LIMITE_TEMPO
+          ? `<p class="muted mt-12">Mostrando os ${LIMITE_TEMPO} mais recentes de ${ev.length}. Filtre por turma para ver o resto.</p>` : ''}
+      </div>`
+    }
+
+    /* ── Respostas ───────────────────────────────────────────── */
+    function pintarRespostas() {
+      const el = document.querySelector('[data-painel="respostas"]')
+      const trilhas = [['dna', 'Trilha dos enigmas'], ['fotos', 'Cifras das fotos']]
+      const turmas = dados.equipes.filter(t => !turma || t.id === turma)
+      const resolvido = new Set(dados.resolvidos.map(r => `${r.team_id}|${r.enigma_id}`))
+      const conta = new Map()
+      for (const x of dados.tentativas) {
+        const k = `${x.team_id}|${x.enigma_id}`
+        conta.set(k, (conta.get(k) ?? 0) + 1)
+      }
+
+      const blocos = []
+      for (const [trilha, titulo] of trilhas) {
+        const gs = dados.enigmas.filter(g => g.trilha === trilha)
+        // a trilha das fotos não tem campo de resposta desde 30/09: só aparece se houver tentativa
+        if (trilha === 'fotos' && !dados.tentativas.some(x => enigmas.get(x.enigma_id)?.trilha === 'fotos')) continue
+        if (!gs.length) continue
+        const cab = gs.map(g => `<th title="${escHtml(g.titulo || '')}">${g.ord}</th>`).join('')
+        const linhas = turmas.map(t => `<tr><td>${escHtml(nomeTurma(t.id))}</td>${gs.map(g => {
+          const k = `${t.id}|${g.id}`
+          const n = conta.get(k) ?? 0
+          const feito = resolvido.has(k)
+          const sel = celula && celula.team === t.id && celula.enigma === g.id
+          return `<td class="cel ${feito ? 'feito' : ''} ${!n && !feito ? 'vazio' : ''} ${sel ? 'sel' : ''}"
+                      data-team="${escHtml(t.id)}" data-enigma="${escHtml(g.id)}"
+                      title="${n} tentativa(s)${feito ? ', resolvido' : ''}">${feito ? '✓' : ''}${n || (feito ? '' : '·')}</td>`
+        }).join('')}</tr>`).join('')
+        blocos.push(`<h3 class="mt-16">${escHtml(titulo)}</h3>
+          <p class="muted">Cada célula mostra quantas respostas a turma digitou; ✓ é resolvido. Clique para ver o que ela digitou.</p>
+          <div class="tabela-wrap mt-8"><table class="tabela grade">
+            <thead><tr><th>Turma</th>${cab}</tr></thead><tbody>${linhas}</tbody></table></div>`)
+      }
+
+      let detalhe = ''
+      if (celula) {
+        const g = enigmas.get(celula.enigma)
+        const lista = dados.tentativas.filter(x => x.team_id === celula.team && x.enigma_id === celula.enigma)
+        detalhe = `<div class="card mt-16">
+          <h3>${escHtml(nomeTurma(celula.team))} · ${escHtml(nomeEnigma(celula.enigma))}</h3>
+          <p class="muted">Resposta certa: <strong>${escHtml(g?.resposta ?? '')}</strong>${
+            g?.revela ? ` · revela: ${escHtml(g.revela)}` : ''}</p>
+          ${lista.length ? `<div class="tabela-wrap mt-8"><table class="tabela">
+            <thead><tr><th>Quando</th><th>Resposta</th><th></th><th>Quem</th></tr></thead>
+            <tbody>${lista.map(x => `<tr><td class="mono">${escHtml(hora(x.em))}</td>
+              <td class="mono">${escHtml(x.resposta ?? '')}</td>
+              <td class="${x.acertou ? 'ok' : 'nao'}">${x.acertou ? 'certo' : 'errado'}</td>
+              <td>${escHtml(x.quem ?? '')}</td></tr>`).join('')}</tbody></table></div>`
+            : '<p class="muted mt-8">Nenhuma resposta digitada.</p>'}
+        </div>`
+      }
+
+      el.innerHTML = (blocos.join('') || '<div class="empty"><strong>Nenhum enigma carregado.</strong></div>') + detalhe
+    }
+
+    /* ── Fotos ───────────────────────────────────────────────── */
+    function cartaoFoto(f) {
+      const aceites = f.votos.filter(v => v.aceita).length
+      const recusas = f.votos.length - aceites
+      const votos = f.votos.map(v => `${v.aceita ? '👍' : '👎'} ${escHtml(v.jurado || 'jurado')}${
+        v.criativa ? ' ★' : ''}${v.observacao ? `: “${escHtml(v.observacao)}”` : ''}`).join('<br>')
+      return `<div class="foto" data-foto="${escHtml(f.id)}">
+        <img alt="Foto de ${escHtml(nomeTurma(f.team_id))}" data-src="${escHtml(f.caminho)}">
+        <div class="corpo">
+          <div class="linha"><strong>${escHtml(nomeEnigma(f.enigma_id))}</strong>
+            <span class="selo st-${escHtml(f.status)}">${escHtml(f.status)}</span></div>
+          <div class="muted">${escHtml(hora(f.enviada_em))}${f.quem ? ` · ${escHtml(f.quem)}` : ''}${
+            f.criatividade ? ` · ★ ${f.criatividade}` : ''}</div>
+          <div class="votos">${f.votos.length ? `${aceites} aceite(s), ${recusas} recusa(s)<br>${votos}` : 'sem votos'}</div>
+          <div class="remover hidden">
+            <input class="input input-mini" type="text" maxlength="300" placeholder="Motivo (a turma não vê; fica na auditoria)">
+            <div class="linha">
+              <button class="btn btn-danger btn-sm" data-acao="confirmar">Remover de vez</button>
+              <button class="btn btn-ghost btn-sm" data-acao="cancelar">Cancelar</button>
+            </div>
+          </div>
+          <div class="linha mt-8"><button class="btn btn-ghost btn-sm" data-acao="abrir">Remover…</button></div>
+          <p class="msg hidden mt-8"></p>
+        </div>
+      </div>`
+    }
+
+    function pintarFotos() {
+      const el = document.querySelector('[data-painel="fotos"]')
+      const fotos = dados.fotos.filter(daTurma)
+      const ordem = id => enigmas.get(id)?.ord ?? 999
+      const blocos = dados.equipes.filter(t => !turma || t.id === turma).map(t => {
+        const dela = fotos.filter(f => f.team_id === t.id)
+          .sort((a, b) => ordem(a.enigma_id) - ordem(b.enigma_id) || (a.enviada_em || '').localeCompare(b.enviada_em || ''))
+        if (!dela.length) return ''
+        return `<div class="turma-bloco"><h3>${escHtml(nomeTurma(t.id))}
+            <span class="muted">· ${dela.length} foto(s)</span></h3>
+          <div class="fotos">${dela.map(cartaoFoto).join('')}</div></div>`
+      }).join('')
+
+      const removidas = dados.removidas.filter(daTurma)
+      const listaRem = removidas.length ? `<h3 class="mt-24">Removidas</h3>
+        <div class="tabela-wrap mt-8"><table class="tabela">
+          <thead><tr><th>Quando</th><th>Turma</th><th>Missão</th><th>Motivo</th><th>Por</th><th>Arquivo</th></tr></thead>
+          <tbody>${removidas.map(r => `<tr>
+            <td class="mono">${escHtml(hora(r.removida_em))}</td>
+            <td>${escHtml(nomeTurma(r.team_id))}</td>
+            <td>${escHtml(nomeEnigma(r.enigma_id))}</td>
+            <td>${escHtml(r.motivo)}</td>
+            <td>${escHtml(r.quem ?? '')}</td>
+            <td>${r.arquivo_apagado ? 'apagado'
+              : `<button class="btn btn-ghost btn-sm" data-acao="apagar-arquivo" data-removida="${escHtml(r.id)}"
+                   data-caminho="${escHtml(r.caminho)}">arquivo pendente: apagar</button>`}</td>
+          </tr>`).join('')}</tbody></table></div>` : ''
+
+      el.innerHTML = (blocos || '<div class="empty"><strong>Nenhuma foto enviada.</strong></div>') + listaRem
+      for (const img of el.querySelectorAll('img[data-src]')) {
+        urlAssinada(img.dataset.src).then(u => { if (u) img.src = u })
+      }
+    }
+
+    async function apagarArquivo(removidaId, caminho) {
+      const { error } = await supabase.storage.from(BALDE).remove([caminho])
+      if (error) throw new Error('A foto saiu da gincana, mas o arquivo não foi apagado do balde: '
+        + error.message + '. Tente de novo pela lista de removidas.')
+      urls.delete(caminho)
+      const r = await supabase.rpc('gincana_admin_foto_arquivo_apagado', { p_removida: removidaId })
+      if (r.error) throw r.error
+    }
+
+    async function remover(fotoEl) {
+      const id = fotoEl.dataset.foto
+      const motivo = fotoEl.querySelector('.remover input').value.trim()
+      const msg = fotoEl.querySelector('.msg')
+      const mostrar = t => { msg.className = 'msg mt-8 aviso alerta'; msg.textContent = t }
+      if (!motivo) { mostrar('Escreva o motivo antes de remover.'); return }
+      fotoEl.querySelectorAll('button').forEach(b => { b.disabled = true })
+      try {
+        const { data, error } = await supabase.rpc('gincana_admin_foto_remover', { p_foto: id, p_motivo: motivo })
+        if (error) throw error
+        try { await apagarArquivo(data.removida, data.caminho) }
+        catch (e) { aviso(e.message || String(e)) }
+        await recarregar()
+      } catch (e) {
+        mostrar(e.message || String(e))
+        fotoEl.querySelectorAll('button').forEach(b => { b.disabled = false })
+      }
+    }
+
+    /* ── Pontos ──────────────────────────────────────────────── */
+    function pintarPontos() {
+      const el = document.querySelector('[data-painel="pontos"]')
+      const atividades = [...new Set(dados.lancamentos.map(e => e.atividade))].sort()
+      const turmas = dados.equipes.filter(t => !turma || t.id === turma)
+      const soma = (tid, at) => dados.lancamentos
+        .filter(e => e.team_id === tid && !e.anulado_em && (!at || e.atividade === at))
+        .reduce((s, e) => s + Number(e.pontos), 0)
+
+      const resumo = `<div class="tabela-wrap"><table class="tabela">
+        <thead><tr><th>Turma</th>${atividades.map(a => `<th>${escHtml(a)}</th>`).join('')}<th>Total</th></tr></thead>
+        <tbody>${turmas.map(t => `<tr><td>${escHtml(nomeTurma(t.id))}</td>${
+          atividades.map(a => `<td class="mono">${soma(t.id, a)}</td>`).join('')}
+          <td class="mono"><strong>${soma(t.id)}</strong></td></tr>`).join('')}</tbody></table></div>`
+
+      const extrato = dados.lancamentos.filter(daTurma)
+      const lista = `<h3 class="mt-24">Extrato</h3>
+        <p class="muted">Lançamentos anulados aparecem riscados: saíram do placar, mas o registro fica.</p>
+        <div class="tabela-wrap mt-8"><table class="tabela">
+          <thead><tr><th>Quando</th><th>Turma</th><th>Atividade</th><th>Pontos</th><th>Nota</th><th>Por</th></tr></thead>
+          <tbody>${extrato.map(e => `<tr class="${e.anulado_em ? 'anulado' : ''}"
+              title="${e.anulado_em ? `anulado ${escHtml(hora(e.anulado_em))}${e.anulado_por ? ' por ' + escHtml(e.anulado_por) : ''}` : ''}">
+            <td class="mono">${escHtml(hora(e.em))}</td><td>${escHtml(nomeTurma(e.team_id))}</td>
+            <td>${escHtml(e.atividade)}</td><td class="mono">${escHtml(String(e.pontos))}</td>
+            <td>${escHtml(e.nota ?? '')}</td><td>${escHtml(e.quem ?? e.origem ?? '')}</td></tr>`).join('')}</tbody></table></div>`
+
+      el.innerHTML = resumo + (extrato.length ? lista : '')
+    }
+
+    /* ── Ciclo ───────────────────────────────────────────────── */
+    function pintar() {
+      pintarFiltro()
+      ;({ tempo: pintarTempo, respostas: pintarRespostas, fotos: pintarFotos, pontos: pintarPontos })[aba]()
+    }
+
+    async function recarregar() {
+      const { data, error } = await supabase.rpc('gincana_admin_auditoria', { p_slug: SLUG })
+      if (error) throw error
+      dados = data
+      equipes = porId(dados.equipes)
+      enigmas = porId(dados.enigmas)
+      $('atualizado').textContent = `atualizado ${hora(dados.gerado_em)}`
+      pintar()
+    }
+
+    // não recarrega por baixo de quem está escrevendo o motivo de uma remoção
+    const ocupado = () => !!document.querySelector('.remover:not(.hidden)') || !!document.querySelector('.lupa')
+
+    setInterval(() => {
+      if (document.hidden || ocupado()) return
+      recarregar().catch(e => aviso(e.message || String(e)))
+    }, RECARGA_MS)
+
+    $('atualizar').addEventListener('click', () => {
+      limparAviso()
+      recarregar().catch(e => aviso(e.message || String(e)))
+    })
+
+    $('filtro-turma').addEventListener('click', ev => {
+      const chip = ev.target.closest('[data-turma]')
+      if (!chip) return
+      turma = chip.dataset.turma
+      celula = null
+      pintar()
+    })
+
+    $('abas').addEventListener('click', ev => {
+      const b = ev.target.closest('[data-aba]')
+      if (!b) return
+      aba = b.dataset.aba
+      for (const x of $('abas').children) x.classList.toggle('active', x === b)
+      for (const p of document.querySelectorAll('[data-painel]')) p.classList.toggle('hidden', p.dataset.painel !== aba)
+      pintar()
+    })
+
+    document.querySelector('[data-painel="respostas"]').addEventListener('click', ev => {
+      const td = ev.target.closest('td.cel')
+      if (!td) return
+      celula = { team: td.dataset.team, enigma: td.dataset.enigma }
+      pintarRespostas()
+    })
+
+    document.querySelector('[data-painel="fotos"]').addEventListener('click', async ev => {
+      const img = ev.target.closest('img[data-src]')
+      if (img?.src) {
+        const lupa = document.createElement('div')
+        lupa.className = 'lupa'
+        lupa.innerHTML = `<img src="${escHtml(img.src)}" alt="Foto ampliada">`
+        lupa.addEventListener('click', () => lupa.remove())
+        document.body.appendChild(lupa)
+        return
+      }
+      const botao = ev.target.closest('[data-acao]')
+      if (!botao) return
+      const fotoEl = botao.closest('.foto')
+      const acao = botao.dataset.acao
+      if (acao === 'abrir') {
+        fotoEl.querySelector('.remover').classList.remove('hidden')
+        botao.parentElement.classList.add('hidden')
+        fotoEl.querySelector('.remover input').focus()
+      } else if (acao === 'cancelar') {
+        fotoEl.querySelector('.remover').classList.add('hidden')
+        fotoEl.querySelector('[data-acao="abrir"]').parentElement.classList.remove('hidden')
+      } else if (acao === 'confirmar') {
+        remover(fotoEl)
+      } else if (acao === 'apagar-arquivo') {
+        botao.disabled = true
+        try { await apagarArquivo(botao.dataset.removida, botao.dataset.caminho); await recarregar() }
+        catch (e) { aviso(e.message || String(e)); botao.disabled = false }
+      }
+    })
+
+    document.addEventListener('keydown', ev => {
+      if (ev.key === 'Escape') document.querySelector('.lupa')?.remove()
+    })
+
+    try {
+      if (!auth.profile.is_admin) throw new Error('Não autorizado.')
+      await recarregar()
+      $('content').classList.remove('hidden')
+    } catch (e) {
+      $('negado').classList.remove('hidden')
+      if (!/autorizado/i.test(e.message || '')) $('negado').querySelector('.muted').textContent = e.message
+    } finally {
+      $('loading').classList.add('hidden')
+    }
+  </script>
+</body>
+</html>

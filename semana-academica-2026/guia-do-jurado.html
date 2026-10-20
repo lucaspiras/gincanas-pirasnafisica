@@ -13,7 +13,10 @@
     .reg h2 { margin: 34px 0 10px; }
     .reg h3 { margin: 24px 0 8px; color: var(--acento-forte); }
     .reg p, .reg li { margin-bottom: 10px; }
-    .reg ul, .reg ol { margin: 0 0 14px 22px; }
+    .reg ul, .reg ol { margin: 0 0 14px 24px; }
+    /* Subnumeração como no regulamento: letras dentro de cada item. */
+    .reg ol.alfa { list-style: lower-alpha; }
+    .reg ol.alfa > li { margin-bottom: 12px; }
     .reg .tabela td:first-child { font-weight: 700; white-space: nowrap; }
     .reg .aconfirmar { font-style: italic; color: var(--text-muted); }
   </style>
@@ -42,11 +45,27 @@
       <a class="btn btn-primary btn-sm" href="jurado.html">Abrir a fila</a>
     </p>
 
-    <h2>A gincana, e onde você entra</h2>
+    <h2>1. Boas-vindas</h2>
     <p>
-      Durante os cinco dias da Semana Acadêmica, as dez turmas do campus disputam uma gincana que
-      vale <strong>900 pontos</strong>, distribuídos em três atividades que correm em paralelo à
-      programação do evento.
+      Muito obrigado por aceitar ser jurado da gincana. Sei que a Semana Acadêmica já ocupa a
+      agenda de todo mundo, e a sua disponibilidade é o que permite que a gincana de fotos exista.
+    </p>
+    <p>
+      A função do jurado é <strong>avaliar as fotos</strong> que as turmas enviam ao longo da semana:
+      decidir se cada uma cumpre a missão e, quando ela se destaca, dar o ponto de criatividade.
+      Somos três jurados, e cada um avalia pelo celular ou pelo computador, na hora que puder.
+    </p>
+    <p>
+      Este guia apresenta primeiro a gincana como um todo e o seu acesso. Na sequência vêm a regra
+      de avaliação, a sugestão de quando avaliar e o que olhar em cada foto. Por fim, a missão dos
+      palestrantes, o ponto de criatividade e o que o sistema faz sozinho.
+    </p>
+
+    <h2>2. A gincana</h2>
+    <p>
+      Durante os cinco dias da Semana Acadêmica, as dez turmas do campus disputam
+      <strong>900 pontos</strong>, divididos em três atividades que acontecem junto com a
+      programação do evento:
     </p>
     <div class="tabela-wrap mt-12">
       <table class="tabela">
@@ -73,16 +92,12 @@
       </table>
     </div>
     <p>
-      <strong>O trabalho do jurado é uma dessas três, e só ela: a gincana de fotos.</strong> Os
-      enigmas e o quiz não passam por avaliação humana. Em compensação, os 350 pontos das fotos são
-      a maior fatia da disputa, e saem inteiramente do voto de vocês.
-    </p>
-    <p>
-      São três jurados. Nos próximos itens estão o acesso, a regra que decide se uma foto vale, o
-      que olhar em cada uma e como tratar o ponto de criatividade.
+      O trabalho do jurado fica todo na <strong>gincana de fotos</strong>. A trilha de enigmas e o
+      quiz são corrigidos pelo sistema e não precisam de avaliação. Cabe perceber que as fotos
+      valem a maior parte da disputa, 350 dos 900 pontos, e esses pontos dependem dos votos de vocês.
     </p>
 
-    <h2>O seu acesso</h2>
+    <h2>3. O seu acesso</h2>
     <p>O endereço é <strong>gincanas.pirasnafisica.com.br</strong>.</p>
     <div class="tabela-wrap mt-12">
       <table class="tabela">
@@ -105,96 +120,131 @@
       cifrado, e decifrá-lo faz parte do jogo, então nada do que você lê ali se comenta com aluno.
     </p>
 
-    <h2>A regra que manda</h2>
-    <p class="aviso alerta">
-      <strong>Os três jurados avaliam todas as fotos.</strong> Uma foto vale os pontos quando
-      <strong>dois aceitam</strong>, e é recusada quando dois recusam. Com um voto só, ela fica
-      pendente e não pontua.
-    </p>
-    <p>
-      Não há divisão de lotes entre vocês, e isso não é zelo excessivo: <strong>é uma questão de
-      justiça com as turmas</strong>. O ponto de criatividade é de um ponto por jurado, e uma foto
-      que agrade aos três leva três pontos. Se um jurado não olhar aquela foto, a turma perde um
-      ponto que poderia ter ganhado, sem ter errado nada. Só com todos avaliando tudo é que cada
-      foto disputa a criatividade em igualdade com as outras.
-    </p>
-    <h2>Quando avaliar</h2>
-    <p>
-      <strong>Uma vez por dia</strong>, de preferência no fim do turno. O filtro
-      <em>Falta eu avaliar</em> mostra só o que ainda depende de você, então a visita diária
-      costuma ser curta, e o trabalho se distribui pelos cinco dias em vez de desabar no último.
-    </p>
-    <p class="aviso alerta">
-      <strong>Sexta-feira, 23, às 17h30: a entrada que não pode faltar.</strong> O prazo das
-      turmas encerra às 17h e o resultado sai às 18h. Nessa meia hora, entrem e limpem o que
-      sobrou, pelo filtro <em>Sem dois votos</em>, que mostra exatamente as fotos ainda sem
-      decisão. Toda foto enviada até as 17h será avaliada, e é nessa janela que isso se cumpre.
-    </p>
+    <h2>4. Avaliando as fotos</h2>
+    <ol class="alfa">
+      <li>
+        Você avalia <strong>todas as fotos enviadas por todas as turmas</strong>. Não há divisão
+        entre os jurados: cada foto recebe o voto dos três.
+      </li>
+      <li>
+        Quando <strong>dois jurados aceitam</strong>, a foto é aprovada e os pontos entram no placar
+        na mesma hora.
+      </li>
+      <li>
+        Quando <strong>dois jurados recusam</strong>, a foto é recusada. A turma vê o motivo e pode
+        enviar outra na mesma vaga.
+      </li>
+      <li>
+        Enquanto não houver dois votos no mesmo sentido, a foto fica <strong>pendente</strong> e não
+        pontua. Com um aceite e uma recusa, por exemplo, é o terceiro voto que decide.
+      </li>
+      <li>
+        Você pode <strong>mudar o seu voto</strong> a qualquer momento, e o sistema refaz a conta
+        sem duplicar ponto.
+      </li>
+    </ol>
 
-    <h2>O que torna uma foto válida</h2>
+    <h2>5. Quando avaliar</h2>
+    <p>
+      Fica a seu critério, mas algumas sugestões ajudam a manter a fila em dia sem pesar na sua
+      semana:
+    </p>
+    <ol class="alfa">
+      <li>
+        Uma boa medida é entrar <strong>pelo menos uma vez por dia</strong>. Se puder entrar mais
+        vezes, melhor ainda: as turmas gostam de ver a foto aprovada logo e, quando ela é recusada,
+        ganham tempo para refazer.
+      </li>
+      <li>
+        O filtro <em>Falta eu avaliar</em> mostra só o que ainda depende de você, então cada visita
+        costuma ser rápida.
+      </li>
+      <li>
+        As fotos tendem a se acumular no fim da semana, quando as turmas correm para fechar as
+        missões. Na quinta e na sexta, vale <strong>entrar com mais frequência</strong>.
+      </li>
+      <li>
+        O prazo das turmas termina na <strong>sexta-feira, 23, às 17h</strong>, e o resultado sai às
+        18h. Se der para entrar nessa meia hora, o filtro <em>Sem dois votos</em> mostra exatamente
+        as fotos que ainda esperam decisão, e assim toda foto enviada no prazo chega avaliada ao
+        resultado.
+      </li>
+    </ol>
+
+    <h2>6. O que torna uma foto válida</h2>
     <p>São quatro condições, e todas valem ao mesmo tempo:</p>
-    <ol>
+    <ol class="alfa">
       <li><strong>Pelo menos quatro integrantes da turma</strong> aparecem na foto.</li>
       <li>A foto mostra <strong>o que a missão pediu</strong>, e você lê a missão em claro na tela.</li>
       <li>A foto foi feita <strong>durante a Semana Acadêmica</strong>.</li>
-      <li>A foto está na <strong>vaga certa</strong>, isto é, na vaga daquela missão.</li>
+      <li>A foto está na <strong>vaga certa</strong>, isto é, numa vaga daquela missão.</li>
     </ol>
     <p>
       Foto antiga, foto de outra turma e montagem não valem. Na dúvida honesta entre aceitar e
-      recusar, aceite: o objetivo é premiar quem participou, e o custo de um erro para mais é menor
-      do que o de tirar ponto de quem cumpriu a tarefa.
+      recusar, aceite: o objetivo é premiar quem participou, e um erro para mais custa menos do
+      que tirar ponto de quem cumpriu a tarefa.
     </p>
     <p>
-      Nessas quatro condições convém manter a mesma régua entre os três, porque elas decidem se a
-      foto existe ou não. Vale <strong>conversar no primeiro dia</strong>, depois das primeiras dez
-      ou quinze fotos, sobre os casos de fronteira que apareceram. Você pode <strong>mudar o seu
-      voto</strong> a qualquer momento, e o sistema refaz a conta, então corrigir os primeiros é
-      melhor do que conviver com duas réguas.
+      Convém que os três usem a mesma régua nessas quatro condições, porque são elas que decidem se
+      a foto vale. Por isso, sugiro uma <strong>conversa rápida no primeiro dia</strong>, depois
+      das primeiras dez ou quinze fotos, sobre os casos de fronteira que aparecerem. Como o voto
+      pode ser mudado, ajustar os primeiros é simples.
     </p>
 
-    <h3>Recusar exige motivo</h3>
+    <h2>7. Recusar com motivo</h2>
     <p>
-      O campo do motivo não é formalidade: é o que a turma lê para refazer a foto dentro do prazo.
-      Escreva o que falta, em uma frase, e de modo que a correção seja óbvia. "Só três pessoas na
-      foto" e "esta é a vaga da missão 7, e a foto é de outra missão" resolvem; "não serve" não
-      resolve nada.
+      A recusa exige um motivo, porque é ele que a turma lê para refazer a foto dentro do prazo.
+      Escreva o que falta em uma frase, de modo que a correção fique <strong>óbvia</strong>. "Só três
+      pessoas na foto" e "esta é a vaga da missão 7, e a foto é de outra missão" resolvem; "não
+      serve" não diz à turma o que fazer.
     </p>
 
-    <h2>A missão dos palestrantes</h2>
-    <p>
-      A primeira missão pede <strong>uma foto com cada palestrante do evento</strong>, em seis
-      vagas. Ela é a única com várias fotos, e exige um cuidado que as outras não exigem:
-      <strong>as seis precisam ser de palestrantes diferentes</strong>. Cada turma preenche as
-      vagas na ordem que quiser, então a mesma pessoa pode ocupar a vaga 2 de uma turma e a vaga 5
-      de outra.
-    </p>
-    <p>
-      Por isso, no cartão de qualquer foto dessa missão, a fila mostra <strong>as outras fotos
-      daquela turma na mesma missão</strong>, em miniatura, logo abaixo do enunciado. Clique para
-      ampliar. Confira o conjunto antes de votar: seis fotos com a mesma pessoa cumprem uma vaga,
-      e não seis.
-    </p>
-    <p>
-      <strong>Quem são os palestrantes:</strong>
-      <span class="aconfirmar">a lista entra aqui assim que a programação for confirmada pela
-      organização do evento, e este guia é atualizado com os nomes.</span> Até lá, havendo dúvida
-      sobre se a pessoa fotografada é mesmo um palestrante, deixe a foto sem voto e pergunte, em
-      vez de recusar.
-    </p>
+    <h2>8. A missão dos palestrantes</h2>
+    <ol class="alfa">
+      <li>
+        A primeira missão pede <strong>uma foto com cada palestrante do evento</strong>, em seis
+        vagas. É a única missão com várias fotos.
+      </li>
+      <li>
+        As seis fotos precisam ser de <strong>palestrantes diferentes</strong>. Cada turma preenche
+        as vagas na ordem que quiser, então o mesmo palestrante pode ser a segunda foto de uma turma
+        e a quinta de outra.
+      </li>
+      <li>
+        Para facilitar a conferência, o cartão de qualquer foto dessa missão mostra, em miniatura,
+        <strong>as outras fotos da mesma turma</strong> naquela missão. Clique para ampliar e confira
+        o conjunto antes de votar: seis fotos com a mesma pessoa cumprem uma vaga, e não seis.
+      </li>
+      <li>
+        <strong>Quem são os palestrantes:</strong>
+        <span class="aconfirmar">a lista entra aqui assim que a programação for confirmada pela
+        organização do evento, e este guia é atualizado com os nomes.</span> Até lá, se houver
+        dúvida sobre se a pessoa fotografada é mesmo palestrante, deixe a foto sem voto e pergunte,
+        em vez de recusar.
+      </li>
+    </ol>
 
-    <h2>O ponto de criatividade</h2>
-    <p>
-      Além do voto de aceitar ou recusar, cada jurado decide se atribui o ponto de criatividade
-      àquela foto. É <strong>um ponto por jurado</strong>, e ele só conta junto de um aceite. Não é
-      prêmio escasso: não há cota a distribuir, e dar a várias fotos não tira de ninguém.
-    </p>
-    <p class="aviso">
-      <strong>O critério da criatividade é seu, e não se combina com os outros dois.</strong> É a
-      parte subjetiva da avaliação, e ela rende mais com três olhares diferentes do que com um
-      consenso forçado. Uma foto que agrade aos três leva os três pontos por mérito próprio, e não
-      por acordo prévio.
-    </p>
-    <p>O que costuma distinguir uma foto das demais, a título de orientação:</p>
+    <h2>9. O ponto de criatividade</h2>
+    <ol class="alfa">
+      <li>
+        Além de aceitar ou recusar, cada jurado decide se dá o ponto de criatividade àquela foto.
+        É <strong>um ponto por jurado</strong>, e ele só conta junto de um aceite.
+      </li>
+      <li>
+        Não há cota: dar o ponto a várias fotos não tira de ninguém.
+      </li>
+      <li>
+        O critério da criatividade é <strong>pessoal</strong> e não precisa ser combinado com os
+        outros jurados. É a parte subjetiva da avaliação, e ela rende mais com três olhares
+        diferentes do que com um consenso forçado.
+      </li>
+      <li>
+        Há uma <strong>missão secreta</strong>, que não aparece na lista das turmas e vale 44
+        pontos. Nela o ponto de criatividade conta dobrado, 2 por jurado, e o sistema faz essa
+        conta sozinho.
+      </li>
+    </ol>
+    <p>O que costuma distinguir uma foto das demais, como orientação:</p>
     <ul>
       <li><strong>Pose e composição.</strong> O grupo construiu uma cena, ou apenas se enfileirou para a câmera.</li>
       <li><strong>Figurino e adereços.</strong> Alguma coisa foi preparada antes de sair para fotografar.</li>
@@ -202,13 +252,8 @@
       <li><strong>Construção em cima do tema.</strong> A turma leu o enunciado e foi além do pedido literal.</li>
       <li><strong>Humor e achado.</strong> A ideia que ninguém mais teve naquela missão.</li>
     </ul>
-    <p>
-      Há uma <strong>missão secreta</strong>, que não aparece na lista das turmas e vale 44 pontos.
-      Nela o ponto de criatividade conta <strong>dobrado</strong>, 2 por jurado. A turma que chegar
-      até ela merece o peso maior, e o sistema faz essa conta sozinho.
-    </p>
 
-    <h2>O que o sistema faz sozinho</h2>
+    <h2>10. O que o sistema faz sozinho</h2>
     <ul>
       <li>Soma os pontos e atualiza o placar assim que a segunda aceitação entra.</li>
       <li>Refaz a conta quando alguém muda o voto, sem duplicar ponto.</li>
@@ -217,7 +262,7 @@
       <li>Impede que uma turma veja ou grave foto de outra.</li>
     </ul>
 
-    <h2>Dúvidas</h2>
+    <h2>11. Dúvidas</h2>
     <p>
       Professor <strong>Lucas Telichevesky</strong>, por
       <strong>lucastelichevesky@ifsul.edu.br</strong> ou <strong>(51) 98131-2109</strong>.
