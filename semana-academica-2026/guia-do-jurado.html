@@ -19,6 +19,9 @@
     .reg ol.alfa > li { margin-bottom: 12px; }
     .reg .tabela td:first-child { font-weight: 700; white-space: nowrap; }
     .reg .aconfirmar { font-style: italic; color: var(--text-muted); }
+    .reg ul.palestrantes { columns: 2; column-gap: 24px; margin: 8px 0 10px 24px; }
+    .reg ul.palestrantes li { margin-bottom: 4px; break-inside: avoid; }
+    @media (max-width: 520px) { .reg ul.palestrantes { columns: 1; } }
   </style>
 </head>
 <body data-tipo="misto">
@@ -216,11 +219,24 @@
         o conjunto antes de votar: seis fotos com a mesma pessoa cumprem uma vaga, e não seis.
       </li>
       <li>
-        <strong>Quem são os palestrantes:</strong>
-        <span class="aconfirmar">a lista entra aqui assim que a programação for confirmada pela
-        organização do evento, e este guia é atualizado com os nomes.</span> Até lá, se houver
-        dúvida sobre se a pessoa fotografada é mesmo palestrante, deixe a foto sem voto e pergunte,
-        em vez de recusar.
+        <strong>Quem são os palestrantes.</strong> São onze pessoas, e as seis fotos valem com
+        <strong>quaisquer seis delas</strong>:
+        <ul class="palestrantes">
+          <li>Juliana Tonin</li>
+          <li>Caio Felipe</li>
+          <li>João Pedro</li>
+          <li>Leandro Ritter</li>
+          <li>William Rodrigues</li>
+          <li>Guilherme Mar</li>
+          <li>Mateus Rodrigues Callero</li>
+          <li>Mariana Guimarães Xavier da Costa</li>
+          <li>Guilherme Alves Luvielmo</li>
+          <li>Anne Santos da Silva</li>
+          <li>Arsha Beremi França dos Santos</li>
+        </ul>
+        A mesma lista aparece na fila, no cartão de cada foto dessa missão. Se houver dúvida sobre
+        se a pessoa fotografada é mesmo uma delas, deixe a foto sem voto e pergunte, em vez de
+        recusar.
       </li>
     </ol>
 
